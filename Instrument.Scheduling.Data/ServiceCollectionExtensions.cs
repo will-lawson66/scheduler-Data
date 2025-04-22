@@ -4,53 +4,51 @@ using Instrument.Scheduling.Data.Data;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
-using Instrument.Scheduling.Data.Repositories;
+using Instrument.Scheduling.Data.Repository;
 
-namespace Instrument.Scheduling.Data.Extensions
+namespace Instrument.Scheduling.Data;
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddSchedulerDataLayer(this IServiceCollection services, 
+        StorageConfiguration config)
     {
-        public static IServiceCollection AddSchedulerDataLayer(this IServiceCollection services, 
-            StorageConfiguration config)
+        switch (config.Provider)
         {
-            switch (config.Provider)
-            {
-                case StorageProviderType.Json:
-                    services.AddSingleton<IStorageProvider<SequenceDefinition>>(
-                        sp => new JsonStorageProvider<SequenceDefinition>(config.JsonFilePath));
-                    break;
-                    
-                case StorageProviderType.SQLite:
-                    services.AddDbContext<SchedulerDbContext>(options =>
-                        options.UseSqlite(config.ConnectionString));
-                    services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
-                    break;
-                    
-                case StorageProviderType.SqlServer:
-                    services.AddDbContext<SchedulerDbContext>(options =>
-                        options.UseSqlServer(config.ConnectionString));
-                    services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
-                    break;
-            }
-
-            services.AddScoped<ISequenceDefinitionRepository, SequenceDefinitionRepository>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            
-            return services;
+            case StorageProviderType.Json:
+                services.AddSingleton<IStorageProvider<SequenceDefinition>>(
+                    sp => new JsonStorageProvider<SequenceDefinition>(config.JsonFilePath));
+                break;
+                
+            case StorageProviderType.SQLite:
+                services.AddDbContext<SchedulerDbContext>(options =>
+                    options.UseSqlite(config.ConnectionString));
+                services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
+                break;
+                
+            case StorageProviderType.SqlServer:
+                services.AddDbContext<SchedulerDbContext>(options =>
+                    options.UseSqlServer(config.ConnectionString));
+                services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
+                break;
         }
-    }
 
-    public class StorageConfiguration
-    {
-        public StorageProviderType Provider { get; set; } = StorageProviderType.Json;
-        public string JsonFilePath { get; set; } = "sequence_definitions.json";
-        public string ConnectionString { get; set; } = string.Empty;
+        services.AddScoped<ISequenceDefinitionRepository, SequenceDefinitionRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
+        return services;
     }
+}
 
-    public enum StorageProviderType
-    {
-        Json,
-        SQLite,
-        SqlServer
-    }
+public class StorageConfiguration
+{
+    public StorageProviderType Provider { get; set; } = StorageProviderType.Json;
+    public string JsonFilePath { get; set; } = "sequence_definitions.json";
+    public string ConnectionString { get; set; } = string.Empty;
+}
+
+public enum StorageProviderType
+{
+    Json,
+    SQLite,
+    SqlServer
 }

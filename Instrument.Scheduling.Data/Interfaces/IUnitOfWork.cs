@@ -1,6 +1,3 @@
-using System;
-using System.Threading.Tasks;
-
 namespace Instrument.Scheduling.Data.Interfaces
 {
     public interface IUnitOfWork : IDisposable

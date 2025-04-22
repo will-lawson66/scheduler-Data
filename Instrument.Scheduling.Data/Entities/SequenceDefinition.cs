@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Instrument.Scheduling.Data.Domain.Entities
+namespace Instrument.Scheduling.Data.Entities
 {
     public class SequenceDefinition
     {
