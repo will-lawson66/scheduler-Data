@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Scheduler.DataLayer.Data;
-using Scheduler.DataLayer.Interfaces;
+using Instrument.Scheduling.Data.Data;
+using Instrument.Scheduling.Data.Interfaces;
 
-namespace Scheduler.DataLayer.Providers
+namespace Instrument.Scheduling.Data.Providers
 {
     public class SqliteStorageProvider<T> : IStorageProvider<T> where T : class
     {

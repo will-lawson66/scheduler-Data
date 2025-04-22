@@ -1,4 +1,6 @@
-﻿namespace Instrument.Scheduling.Data.Domain.Repository;
+﻿using Instrument.Scheduling.Data.Interfaces;
+
+namespace Instrument.Scheduling.Data.Domain.Repository;
 public class Repository<T>(IDataContext context) : IRepository<T>
     where T : class
 {

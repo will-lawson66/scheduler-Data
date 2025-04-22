@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Scheduler.DataLayer.Interfaces
+namespace Instrument.Scheduling.Data.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {

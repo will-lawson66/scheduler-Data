@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Scheduler.DataLayer.Entities;
-using Scheduler.DataLayer.Interfaces;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Interfaces;
 
-namespace Scheduler.DataLayer.Services
+namespace Instrument.Scheduling.Data.Services
 {
     public class SequenceService
     {

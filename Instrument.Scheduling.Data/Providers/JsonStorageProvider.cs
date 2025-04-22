@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Scheduler.DataLayer.Interfaces;
+using Instrument.Scheduling.Data.Interfaces;
 
-namespace Scheduler.DataLayer.Providers
+namespace Instrument.Scheduling.Data.Providers
 {
     public class JsonStorageProvider<T> : IStorageProvider<T> where T : class
     {

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Scheduler.DataLayer.Entities;
+using Instrument.Scheduling.Data.Entities;
 
-namespace Scheduler.DataLayer.Interfaces
+namespace Instrument.Scheduling.Data.Interfaces
 {
     public interface ISequenceDefinitionRepository
     {

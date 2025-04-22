@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Scheduler.DataLayer.Entities;
+using Instrument.Scheduling.Data.Domain.Entities;
 
-namespace Scheduler.DataLayer.Interfaces
+namespace Instrument.Scheduling.Data.Interfaces
 {
     public interface ISchedulerDataContext
     {

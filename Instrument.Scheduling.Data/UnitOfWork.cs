@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using Scheduler.DataLayer.Entities;
-using Scheduler.DataLayer.Interfaces;
-using Scheduler.DataLayer.Repositories;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.Repositories;
 
-namespace Scheduler.DataLayer.Data
+namespace Instrument.Scheduling.Data.Data
 {
     public class UnitOfWork : IUnitOfWork
     {

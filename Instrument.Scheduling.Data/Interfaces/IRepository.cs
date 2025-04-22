@@ -1,4 +1,4 @@
-﻿namespace Instrument.Scheduling.Data;
+﻿namespace Instrument.Scheduling.Data.Interfaces;
 public interface IRepository<T> where T : class
 {
     Task<IEnumerable<T>> GetAllAsync();

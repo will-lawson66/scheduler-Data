@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Scheduler.DataLayer.Entities;
+using Instrument.Scheduling.Data.Entities;
 using System.Text.Json;
 
-namespace Scheduler.DataLayer.Data
+namespace Instrument.Scheduling.Data.Data
 {
     public class SchedulerDbContext : DbContext
     {

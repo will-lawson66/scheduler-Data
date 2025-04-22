@@ -1,4 +1,6 @@
-﻿namespace Instrument.Scheduling.Data.Domain.DataContext;
+﻿using Instrument.Scheduling.Data.Interfaces;
+
+namespace Instrument.Scheduling.Data.Domain.DataContext;
 public class JsonSequenceDataContext(string filePath) : IDataContext
 {
     private async Task<List<T>> LoadDataAsync<T>()

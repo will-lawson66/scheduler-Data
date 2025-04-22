@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Scheduler.DataLayer.Data;
-using Scheduler.DataLayer.Entities;
-using Scheduler.DataLayer.Interfaces;
-using Scheduler.DataLayer.Providers;
-using Scheduler.DataLayer.Repositories;
+using Instrument.Scheduling.Data.Data;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.Providers;
+using Instrument.Scheduling.Data.Repositories;
 
-namespace Scheduler.DataLayer.Extensions
+namespace Instrument.Scheduling.Data.Extensions
 {
     public static class ServiceCollectionExtensions
     {
