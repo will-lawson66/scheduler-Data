@@ -1,12 +1,10 @@
-namespace Instrument.Scheduling.Data.Interfaces
+namespace Instrument.Scheduling.Data.Interfaces;
+public interface IStorageProvider<T> where T : class
 {
-    public interface IStorageProvider<T> where T : class
-    {
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T?> GetByIdAsync(string id);
-        Task AddAsync(T entity);
-        Task UpdateAsync(T entity);
-        Task DeleteAsync(string id);
-        Task SaveChangesAsync();
-    }
+    Task<IEnumerable<T>> GetAllAsync();
+    Task<T?> GetByIdAsync(string id);
+    Task AddAsync(T entity);
+    Task UpdateAsync(T entity);
+    Task DeleteAsync(string id);
+    Task SaveChangesAsync();
 }

@@ -1,8 +1,6 @@
-namespace Instrument.Scheduling.Data.Interfaces
+namespace Instrument.Scheduling.Data.Interfaces;
+public interface IUnitOfWork : IDisposable
 {
-    public interface IUnitOfWork : IDisposable
-    {
-        ISequenceDefinitionRepository SequenceDefinitions { get; }
-        Task<int> SaveChangesAsync();
-    }
+    ISequenceRepository SequenceDefinitions { get; }
+    Task<int> SaveChangesAsync();
 }

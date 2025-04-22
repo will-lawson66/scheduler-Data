@@ -2,39 +2,39 @@ using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 
 namespace Instrument.Scheduling.Data.Repository;
-public class SequenceDefinitionRepository : ISequenceDefinitionRepository
+public class SequenceRepository : ISequenceRepository
 {
-    private readonly IStorageProvider<SequenceDefinition> _storageProvider;
+    private readonly IStorageProvider<Sequence> _storageProvider;
 
-    public SequenceDefinitionRepository(IStorageProvider<SequenceDefinition> storageProvider)
+    public SequenceRepository(IStorageProvider<Sequence> storageProvider)
     {
         _storageProvider = storageProvider;
     }
 
-    public async Task<IEnumerable<SequenceDefinition>> GetAllAsync()
+    public async Task<IEnumerable<Sequence>> GetAllAsync()
     {
         return await _storageProvider.GetAllAsync();
     }
 
-    public async Task<SequenceDefinition?> GetByIdAsync(string id)
+    public async Task<Sequence?> GetByIdAsync(string id)
     {
         return await _storageProvider.GetByIdAsync(id);
     }
 
-    public async Task<IQueryable<SequenceDefinition>> GetQueryableAsync()
+    public async Task<IQueryable<Sequence>> GetQueryableAsync()
     {
         var data = await _storageProvider.GetAllAsync();
         return data.AsQueryable();
     }
 
-    public async Task AddAsync(SequenceDefinition sequence)
+    public async Task AddAsync(Sequence sequence)
     {
         await _storageProvider.AddAsync(sequence);
     }
 
-    public async Task UpdateAsync(SequenceDefinition sequence)
+    public async Task UpdateAsync(Sequence sequence)
     {
-        sequence.ModifiedDate = DateTime.UtcNow;
+        //sequence.ModifiedDate = DateTime.UtcNow;
         await _storageProvider.UpdateAsync(sequence);
     }
 

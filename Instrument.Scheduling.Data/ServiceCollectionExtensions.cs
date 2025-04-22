@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Instrument.Scheduling.Data.Data;
+using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
@@ -15,24 +15,24 @@ public static class ServiceCollectionExtensions
         switch (config.Provider)
         {
             case StorageProviderType.Json:
-                services.AddSingleton<IStorageProvider<SequenceDefinition>>(
-                    sp => new JsonStorageProvider<SequenceDefinition>(config.JsonFilePath));
+                services.AddSingleton<IStorageProvider<Sequence>>(
+                    sp => new JsonStorageProvider<Sequence>(config.JsonFilePath));
                 break;
                 
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlite(config.ConnectionString));
-                services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
+                services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
                 break;
                 
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlServer(config.ConnectionString));
-                services.AddScoped<IStorageProvider<SequenceDefinition>, SqliteStorageProvider<SequenceDefinition>>();
+                services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
                 break;
         }
 
-        services.AddScoped<ISequenceDefinitionRepository, SequenceDefinitionRepository>();
+        services.AddScoped<ISequenceRepository, SequenceRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;
