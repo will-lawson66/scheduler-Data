@@ -15,24 +15,34 @@ public static class ServiceCollectionExtensions
         switch (config.Provider)
         {
             case StorageProviderType.Json:
+                // Register JSON providers
                 services.AddSingleton<IStorageProvider<Sequence>>(
                     sp => new JsonStorageProvider<Sequence>(config.JsonFilePath));
+                services.AddSingleton<IStorageProvider<Parameter>>(
+                    sp => new JsonStorageProvider<Parameter>(config.JsonFilePath.Replace(".json", "_parameters.json")));
+                services.AddSingleton<IStorageProvider<SequenceParameter>>(
+                    sp => new JsonStorageProvider<SequenceParameter>(config.JsonFilePath.Replace(".json", "_sequence_parameters.json")));
                 break;
                 
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlite(config.ConnectionString));
                 services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
+                services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
+                services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
                 break;
                 
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlServer(config.ConnectionString));
                 services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
+                services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
+                services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
                 break;
         }
 
         services.AddScoped<ISequenceRepository, SequenceRepository>();
+        services.AddScoped<IParameterRepository, ParameterRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;
