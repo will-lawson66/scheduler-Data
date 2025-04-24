@@ -10,12 +10,3 @@ public record Sequence
     // Navigation property for the many-to-many relationship with Parameters
     public List<SequenceParameter> SequenceParameters { get; init; } = new();
 }
-
-public record SequenceParameter
-{
-    public string Id { get; set; } = default!;
-    public string Type { get; set; } = default!;
-    public int Order { get; set; }
-    public TimeSpan Duration { get; set; }
-    public Dictionary<string, object> Parameters { get; set; } = new();
-}

@@ -47,9 +47,9 @@ public class ParameterService
     }
     
     // Add a parameter to a sequence
-    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId, string? overrideValue = null)
+    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId, int orderNumber)
     {
-        await _unitOfWork.Parameters.AddParameterToSequenceAsync(sequenceId, parameterId, overrideValue);
+        await _unitOfWork.Parameters.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
         await _unitOfWork.SaveChangesAsync();
     }
     
@@ -60,17 +60,10 @@ public class ParameterService
         await _unitOfWork.SaveChangesAsync();
     }
     
-    // Update a parameter's override value in a sequence
-    public async Task UpdateParameterOverrideValueAsync(string sequenceId, string parameterId, string? overrideValue)
-    {
-        await _unitOfWork.Parameters.UpdateParameterOverrideValueAsync(sequenceId, parameterId, overrideValue);
-        await _unitOfWork.SaveChangesAsync();
-    }
-    
     // Validate parameter value against constraints
     public bool ValidateParameterValue(Parameter parameter, string value)
     {
-        if (parameter.Required && string.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(value))
         {
             return false;
         }
@@ -81,7 +74,7 @@ public class ParameterService
             return true;
         }
         
-        switch (parameter.ParameterType.ToLower())
+        switch (parameter.Type.ToLower())
         {
             case "number":
             case "integer":
@@ -92,15 +85,15 @@ public class ParameterService
                     return false;
                 }
                 
-                if (!string.IsNullOrEmpty(parameter.MinValue) && 
-                    double.TryParse(parameter.MinValue, out double minValue) &&
+                if (!string.IsNullOrEmpty(parameter.Min) && 
+                    double.TryParse(parameter.Min, out double minValue) &&
                     numValue < minValue)
                 {
                     return false;
                 }
                 
-                if (!string.IsNullOrEmpty(parameter.MaxValue) && 
-                    double.TryParse(parameter.MaxValue, out double maxValue) &&
+                if (!string.IsNullOrEmpty(parameter.Max) && 
+                    double.TryParse(parameter.Max, out double maxValue) &&
                     numValue > maxValue)
                 {
                     return false;
@@ -109,15 +102,15 @@ public class ParameterService
                 return true;
                 
             case "string":
-                if (!string.IsNullOrEmpty(parameter.MinValue) && 
-                    int.TryParse(parameter.MinValue, out int minLength) &&
+                if (!string.IsNullOrEmpty(parameter.Min) && 
+                    int.TryParse(parameter.Min, out int minLength) &&
                     value.Length < minLength)
                 {
                     return false;
                 }
                 
-                if (!string.IsNullOrEmpty(parameter.MaxValue) && 
-                    int.TryParse(parameter.MaxValue, out int maxLength) &&
+                if (!string.IsNullOrEmpty(parameter.Max) && 
+                    int.TryParse(parameter.Max, out int maxLength) &&
                     value.Length > maxLength)
                 {
                     return false;

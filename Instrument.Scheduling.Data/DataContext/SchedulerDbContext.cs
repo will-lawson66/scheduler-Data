@@ -13,7 +13,7 @@ public class SchedulerDbContext : DbContext
     public DbSet<Sequence> Sequences { get; set; }
     public DbSet<Parameter> Parameters { get; set; }
     public DbSet<SequenceParameter> SequenceParameters { get; set; }
-    public DbSet<Range> Ranges { get; set; }
+    public DbSet<Entities.Range> Ranges { get; set; }
     public DbSet<RangeValue> RangeValues { get; set; }
     public DbSet<Resource> Resources { get; set; }
 
@@ -84,7 +84,7 @@ public class SchedulerDbContext : DbContext
                 .HasForeignKey(e => e.ParameterId);
         });
 
-        modelBuilder.Entity<Range>(entity => 
+        modelBuilder.Entity<Entities.Range>(entity => 
         {
             entity.HasKey(e => e.Id);
             

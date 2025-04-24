@@ -8,7 +8,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly IStorageProvider<Sequence> _sequenceStorageProvider;
     private readonly IStorageProvider<Parameter> _parameterStorageProvider;
     private readonly IStorageProvider<SequenceParameter> _sequenceParameterStorageProvider;
-    private readonly IStorageProvider<Range> _rangeStorageProvider;
+    private readonly IStorageProvider<Entities.Range> _rangeStorageProvider;
     private readonly IStorageProvider<RangeValue> _rangeValueStorageProvider;
     private readonly IStorageProvider<Resource> _resourceStorageProvider;
     
@@ -22,7 +22,7 @@ public class UnitOfWork : IUnitOfWork
         IStorageProvider<Sequence> sequenceStorageProvider,
         IStorageProvider<Parameter> parameterStorageProvider,
         IStorageProvider<SequenceParameter> sequenceParameterStorageProvider,
-        IStorageProvider<Range> rangeStorageProvider,
+        IStorageProvider<Entities.Range> rangeStorageProvider,
         IStorageProvider<RangeValue> rangeValueStorageProvider,
         IStorageProvider<Resource> resourceStorageProvider)
     {

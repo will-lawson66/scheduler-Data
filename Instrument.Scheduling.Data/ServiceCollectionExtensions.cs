@@ -22,8 +22,8 @@ public static class ServiceCollectionExtensions
                     sp => new JsonStorageProvider<Parameter>(config.JsonFilePath.Replace(".json", "_parameters.json")));
                 services.AddSingleton<IStorageProvider<SequenceParameter>>(
                     sp => new JsonStorageProvider<SequenceParameter>(config.JsonFilePath.Replace(".json", "_sequence_parameters.json")));
-                services.AddSingleton<IStorageProvider<Range>>(
-                    sp => new JsonStorageProvider<Range>(config.JsonFilePath.Replace(".json", "_ranges.json")));
+                services.AddSingleton<IStorageProvider<Entities.Range>>(
+                    sp => new JsonStorageProvider<Entities.Range>(config.JsonFilePath.Replace(".json", "_ranges.json")));
                 services.AddSingleton<IStorageProvider<RangeValue>>(
                     sp => new JsonStorageProvider<RangeValue>(config.JsonFilePath.Replace(".json", "_range_values.json")));
                 services.AddSingleton<IStorageProvider<Resource>>(
@@ -36,7 +36,7 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
                 services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
                 services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
-                services.AddScoped<IStorageProvider<Range>, SqliteStorageProvider<Range>>();
+                services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
                 break;
@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
                 services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
                 services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
-                services.AddScoped<IStorageProvider<Range>, SqliteStorageProvider<Range>>();
+                services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
                 break;

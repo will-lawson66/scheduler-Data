@@ -6,39 +6,39 @@ namespace Instrument.Scheduling.Data.Repository;
 
 public class RangeRepository : IRangeRepository
 {
-    private readonly IStorageProvider<Range> _rangeStorageProvider;
+    private readonly IStorageProvider<Entities.Range> _rangeStorageProvider;
     private readonly IStorageProvider<Parameter> _parameterStorageProvider;
 
     public RangeRepository(
-        IStorageProvider<Range> rangeStorageProvider,
+        IStorageProvider<Entities.Range> rangeStorageProvider,
         IStorageProvider<Parameter> parameterStorageProvider)
     {
         _rangeStorageProvider = rangeStorageProvider;
         _parameterStorageProvider = parameterStorageProvider;
     }
 
-    public async Task<IEnumerable<Range>> GetAllAsync()
+    public async Task<IEnumerable<Entities.Range>> GetAllAsync()
     {
         return await _rangeStorageProvider.GetAllAsync();
     }
 
-    public async Task<Range?> GetByIdAsync(string id)
+    public async Task<Entities.Range?> GetByIdAsync(string id)
     {
         return await _rangeStorageProvider.GetByIdAsync(id);
     }
 
-    public async Task<IQueryable<Range>> GetQueryableAsync()
+    public async Task<IQueryable<Entities.Range>> GetQueryableAsync()
     {
         var data = await _rangeStorageProvider.GetAllAsync();
         return data.AsQueryable();
     }
 
-    public async Task AddAsync(Range range)
+    public async Task AddAsync(Entities.Range range)
     {
         await _rangeStorageProvider.AddAsync(range);
     }
 
-    public async Task UpdateAsync(Range range)
+    public async Task UpdateAsync(Entities.Range range)
     {
         await _rangeStorageProvider.UpdateAsync(range);
     }
@@ -48,7 +48,7 @@ public class RangeRepository : IRangeRepository
         await _rangeStorageProvider.DeleteAsync(id);
     }
     
-    public async Task<Range?> GetRangeWithValuesAsync(string id)
+    public async Task<Entities.Range?> GetRangeWithValuesAsync(string id)
     {
         // This works when using EF Core, but for our simplified storage provider
         // we would need to separately retrieve the values

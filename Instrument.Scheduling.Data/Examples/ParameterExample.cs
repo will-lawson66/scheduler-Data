@@ -39,36 +39,33 @@ public class ParameterExample
         // Create sample parameters
         var tempParameter = new Parameter
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid()
+                .ToString(),
             Name = "Temperature",
-            ParameterType = "number",
+            Type = "number",
             DefaultValue = "37.0",
-            MinValue = "20.0",
-            MaxValue = "60.0",
-            Required = true,
-            Description = "Operating temperature in degrees Celsius"
+            Min = "20.0",
+            Max = "60.0",
         };
         
         var timeParameter = new Parameter
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid()
+                .ToString(),
             Name = "Duration",
-            ParameterType = "number",
+            Type = "number",
             DefaultValue = "60",
-            MinValue = "1",
-            MaxValue = "300",
-            Required = true,
-            Description = "Operation duration in seconds"
+            Min = "1",
+            Max = "300",
         };
         
         var modeParameter = new Parameter
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = Guid.NewGuid()
+                .ToString(),
             Name = "Mode",
-            ParameterType = "string",
+            Type = "string",
             DefaultValue = "Standard",
-            Required = true,
-            Description = "Operation mode"
         };
         
         // Save the parameters
@@ -94,9 +91,9 @@ public class ParameterExample
         Console.WriteLine($"\nCreated sequence: {sequence.Name} (ID: {sequence.Id})");
         
         // Associate parameters with the sequence
-        await parameterService.AddParameterToSequenceAsync(sequence.Id, tempParameter.Id, "42.5");
-        await parameterService.AddParameterToSequenceAsync(sequence.Id, timeParameter.Id, "120");
-        await parameterService.AddParameterToSequenceAsync(sequence.Id, modeParameter.Id, "Advanced");
+        await parameterService.AddParameterToSequenceAsync(sequence.Id, tempParameter.Id, 1);
+        await parameterService.AddParameterToSequenceAsync(sequence.Id, timeParameter.Id, 2);
+        await parameterService.AddParameterToSequenceAsync(sequence.Id, modeParameter.Id, 3);
         
         Console.WriteLine("\nAssociated parameters with the sequence");
         
@@ -106,7 +103,7 @@ public class ParameterExample
         Console.WriteLine("\nParameters for sequence:");
         foreach (var param in sequenceParameters)
         {
-            Console.WriteLine($"- {param.Name} (Type: {param.ParameterType}, Default: {param.DefaultValue})");
+            Console.WriteLine($"- {param.Name} (Type: {param.Type}, Default: {param.DefaultValue})");
         }
         
         // Validate a parameter value
