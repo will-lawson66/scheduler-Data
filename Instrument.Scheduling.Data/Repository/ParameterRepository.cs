@@ -71,13 +71,13 @@ public class ParameterRepository : IParameterRepository
         return allParameters.Where(p => parameterIds.Contains(p.Id));
     }
     
-    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId, string? overrideValue = null)
+    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId, int orderNumber)
     {
         var sequenceParameter = new SequenceParameter
         {
             SequenceId = sequenceId,
             ParameterId = parameterId,
-            OverrideValue = overrideValue
+            OrderNumber = orderNumber
         };
         
         await _sequenceParameterStorageProvider.AddAsync(sequenceParameter);
@@ -89,18 +89,16 @@ public class ParameterRepository : IParameterRepository
         await _sequenceParameterStorageProvider.DeleteAsync($"{sequenceId}_{parameterId}");
     }
     
-    public async Task UpdateParameterOverrideValueAsync(string sequenceId, string parameterId, string? overrideValue)
+    public async Task<IEnumerable<Parameter>> GetParametersByRangeAsync(string rangeId)
     {
-        var allSequenceParams = await _sequenceParameterStorageProvider.GetAllAsync();
-        var sequenceParam = allSequenceParams.FirstOrDefault(
-            sp => sp.SequenceId == sequenceId && sp.ParameterId == parameterId);
-                
-        if (sequenceParam != null)
-        {
-            // Since we're using records, create a new instance with the updated property
-            var updatedParam = sequenceParam with { OverrideValue = overrideValue };
-            await _sequenceParameterStorageProvider.UpdateAsync(updatedParam);
-        }
+        var parameters = await _parameterStorageProvider.GetAllAsync();
+        return parameters.Where(p => p.RangeId == rangeId);
+    }
+    
+    public async Task<IEnumerable<Parameter>> GetParametersByResourceAsync(string resourceId)
+    {
+        var parameters = await _parameterStorageProvider.GetAllAsync();
+        return parameters.Where(p => p.ResourceId == resourceId);
     }
 
     public async Task SaveChangesAsync()

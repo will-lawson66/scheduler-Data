@@ -15,13 +15,16 @@ public interface IParameterRepository
     Task<IEnumerable<Parameter>> GetParametersForSequenceAsync(string sequenceId);
     
     // Add a parameter to a sequence
-    Task AddParameterToSequenceAsync(string sequenceId, string parameterId, string? overrideValue = null);
+    Task AddParameterToSequenceAsync(string sequenceId, string parameterId, int orderNumber);
     
     // Remove a parameter from a sequence
     Task RemoveParameterFromSequenceAsync(string sequenceId, string parameterId);
     
-    // Update a parameter's override value in a sequence
-    Task UpdateParameterOverrideValueAsync(string sequenceId, string parameterId, string? overrideValue);
+    // Get parameters by range
+    Task<IEnumerable<Parameter>> GetParametersByRangeAsync(string rangeId);
+    
+    // Get parameters by resource
+    Task<IEnumerable<Parameter>> GetParametersByResourceAsync(string resourceId);
     
     Task SaveChangesAsync();
 }
