@@ -1,11 +1,7 @@
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Instrument.Scheduling.Data.Entities;
-using Instrument.Scheduling.Data;
-using Instrument.Scheduling.Data.Services;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Instrument.Scheduling.Data.Examples;
 
