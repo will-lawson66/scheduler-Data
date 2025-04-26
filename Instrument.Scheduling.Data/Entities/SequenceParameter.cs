@@ -6,8 +6,8 @@ public record SequenceParameter
     public required string SequenceId { get; init; }
     public required string ParameterId { get; init; }
     public int OrderNumber { get; init; }
-    
+
     // Navigation properties
-    public Sequence Sequence { get; init; } = null!;
-    public Parameter Parameter { get; init; } = null!;
+    public Sequence? Sequence { get; init; }
+    public Parameter? Parameter { get; init; } = null!;
 }
