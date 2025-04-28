@@ -1,6 +1,7 @@
 using Instrument.Scheduling.Data.Configuration;
 using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Initialization;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Repository;
@@ -61,6 +62,30 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IResourceRepository, ResourceRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
+        return services;
+    }
+
+    /// <summary>
+    /// Adds data initialization and storage services to the service collection
+    /// </summary>
+    public static IServiceCollection AddSchedulerDataWithInitialization(
+        this IServiceCollection services,
+        StorageConfiguration config)
+    {
+        // Add data services
+        services.AddSchedulerDataLayer(config);
+
+        // Add initialization services
+        services.AddDataInitialization();
+
+        return services;
+    }
+
+    public static IServiceCollection AddDataInitialization(this IServiceCollection services)
+    {
+        // Register factory
+        services.AddSingleton<DataInitializerFactory>();
+
         return services;
     }
 }
