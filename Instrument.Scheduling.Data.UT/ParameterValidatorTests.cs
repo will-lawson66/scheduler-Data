@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using Xunit;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Validation;
-using System.Reflection.Metadata;
-using Parameter = Instrument.Scheduling.Data.Entities.Parameter;
+using Instrument.Scheduling.Data.Exceptions;
+using System.ComponentModel.DataAnnotations;
+using Range = Instrument.Scheduling.Data.Entities.Range;
 
-namespace Instrument.Scheduling.Data.Tests;
+namespace Instrument.Scheduling.Data.UT;
 
 public class ParameterValidatorTests
 {
@@ -13,45 +15,36 @@ public class ParameterValidatorTests
     public void Validate_NumericParameter_WithValidValue_Succeeds()
     {
         // Arrange
-        var parameter = new Parameter
-        {
-            Id = "temp",
-            Name = "Temperature",
-            Type = "number",
-            Min = "0",
-            Max = "100"
-        };
+        var parameter = CreateNumericParameter();
 
         // Act
         var result = ParameterValueValidator.Validate(parameter, "50");
 
         // Assert
-        //Assert.True(result.Success);
+        Assert.Equal(ValidationResult.Success, result);
     }
 
-    [Fact]
-    public void Validate_NumericParameter_BelowMinimum_Fails()
+    [Theory]
+    [InlineData("-1", "must be >=")]
+    [InlineData("101", "must be <=")]
+    [InlineData("abc", "Invalid numeric")]
+    public void Validate_NumericParameter_WithInvalidValues_Fails(string value, string expectedError)
     {
         // Arrange
-        var parameter = new Parameter
-        {
-            Id = "temp",
-            Name = "Temperature",
-            Type = "number",
-            Min = "0",
-            Max = "100"
-        };
+        var parameter = CreateNumericParameter();
 
         // Act
-        var result = ParameterValueValidator.Validate(parameter, "-1");
+        var result = ParameterValueValidator.Validate(parameter, value);
 
         // Assert
-        //Assert.False(result.Success);
-        Assert.Contains("must be >=", result.ErrorMessage);
+        Assert.Contains(expectedError, result.ErrorMessage);
     }
 
-    [Fact]
-    public void Validate_DateTimeParameter_WithValidValue_Succeeds()
+    [Theory]
+    [InlineData("2025-04-24T19:33:01Z")]
+    [InlineData("2025-04-24")]
+    [InlineData("2025/04/24 19:33:01")]
+    public void Validate_DateTimeParameter_WithValidValue_Succeeds(string dateValue)
     {
         // Arrange
         var parameter = new Parameter
@@ -62,37 +55,113 @@ public class ParameterValidatorTests
         };
 
         // Act
-        var result = ParameterValueValidator.Validate(parameter, "2025-04-24T19:33:01Z");
+        var result = ParameterValueValidator.Validate(parameter, dateValue);
 
         // Assert
-        //Assert.True(result.Success);
+        Assert.Equal(ValidationResult.Success, result);
+    }
+
+    [Fact]
+    public void Validate_DateTimeParameter_WithInvalidValue_Fails()
+    {
+        // Arrange
+        var parameter = new Parameter
+        {
+            Id = "startDate",
+            Name = "Start Date",
+            Type = "datetime"
+        };
+
+        // Act
+        var result = ParameterValueValidator.Validate(parameter, "not-a-date");
+
+        // Assert
+        Assert.Contains("Invalid date", result.ErrorMessage);
     }
 
     [Fact]
     public void Validate_RangeParameter_WithValidValue_Succeeds()
     {
         // Arrange
-        var parameter = new Parameter
-        {
-            Id = "mode",
-            Name = "Mode",
-            Type = "range",
-            Range = new Entities.Range
-            {
-                Id = "modes",
-                Name = "Operating Modes",
-                //Values = new List<RangeValue>
-                //{
-                //    new() { Id = "1", Value = "Normal" },
-                //    new() { Id = "2", Value = "Diagnostic" }
-                //}
-            }
-        };
+        var parameter = CreateRangeParameter();
 
         // Act
         var result = ParameterValueValidator.Validate(parameter, "Normal");
 
         // Assert
-        //Assert.True(result.Success);
+        Assert.Equal(ValidationResult.Success, result);
+    }
+
+    [Fact]
+    public void Validate_RangeParameter_WithInvalidValue_Fails()
+    {
+        // Arrange
+        var parameter = CreateRangeParameter();
+
+        // Act
+        var result = ParameterValueValidator.Validate(parameter, "Turbo");
+
+        // Assert
+        Assert.Contains("not in allowed range", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void ValidateAndThrow_WithInvalidValue_ThrowsException()
+    {
+        // Arrange
+        var parameter = CreateNumericParameter();
+
+        // Act & Assert
+        var ex = Assert.Throws<ParameterValidationException>(() =>
+            ParameterValueValidator.ValidateAndThrow(parameter, "101"));
+
+        Assert.Equal(parameter.Id, ex.ParameterId);
+        Assert.Equal("101", ex.Value);
+        Assert.Contains("must be <=", ex.Reason);
+    }
+
+    // Helper methods for creating test parameters
+    private Parameter CreateNumericParameter()
+    {
+        return new Parameter
+        {
+            Id = "temp",
+            Name = "Temperature",
+            Type = "number",
+            Min = "0",
+            Max = "100"
+        };
+    }
+
+    private Parameter CreateRangeParameter()
+    {
+        return new Parameter
+        {
+            Id = "mode",
+            Name = "Mode",
+            Type = "range",
+            Range = new Range
+            {
+                Id = "modes",
+                Name = "Operating Modes",
+                Values = new List<RangeValue>
+                {
+                    new RangeValue
+                    {
+                        Id = "1",
+                        RangeId = "modes",
+                        Value = "Normal",
+                        Name = null
+                    },
+                    new RangeValue
+                    {
+                        Id = "2",
+                        RangeId = "modes",
+                        Value = "Diagnostic",
+                        Name = null
+                    }
+                }
+            }
+        };
     }
 }
