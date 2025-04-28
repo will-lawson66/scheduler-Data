@@ -70,10 +70,3 @@ public class StorageConfiguration
     public string JsonFilePath { get; set; } = "sequence_definitions.json";
     public string ConnectionString { get; set; } = string.Empty;
 }
-
-public enum StorageProviderType
-{
-    Json,
-    SQLite,
-    SqlServer
-}

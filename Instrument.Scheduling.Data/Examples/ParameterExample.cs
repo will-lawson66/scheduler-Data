@@ -1,4 +1,5 @@
 using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
