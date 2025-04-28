@@ -40,16 +40,16 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
                 break;
-                
+
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlServer(config.ConnectionString));
-                services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
-                services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
-                services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
-                services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
-                services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
-                services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
+                services.AddScoped<IStorageProvider<Sequence>, SqlServerStorageProvider<Sequence>>();
+                services.AddScoped<IStorageProvider<Parameter>, SqlServerStorageProvider<Parameter>>();
+                services.AddScoped<IStorageProvider<SequenceParameter>, SqlServerSequenceParameterProvider>();
+                services.AddScoped<IStorageProvider<Entities.Range>, SqlServerStorageProvider<Entities.Range>>();
+                services.AddScoped<IStorageProvider<RangeValue>, SqlServerStorageProvider<RangeValue>>();
+                services.AddScoped<IStorageProvider<Resource>, SqlServerStorageProvider<Resource>>();
                 break;
         }
 
