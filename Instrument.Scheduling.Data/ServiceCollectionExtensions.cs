@@ -1,10 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Instrument.Scheduling.Data.Configuration;
 using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Repository;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Instrument.Scheduling.Data;
 public static class ServiceCollectionExtensions
@@ -62,11 +63,4 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
-}
-
-public class StorageConfiguration
-{
-    public StorageProviderType Provider { get; set; } = StorageProviderType.Json;
-    public string JsonFilePath { get; set; } = "sequence_definitions.json";
-    public string ConnectionString { get; set; } = string.Empty;
 }
