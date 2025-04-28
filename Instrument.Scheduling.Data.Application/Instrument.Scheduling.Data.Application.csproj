@@ -11,4 +11,10 @@
     <ProjectReference Include="..\Instrument.Scheduling.Data\Instrument.Scheduling.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

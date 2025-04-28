@@ -118,7 +118,7 @@ public class JsonFileInitializer : IDataInitializer
                 // Create default range
                 var defaultRange = new Range
                 {
-                    Id = "default-range",
+                    Id = "1",
                     Name = "Default Range",
                     Description = "Default range for testing"
                 };
@@ -145,7 +145,7 @@ public class JsonFileInitializer : IDataInitializer
                 // Create default parameter
                 var defaultParameter = new Parameter
                 {
-                    Id = "default-param",
+                    Id = "1",
                     Name = "Default Parameter",
                     Type = "string",
                     DefaultValue = "default"
@@ -154,10 +154,10 @@ public class JsonFileInitializer : IDataInitializer
                 // Create default sequence
                 var defaultSequence = new Sequence
                 {
-                    Id = "default-sequence",
+                    Id = "1",
                     Name = "Default Sequence",
                     Description = "Default sequence for testing",
-                    WorstCaseTime = TimeSpan.FromSeconds(30),
+                    WorstCaseTime = TimeSpan.FromMilliseconds(30000),
                     CanBeParallel = false
                 };
 

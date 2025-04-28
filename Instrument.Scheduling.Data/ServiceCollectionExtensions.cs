@@ -5,6 +5,7 @@ using Instrument.Scheduling.Data.Initialization;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Repository;
+using Instrument.Scheduling.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,8 +31,9 @@ public static class ServiceCollectionExtensions
                     sp => new JsonStorageProvider<RangeValue>(config.JsonFilePath.Replace(".json", "_range_values.json")));
                 services.AddSingleton<IStorageProvider<Resource>>(
                     sp => new JsonStorageProvider<Resource>(config.JsonFilePath.Replace(".json", "_resources.json")));
+                services.AddScoped<JsonDataCleanupService>();
                 break;
-                
+
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlite(config.ConnectionString));
@@ -41,6 +43,8 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
+                services.AddScoped<DatabaseCleanupService>();
+
                 break;
 
             case StorageProviderType.SqlServer:
@@ -52,6 +56,7 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Entities.Range>, SqlServerStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqlServerStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqlServerStorageProvider<Resource>>();
+                services.AddScoped<DatabaseCleanupService>();
                 break;
         }
 
@@ -85,6 +90,15 @@ public static class ServiceCollectionExtensions
     {
         // Register factory
         services.AddSingleton<DataInitializerFactory>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddCleanupServices(this IServiceCollection services)
+    {
+        // register the data cleanup services
+        services.AddScoped<DatabaseCleanupService>();
+        services.AddScoped<JsonDataCleanupService>();
 
         return services;
     }

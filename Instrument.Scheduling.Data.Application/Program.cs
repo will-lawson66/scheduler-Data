@@ -6,6 +6,10 @@ using Microsoft.Extensions.Logging;
 using Instrument.Scheduling.Data;
 using Instrument.Scheduling.Data.Configuration;
 using Instrument.Scheduling.Data.Initialization;
+using Instrument.Scheduling.Data.Services;
+using Instrument.Scheduling.Data.DataContext;
+using Microsoft.EntityFrameworkCore;
+using Instrument.Scheduling.Data.Providers;
 
 
 // Set up configuration
@@ -31,7 +35,8 @@ var storageConfig = new StorageConfiguration();
 configuration.GetSection("DataStorage").Bind(storageConfig);
 
 // Add data services with initialization
-services.AddSchedulerDataLayer(storageConfig);
+services.AddSchedulerDataWithInitialization(storageConfig);
+services.AddCleanupServices();
 
 // Build service provider
 using var serviceProvider = services.BuildServiceProvider();
@@ -82,6 +87,42 @@ catch (Exception ex)
     System.Console.WriteLine($"Error: {ex.Message}");
     System.Console.WriteLine(ex.StackTrace);
 }
+
+Console.WriteLine($"1. Clear all data provider {storageConfig.Provider.ToString()}");
+Console.WriteLine("2. Exit");
+Console.WriteLine();
+Console.Write("Enter your choice (1-2): ");
+
+var key = Console.ReadKey();
+Console.WriteLine();
+
+switch (key.KeyChar)
+{
+    case '1':
+        Console.WriteLine("Clearing all data...");
+        switch (storageConfig.Provider)
+        {
+            case StorageProviderType.Json:
+                var jsonCleanupService = serviceProvider.GetRequiredService<JsonDataCleanupService>();
+                jsonCleanupService.ClearAllData();
+                break;
+
+            default:
+                var dBCleanupService = serviceProvider.GetRequiredService<DatabaseCleanupService>();
+                await dBCleanupService.ClearAllDataAsync();
+                break;
+        }
+
+        break;
+
+    case '2':
+        break;
+
+    default:
+        break;
+}
+
+
 
 System.Console.WriteLine("Press any key to exit...");
 System.Console.ReadKey();
