@@ -15,5 +15,5 @@ public record Parameter
     // Navigation properties
     public Range? Range { get; init; }
     public Resource? Resource { get; init; }
-    public List<SequenceParameter> SequenceParameters { get; init; } = new();
+    public List<SequenceParameter> SequenceParameters { get; init; } = [];
 }

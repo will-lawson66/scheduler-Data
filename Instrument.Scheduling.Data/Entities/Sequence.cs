@@ -8,5 +8,5 @@ public record Sequence
     public bool CanBeParallel { get; init; } = false;
     
     // Navigation property for the many-to-many relationship with Parameters
-    public List<SequenceParameter> SequenceParameters { get; init; } = new();
+    public List<SequenceParameter> SequenceParameters { get; init; } = [];
 }

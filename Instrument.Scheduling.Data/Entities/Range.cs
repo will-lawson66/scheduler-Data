@@ -7,6 +7,6 @@ public record Range
     public string? Description { get; init; }
     
     // Navigation properties
-    public List<RangeValue> Values { get; init; } = new();
-    public List<Parameter> Parameters { get; init; } = new();
+    public List<RangeValue> Values { get; init; } = [];
+    public List<Parameter> Parameters { get; init; } = [];
 }

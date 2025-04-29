@@ -8,5 +8,5 @@ public record Resource
     public bool Locked { get; init; }
     
     // Navigation property
-    public List<Parameter> Parameters { get; init; } = new();
+    public List<Parameter> Parameters { get; init; } = [];
 }
