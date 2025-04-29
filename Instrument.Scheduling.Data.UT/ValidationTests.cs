@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Xunit;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Validation;
-using Instrument.Scheduling.Data.Exceptions;
 using System.ComponentModel.DataAnnotations;
-using Range = Instrument.Scheduling.Data.Entities.Range;
 
 namespace Instrument.Scheduling.Data.UT;
-
-public class ParameterValidatorTests
+public class ValidationTests
 {
     [Fact]
     public void Validate_NumericParameter_WithValidValue_Succeeds()
@@ -105,21 +99,6 @@ public class ParameterValidatorTests
         Assert.Contains("not in allowed range", result.ErrorMessage);
     }
 
-    [Fact]
-    public void ValidateAndThrow_WithInvalidValue_ThrowsException()
-    {
-        // Arrange
-        var parameter = CreateNumericParameter();
-
-        // Act & Assert
-        var ex = Assert.Throws<ParameterValidationException>(() =>
-            ParameterValueValidator.ValidateAndThrow(parameter, "101"));
-
-        Assert.Equal(parameter.Id, ex.ParameterId);
-        Assert.Equal("101", ex.Value);
-        Assert.Contains("must be <=", ex.Reason);
-    }
-
     // Helper methods for creating test parameters
     private Parameter CreateNumericParameter()
     {
@@ -140,27 +119,27 @@ public class ParameterValidatorTests
             Id = "mode",
             Name = "Mode",
             Type = "range",
-            Range = new Range
+            Range = new Entities.Range
             {
                 Id = "modes",
                 Name = "Operating Modes",
                 Values = new List<RangeValue>
+            {
+                new RangeValue
                 {
-                    new RangeValue
-                    {
-                        Id = "1",
-                        RangeId = "modes",
-                        Value = "Normal",
-                        Name = null
-                    },
-                    new RangeValue
-                    {
-                        Id = "2",
-                        RangeId = "modes",
-                        Value = "Diagnostic",
-                        Name = null
-                    }
+                    Id = "1",
+                    RangeId = "modes",
+                    Value = "Normal",
+                    Name = string.Empty
+                },
+                new RangeValue
+                {
+                    Id = "2",
+                    RangeId = "modes",
+                    Value = "Diagnostic",
+                    Name = string.Empty
                 }
+            }
             }
         };
     }

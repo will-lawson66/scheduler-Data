@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
+using ValidationException = Instrument.Scheduling.Data.Exceptions.ValidationException;
 
 namespace Instrument.Scheduling.Data.Validation;
 
@@ -48,7 +49,7 @@ public static class ParameterValueValidator
         var result = Validate(parameter, value);
         if (result != ValidationResult.Success)
         {
-            throw new ParameterValidationException(
+            throw new ValidationException(
                 parameter.Id,
                 value,
                 result.ErrorMessage ?? "Validation failed"

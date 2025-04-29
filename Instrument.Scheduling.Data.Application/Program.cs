@@ -1,15 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Instrument.Scheduling.Data;
+using Instrument.Scheduling.Data.Configuration;
+using Instrument.Scheduling.Data.Initialization;
+using Instrument.Scheduling.Data.Providers;
+using Instrument.Scheduling.Data.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Instrument.Scheduling.Data;
-using Instrument.Scheduling.Data.Configuration;
-using Instrument.Scheduling.Data.Initialization;
-using Instrument.Scheduling.Data.Services;
-using Instrument.Scheduling.Data.DataContext;
-using Microsoft.EntityFrameworkCore;
-using Instrument.Scheduling.Data.Providers;
 
 
 // Set up configuration
@@ -116,13 +112,12 @@ switch (key.KeyChar)
         break;
 
     case '2':
+        System.Console.WriteLine("Exiting");
         break;
 
     default:
         break;
 }
-
-
 
 System.Console.WriteLine("Press any key to exit...");
 System.Console.ReadKey();

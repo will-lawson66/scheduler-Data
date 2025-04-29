@@ -12,18 +12,16 @@ public class SchedulerDataException : Exception
 }
 
 /// <summary>
-/// Exception thrown when parameter validation fails
+/// Exception thrown when validation fails
 /// </summary>
-public class ParameterValidationException : SchedulerDataException
+public class ValidationException : SchedulerDataException
 {
-    public string ParameterId { get; }
     public string Value { get; }
     public string Reason { get; }
 
-    public ParameterValidationException(string parameterId, string value, string reason)
+    public ValidationException(string parameterId, string value, string reason)
         : base($"Invalid value '{value}' for parameter {parameterId}: {reason}")
     {
-        ParameterId = parameterId;
         Value = value;
         Reason = reason;
     }

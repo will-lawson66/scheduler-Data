@@ -26,12 +26,12 @@ public class UnitOfWork : IUnitOfWork
         IStorageProvider<RangeValue> rangeValueStorageProvider,
         IStorageProvider<Resource> resourceStorageProvider)
     {
-        _sequenceStorageProvider = sequenceStorageProvider;
-        _parameterStorageProvider = parameterStorageProvider;
-        _sequenceParameterStorageProvider = sequenceParameterStorageProvider;
-        _rangeStorageProvider = rangeStorageProvider;
-        _rangeValueStorageProvider = rangeValueStorageProvider;
-        _resourceStorageProvider = resourceStorageProvider;
+        _sequenceStorageProvider = sequenceStorageProvider ?? throw new ArgumentNullException(nameof(sequenceStorageProvider));
+        _parameterStorageProvider = parameterStorageProvider ?? throw new ArgumentNullException(nameof(parameterStorageProvider));
+        _sequenceParameterStorageProvider = sequenceParameterStorageProvider ?? throw new ArgumentNullException(nameof(sequenceParameterStorageProvider));
+        _rangeStorageProvider = rangeStorageProvider ?? throw new ArgumentNullException(nameof(rangeStorageProvider));
+        _rangeValueStorageProvider = rangeValueStorageProvider ?? throw new ArgumentNullException(nameof(rangeValueStorageProvider));
+        _resourceStorageProvider = resourceStorageProvider ?? throw new ArgumentNullException(nameof(resourceStorageProvider));
     }
 
     public ISequenceRepository SequenceDefinitions =>
@@ -57,7 +57,6 @@ public class UnitOfWork : IUnitOfWork
         await _rangeStorageProvider.SaveChangesAsync();
         await _rangeValueStorageProvider.SaveChangesAsync();
         await _resourceStorageProvider.SaveChangesAsync();
-        // In a real implementation, you'd track changes and return the count
         return 1;
     }
 
