@@ -185,7 +185,7 @@ public class SequenceGroupServiceTests
                     SequenceId = "seq1", 
                     SequenceGroupId = id, 
                     Order = 1,
-                    Sequence = new Sequence { Id = "seq1", Name = "Sequence 1" } 
+                    Sequence = new Sequence { Id = "seq1", Name = "Sequence 1", WorstCaseTime  = TimeSpan.FromMilliseconds(30000)} 
                 }
             }
         };
@@ -212,7 +212,7 @@ public class SequenceGroupServiceTests
         var order = 1;
         
         var group = new SequenceGroup { Id = groupId, Name = "Test Group" };
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence" };
+        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000)};
         
         _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(groupId))
             .ReturnsAsync(group);

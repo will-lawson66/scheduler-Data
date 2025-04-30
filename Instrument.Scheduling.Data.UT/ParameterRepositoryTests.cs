@@ -1,6 +1,7 @@
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Repository;
+using Instrument.Scheduling.Data.Entities.Enums;
 using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
@@ -25,8 +26,8 @@ public class ParameterRepositoryTests
         // Arrange
         var parameters = new List<Parameter>
         {
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = "String" },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = "Integer" }
+            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
+            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType }
         };
         
         _mockParameterProvider.Setup(p => p.GetAllAsync())
@@ -49,7 +50,7 @@ public class ParameterRepositoryTests
         var parameter = new Parameter { 
             Id = "test-id", 
             Name = "Test Parameter",
-            Type = "String",
+            Type = ParameterType.StringType,
             DefaultValue = "Default"
         };
         
@@ -63,7 +64,7 @@ public class ParameterRepositoryTests
         Assert.NotNull(result);
         Assert.Equal("test-id", result.Id);
         Assert.Equal("Test Parameter", result.Name);
-        Assert.Equal("String", result.Type);
+        Assert.Equal(ParameterType.StringType, result.Type);
         Assert.Equal("Default", result.DefaultValue);
         _mockParameterProvider.Verify(p => p.GetByIdAsync("test-id"), Times.Once);
     }
@@ -103,9 +104,9 @@ public class ParameterRepositoryTests
         
         var parameters = new List<Parameter>
         {
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = "String" },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = "Integer" },
-            new Parameter { Id = "param3", Name = "Parameter 3", Type = "Boolean" } // Not associated with the sequence
+            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
+            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType },
+            new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType} 
         };
         
         _mockSequenceParameterProvider.Setup(p => p.GetAllAsync())
@@ -133,9 +134,9 @@ public class ParameterRepositoryTests
         // Arrange
         var parameters = new List<Parameter>
         {
-            new Parameter { Id = "param1", Name = "Alpha Parameter", Type = "String" },
-            new Parameter { Id = "param2", Name = "Beta Parameter", Type = "Integer" },
-            new Parameter { Id = "param3", Name = "Gamma Parameter", Type = "Boolean" }
+            new Parameter { Id = "param1", Name = "Alpha Parameter", Type = ParameterType.StringType },
+            new Parameter { Id = "param2", Name = "Beta Parameter", Type = ParameterType.IntegerType },
+            new Parameter { Id = "param3", Name = "Gamma Parameter", Type = ParameterType.BooleanType }
         };
         
         _mockParameterProvider.Setup(p => p.GetAllAsync())
@@ -163,7 +164,7 @@ public class ParameterRepositoryTests
         var parameter = new Parameter { 
             Id = "new-id", 
             Name = "New Parameter",
-            Type = "String"
+            Type = ParameterType.StringType
         };
         
         // Act
@@ -180,7 +181,7 @@ public class ParameterRepositoryTests
         var parameter = new Parameter { 
             Id = "update-id", 
             Name = "Updated Parameter",
-            Type = "String"
+            Type = ParameterType.StringType
         };
         
         // Act

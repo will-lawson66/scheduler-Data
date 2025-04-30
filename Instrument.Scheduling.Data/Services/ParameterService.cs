@@ -1,3 +1,4 @@
+using Instrument.Scheduling.Data.Entities.Enums;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
@@ -215,13 +216,11 @@ public class ParameterService
             throw new ValidationException(parameter.Id, value, "Value cannot be null or empty");
         }
         
-        switch (parameter.Type.ToLower())
+        switch (parameter.Type)
         {
-            case "number":
-            case "integer":
-            case "float":
-            case "double":
-                if (!double.TryParse(value, out double numValue))
+            case ParameterType.IntegerType:
+            case ParameterType.DecimalType:
+                if (!decimal.TryParse(value, out decimal numValue))
                 {
                     _logger.LogWarning("Value '{Value}' is not a valid number for parameter {ParameterId}", 
                         value, parameter.Id);
@@ -229,7 +228,7 @@ public class ParameterService
                 }
                 
                 if (!string.IsNullOrEmpty(parameter.Min) && 
-                    double.TryParse(parameter.Min, out double minValue) &&
+                    decimal.TryParse(parameter.Min, out decimal minValue) &&
                     numValue < minValue)
                 {
                     _logger.LogWarning("Value {Value} is less than minimum value {MinValue} for parameter {ParameterId}", 
@@ -238,7 +237,7 @@ public class ParameterService
                 }
                 
                 if (!string.IsNullOrEmpty(parameter.Max) && 
-                    double.TryParse(parameter.Max, out double maxValue) &&
+                    decimal.TryParse(parameter.Max, out decimal maxValue) &&
                     numValue > maxValue)
                 {
                     _logger.LogWarning("Value {Value} is greater than maximum value {MaxValue} for parameter {ParameterId}", 
@@ -250,7 +249,7 @@ public class ParameterService
                     numValue, parameter.Id);
                 break;
                 
-            case "string":
+            case ParameterType.StringType:
                 if (!string.IsNullOrEmpty(parameter.Min) && 
                     int.TryParse(parameter.Min, out int minLength) &&
                     value.Length < minLength)
@@ -272,7 +271,7 @@ public class ParameterService
                 _logger.LogInformation("String value is valid for parameter {ParameterId}", parameter.Id);
                 break;
                 
-            case "boolean":
+            case ParameterType.BooleanType:
                 if (!bool.TryParse(value, out _))
                 {
                     _logger.LogWarning("Value '{Value}' is not a valid boolean for parameter {ParameterId}", 

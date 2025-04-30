@@ -1,4 +1,5 @@
-﻿using Instrument.Scheduling.Data.Entities;
+﻿using Instrument.Scheduling.Data.Entities.Enums;
+using Instrument.Scheduling.Data.Entities;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Range = Instrument.Scheduling.Data.Entities.Range;
@@ -147,7 +148,7 @@ public class JsonFileInitializer : IDataInitializer
                 {
                     Id = "1",
                     Name = "Default Parameter",
-                    Type = "string",
+                    Type = ParameterType.IntegerType,
                     DefaultValue = "default"
                 };
 

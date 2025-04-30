@@ -1,4 +1,5 @@
-﻿using Instrument.Scheduling.Data.DataContext;
+﻿using Instrument.Scheduling.Data.Entities.Enums;
+using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -147,7 +148,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
                 {
                     Id = "1",
                     Name = "Default Parameter",
-                    Type = "string",
+                    Type = ParameterType.StringType,
                     DefaultValue = "default"
                 };
 

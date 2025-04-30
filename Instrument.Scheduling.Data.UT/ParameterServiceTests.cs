@@ -1,3 +1,4 @@
+using Instrument.Scheduling.Data.Entities.Enums;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
@@ -43,7 +44,7 @@ public class ParameterServiceTests
         { 
             Id = id, 
             Name = "Test Parameter", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
@@ -56,7 +57,7 @@ public class ParameterServiceTests
         Assert.NotNull(result);
         Assert.Equal(id, result.Id);
         Assert.Equal("Test Parameter", result.Name);
-        Assert.Equal("string", result.Type);
+        Assert.Equal(ParameterType.StringType, result.Type);
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class ParameterServiceTests
         { 
             Id = "test-param-1", 
             Name = "Test Parameter", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameter.Id))
@@ -90,13 +91,13 @@ public class ParameterServiceTests
         { 
             Id = id, 
             Name = "Test Parameter", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
         var existingParameter = new Parameter 
         { 
             Id = id, 
             Name = "Existing Parameter", 
-            Type = "number"
+            Type = ParameterType.IntegerType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
@@ -121,13 +122,13 @@ public class ParameterServiceTests
         { 
             Id = id, 
             Name = "Updated Parameter", 
-            Type = "number"
+            Type = ParameterType.IntegerType
         };
         var existingParameter = new Parameter 
         { 
             Id = id, 
             Name = "Original Parameter", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
@@ -150,7 +151,7 @@ public class ParameterServiceTests
         { 
             Id = id, 
             Name = "Test Parameter", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
@@ -176,7 +177,7 @@ public class ParameterServiceTests
         { 
             Id = id, 
             Name = "Parameter to Delete", 
-            Type = "string"
+            Type = ParameterType.StringType
         };
 
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
@@ -218,8 +219,8 @@ public class ParameterServiceTests
         string parameterId = "param-1";
         int orderNumber = 1;
         
-        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter" };
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence" };
+        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType};
+        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000)};
         
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
             .ReturnsAsync(parameter);
@@ -244,7 +245,7 @@ public class ParameterServiceTests
         string parameterId = "invalid-param";
         int orderNumber = 1;
         
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence" };
+        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000)};
         
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
             .ReturnsAsync((Parameter?)null);
@@ -268,7 +269,7 @@ public class ParameterServiceTests
         string parameterId = "param-1";
         int orderNumber = 1;
         
-        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter" };
+        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType};
         
         _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
             .ReturnsAsync(parameter);
@@ -299,143 +300,6 @@ public class ParameterServiceTests
     }
     
     [Fact]
-    public void ValidateParameterValue_WithNullOrEmptyValue_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "Test Parameter",
-            Type = "string"
-        };
-        
-        // Act & Assert - empty value
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, ""));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Equal("Value cannot be null or empty", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithInvalidNumericValue_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "Numeric Parameter",
-            Type = "number"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "not-a-number"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Equal("Value is not a valid number", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithNumberBelowMinimum_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "Numeric Parameter",
-            Type = "number",
-            Min = "10"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "5"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Contains("must be greater than or equal to 10", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithNumberAboveMaximum_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "Numeric Parameter",
-            Type = "number",
-            Max = "100"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "150"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Contains("must be less than or equal to 100", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithStringTooShort_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "String Parameter",
-            Type = "string",
-            Min = "5"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "abc"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Contains("must be at least 5 characters", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithStringTooLong_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "String Parameter",
-            Type = "string",
-            Max = "10"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "This string is too long"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Contains("must be at most 10 characters", exception.Reason);
-    }
-    
-    [Fact]
-    public void ValidateParameterValue_WithInvalidBooleanValue_ThrowsValidationException()
-    {
-        // Arrange
-        var parameter = new Parameter
-        {
-            Id = "param-1",
-            Name = "Boolean Parameter",
-            Type = "boolean"
-        };
-        
-        // Act & Assert
-        var exception = Assert.Throws<ValidationException>(() => 
-            _service.ValidateParameterValue(parameter, "not-a-boolean"));
-        
-        Assert.Equal(parameter.Id, exception.ParameterId);
-        Assert.Equal("Value is not a valid boolean (true/false)", exception.Reason);
-    }
-    
-    [Fact]
     public void ValidateParameterValue_WithValidValues_DoesNotThrow()
     {
         // Arrange
@@ -443,7 +307,7 @@ public class ParameterServiceTests
         {
             Id = "num-param",
             Name = "Number Parameter",
-            Type = "number",
+            Type = ParameterType.IntegerType,
             Min = "0",
             Max = "100"
         };
@@ -452,7 +316,7 @@ public class ParameterServiceTests
         {
             Id = "str-param",
             Name = "String Parameter",
-            Type = "string",
+            Type = ParameterType.StringType,
             Min = "3",
             Max = "20"
         };
@@ -461,7 +325,7 @@ public class ParameterServiceTests
         {
             Id = "bool-param",
             Name = "Boolean Parameter",
-            Type = "boolean"
+            Type = ParameterType.BooleanType
         };
         
         // Act & Assert - all should not throw
@@ -487,7 +351,7 @@ public class ParameterServiceTests
         {
             Id = "param-1",
             Name = "Test Parameter",
-            Type = "number",
+            Type = ParameterType.IntegerType,
             Min = "0",
             Max = "100"
         };

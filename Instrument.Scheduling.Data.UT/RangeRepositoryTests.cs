@@ -1,3 +1,4 @@
+using Instrument.Scheduling.Data.Entities.Enums;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Repository;
@@ -178,19 +179,19 @@ public class RangeRepositoryTests
             new Parameter { 
                 Id = "param1", 
                 Name = "Parameter 1", 
-                Type = "String",
+                Type = ParameterType.StringType,
                 RangeId = rangeId
             },
             new Parameter { 
                 Id = "param2", 
                 Name = "Parameter 2", 
-                Type = "Integer",
+                Type = ParameterType.IntegerType,
                 RangeId = rangeId
             },
             new Parameter { 
                 Id = "param3", 
                 Name = "Parameter 3", 
-                Type = "Boolean",
+                Type = ParameterType.BooleanType,
                 RangeId = "different-range" // Not associated with the target range
             }
         };
