@@ -31,6 +31,8 @@ public static class ServiceCollectionExtensions
                     sp => new JsonStorageProvider<RangeValue>(config.JsonFilePath.Replace(".json", "_range_values.json")));
                 services.AddSingleton<IStorageProvider<Resource>>(
                     sp => new JsonStorageProvider<Resource>(config.JsonFilePath.Replace(".json", "_resources.json")));
+                services.AddSingleton<IStorageProvider<SequenceGroup>>(
+                    sp => new JsonStorageProvider<SequenceGroup>(config.JsonFilePath.Replace(".json", "_sequence_groups.json")));
                 services.AddScoped<JsonDataCleanupService>();
                 break;
 
@@ -43,6 +45,7 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
+                services.AddScoped<IStorageProvider<SequenceGroup>, SqliteStorageProvider<SequenceGroup>>();
                 services.AddScoped<DatabaseCleanupService>();
 
                 break;
@@ -56,6 +59,7 @@ public static class ServiceCollectionExtensions
                 services.AddScoped<IStorageProvider<Entities.Range>, SqlServerStorageProvider<Entities.Range>>();
                 services.AddScoped<IStorageProvider<RangeValue>, SqlServerStorageProvider<RangeValue>>();
                 services.AddScoped<IStorageProvider<Resource>, SqlServerStorageProvider<Resource>>();
+                services.AddScoped<IStorageProvider<SequenceGroup>, SqlServerStorageProvider<SequenceGroup>>();
                 services.AddScoped<DatabaseCleanupService>();
                 break;
         }
@@ -65,6 +69,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRangeRepository, RangeRepository>();
         services.AddScoped<IRangeValueRepository, RangeValueRepository>();
         services.AddScoped<IResourceRepository, ResourceRepository>();
+        services.AddScoped<ISequenceGroupRepository, SequenceGroupRepository>();
+        services.AddScoped<SequenceGroupService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
         return services;

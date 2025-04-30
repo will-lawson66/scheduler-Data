@@ -16,6 +16,8 @@ public class SchedulerDbContext : DbContext
     public DbSet<Entities.Range> Ranges { get; set; }
     public DbSet<RangeValue> RangeValues { get; set; }
     public DbSet<Resource> Resources { get; set; }
+    public DbSet<SequenceGroup> SequenceGroups { get; set; }
+    public DbSet<SequenceGroupSequences> SequenceGroupSequences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -125,6 +127,37 @@ public class SchedulerDbContext : DbContext
             entity.Property(e => e.Code)
                 .IsRequired()
                 .HasMaxLength(50);
+        });
+        
+        modelBuilder.Entity<SequenceGroup>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+                
+            entity.Property(e => e.Description)
+                .HasMaxLength(1000);
+        });
+        
+        modelBuilder.Entity<SequenceGroupSequences>(entity =>
+        {
+            // Configure the composite key
+            entity.HasKey(e => new { e.SequenceGroupId, e.SequenceId });
+            
+            // Configure the many-to-many relationship
+            entity.HasOne(e => e.SequenceGroup)
+                .WithMany(e => e.SequenceGroupSequences)
+                .HasForeignKey(e => e.SequenceGroupId);
+                
+            entity.HasOne(e => e.Sequence)
+                .WithMany()
+                .HasForeignKey(e => e.SequenceId);
+                
+            // Configure the Order property
+            entity.Property(e => e.Order)
+                .IsRequired();
         });
     }
 }
