@@ -14,53 +14,6 @@ namespace Instrument.Scheduling.Data.UT;
 public class ServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddSchedulerDataLayer_RegistersJsonServices_WhenJsonProviderSpecified()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        
-        // Add logging services required by our updated services
-        services.AddLogging(builder => builder.AddConsole());
-        
-        var config = new StorageConfiguration
-        {
-            Provider = StorageProviderType.Json,
-            JsonFilePath = "test.json"
-        };
-        
-        // Act
-        services.AddSchedulerDataLayer(config);
-        
-        // Assert
-        var provider = services.BuildServiceProvider();
-        
-        // Verify service registrations
-        var sequenceProvider = provider.GetService<IStorageProvider<Sequence>>();
-        var parameterProvider = provider.GetService<IStorageProvider<Parameter>>();
-        var sequenceParameterProvider = provider.GetService<IStorageProvider<SequenceParameter>>();
-        var rangeProvider = provider.GetService<IStorageProvider<Entities.Range>>();
-        var rangeValueProvider = provider.GetService<IStorageProvider<RangeValue>>();
-        var resourceProvider = provider.GetService<IStorageProvider<Resource>>();
-        var unitOfWork = provider.GetService<IUnitOfWork>();
-        
-        Assert.NotNull(sequenceProvider);
-        Assert.NotNull(parameterProvider);
-        Assert.NotNull(sequenceParameterProvider);
-        Assert.NotNull(rangeProvider);
-        Assert.NotNull(rangeValueProvider);
-        Assert.NotNull(resourceProvider);
-        Assert.NotNull(unitOfWork);
-        
-        Assert.IsType<JsonStorageProvider<Sequence>>(sequenceProvider);
-        Assert.IsType<JsonStorageProvider<Parameter>>(parameterProvider);
-        Assert.IsType<JsonStorageProvider<SequenceParameter>>(sequenceParameterProvider);
-        Assert.IsType<JsonStorageProvider<Entities.Range>>(rangeProvider);
-        Assert.IsType<JsonStorageProvider<RangeValue>>(rangeValueProvider);
-        Assert.IsType<JsonStorageProvider<Resource>>(resourceProvider);
-        Assert.IsType<UnitOfWork>(unitOfWork);
-    }
-    
-    [Fact]
     public void AddSchedulerDataLayer_RegistersSqliteServices_WhenSqliteProviderSpecified()
     {
         // Arrange
@@ -120,8 +73,8 @@ public class ServiceCollectionExtensionsTests
         
         var config = new StorageConfiguration
         {
-            Provider = StorageProviderType.Json,
-            JsonFilePath = "test.json"
+            Provider = StorageProviderType.SQLite,
+            JsonExportPath = "test.json"
         };
         
         // Act
@@ -192,39 +145,5 @@ public class ServiceCollectionExtensionsTests
         
         // Act & Assert
         Assert.Throws<NullReferenceException>(() => services.AddSchedulerDataWithInitialization(null));
-    }
-    
-    [Fact]
-    public void CanResolveAllRegisteredServices_WithJsonProvider()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        
-        // Add logging services required by our updated services
-        services.AddLogging(builder => builder.AddConsole());
-        
-        var config = new StorageConfiguration
-        {
-            Provider = StorageProviderType.Json,
-            JsonFilePath = "test.json"
-        };
-        
-        // Act
-        services.AddSchedulerDataLayer(config);
-        var provider = services.BuildServiceProvider();
-        
-        // Assert - Verify no exceptions are thrown when resolving services
-        var unitOfWork = provider.GetRequiredService<IUnitOfWork>();
-        var sequenceRepo = unitOfWork.SequenceDefinitions;
-        var parameterRepo = unitOfWork.Parameters;
-        var rangeRepo = unitOfWork.Ranges;
-        var rangeValueRepo = unitOfWork.RangeValues;
-        var resourceRepo = unitOfWork.Resources;
-        
-        Assert.NotNull(sequenceRepo);
-        Assert.NotNull(parameterRepo);
-        Assert.NotNull(rangeRepo);
-        Assert.NotNull(rangeValueRepo);
-        Assert.NotNull(resourceRepo);
     }
 }

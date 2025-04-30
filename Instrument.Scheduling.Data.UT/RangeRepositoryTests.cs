@@ -307,8 +307,7 @@ public class RangeRepositoryTests
         _mockRangeDbSet.Setup(m => m.FindAsync(new object[] { rangeId }))
             .ReturnsAsync(range);
             
-        _mockRangeValueDbSet.Setup(m => m.AddAsync(It.IsAny<RangeValue>(), default))
-            .Returns(ValueTask.CompletedTask);
+       
         
         // Act
         var result = await _repository.AddRangeValueAsync(rangeId, name, value);

@@ -251,33 +251,6 @@ public class ParameterRepositoryTests
     }
     
     [Fact]
-    public async Task GetParametersByTypeAsync_ReturnsCorrectParameters()
-    {
-        // Arrange
-        var parameters = new List<Parameter>
-        {
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType },
-            new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.StringType }
-        }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Parameter>>();
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Provider).Returns(parameters.Provider);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Expression).Returns(parameters.Expression);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.ElementType).Returns(parameters.ElementType);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.GetEnumerator()).Returns(parameters.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Parameters).Returns(mockDbSet.Object);
-        
-        // Act
-        var result = await _repository.GetParametersByTypeAsync(ParameterType.StringType);
-        
-        // Assert
-        Assert.Equal(2, result.Count());
-        Assert.All(result, p => Assert.Equal(ParameterType.StringType, p.Type));
-    }
-    
-    [Fact]
     public async Task AddParameterToSequenceAsync_AddsSequenceParameter()
     {
         // Arrange

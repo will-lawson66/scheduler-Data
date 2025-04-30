@@ -46,8 +46,8 @@ public class ResourceRepositoryTests
     {
         var resources = new List<Resource>
         {
-            new Resource { Id = "res1", Name = "Resource 1", Code = "R1", IsActive = true },
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2", IsActive = true }
+            new Resource { Id = "res1", Name = "Resource 1", Code = "R1"},
+            new Resource { Id = "res2", Name = "Resource 2", Code = "R2"}
         }.AsQueryable();
         
         var mockSet = new Mock<DbSet<Resource>>();
@@ -72,8 +72,8 @@ public class ResourceRepositoryTests
         _mockResourceDbSet.Setup(m => m.ToListAsync(default))
             .ReturnsAsync(new List<Resource>
             {
-                new Resource { Id = "res1", Name = "Resource 1", Code = "R1", IsActive = true },
-                new Resource { Id = "res2", Name = "Resource 2", Code = "R2", IsActive = true }
+                new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
+                new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
             });
         
         // Act
@@ -94,7 +94,6 @@ public class ResourceRepositoryTests
             Id = "test-id", 
             Name = "Test Resource",
             Code = "TR",
-            IsActive = true
         };
         
         _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "test-id" }))
@@ -145,7 +144,6 @@ public class ResourceRepositoryTests
             Id = "new-id", 
             Name = "New Resource",
             Code = "NR",
-            IsActive = true
         };
         
         // Act
@@ -163,7 +161,6 @@ public class ResourceRepositoryTests
             Id = "update-id", 
             Name = "Updated Resource",
             Code = "UR",
-            IsActive = true
         };
         
         // Act
@@ -181,7 +178,6 @@ public class ResourceRepositoryTests
             Id = "delete-id", 
             Name = "Delete Resource",
             Code = "DR",
-            IsActive = true
         };
         
         _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "delete-id" }))
@@ -223,8 +219,8 @@ public class ResourceRepositoryTests
         
         var resources = new List<Resource>
         {
-            new Resource { Id = "res1", Name = "Resource 1", Code = code, IsActive = true },
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2", IsActive = true }
+            new Resource { Id = "res1", Name = "Resource 1", Code = code },
+            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
         }.AsQueryable();
         
         var mockDbSet = new Mock<DbSet<Resource>>();
@@ -255,7 +251,6 @@ public class ResourceRepositoryTests
                 Id = "res1", 
                 Name = "Resource 1", 
                 Code = "R1", 
-                IsActive = true,
                 Parameters = new List<Parameter>
                 {
                     new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType }
@@ -320,7 +315,7 @@ public class ResourceRepositoryTests
         string resourceId = "res1";
         string parameterId = "param1";
         
-        var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1", IsActive = true };
+        var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };
         
         _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { resourceId }))
@@ -370,33 +365,5 @@ public class ResourceRepositoryTests
         Assert.Null(parameter.ResourceId);
         mockDbSet.Verify(m => m.Update(parameter), Times.Once);
         _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
-    }
-    
-    [Fact]
-    public async Task GetAvailableResourcesAsync_ReturnsOnlyActiveResources()
-    {
-        // Arrange
-        var resources = new List<Resource>
-        {
-            new Resource { Id = "res1", Name = "Active Resource 1", Code = "AR1", IsActive = true },
-            new Resource { Id = "res2", Name = "Active Resource 2", Code = "AR2", IsActive = true },
-            new Resource { Id = "res3", Name = "Inactive Resource", Code = "IR", IsActive = false }
-        }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Resource>>();
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Provider).Returns(resources.Provider);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Expression).Returns(resources.Expression);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.ElementType).Returns(resources.ElementType);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.GetEnumerator()).Returns(resources.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Resources).Returns(mockDbSet.Object);
-        
-        // Act
-        var result = await _repository.GetAvailableResourcesAsync();
-        
-        // Assert
-        Assert.Equal(2, result.Count());
-        Assert.All(result, r => Assert.True(r.IsActive));
-        Assert.DoesNotContain(result, r => r.Id == "res3");
     }
 }
