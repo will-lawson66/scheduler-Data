@@ -5,7 +5,10 @@ using Instrument.Scheduling.Data.Initialization;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
 public class ServiceCollectionExtensionsTests
@@ -15,6 +18,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        // Add logging services required by our updated services
+        services.AddLogging(builder => builder.AddConsole());
+        
         var config = new StorageConfiguration
         {
             Provider = StorageProviderType.Json,
@@ -58,6 +65,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        // Add logging services required by our updated services
+        services.AddLogging(builder => builder.AddConsole());
+        
         var config = new StorageConfiguration
         {
             Provider = StorageProviderType.SQLite,
@@ -103,6 +114,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        // Add logging services required by our updated services
+        services.AddLogging(builder => builder.AddConsole());
+        
         var config = new StorageConfiguration
         {
             Provider = StorageProviderType.Json,
@@ -128,23 +143,36 @@ public class ServiceCollectionExtensionsTests
         Assert.NotNull(resourceRepo);
     }
     
-    //[Fact]
-    //public void AddCleanupServices_RegistersCleanupServices()
-    //{
-    //    // Arrange
-    //    var services = new ServiceCollection();
+    [Fact]
+    public void AddCleanupServices_RegistersCleanupServices()
+    {
+        // Arrange
+        var services = new ServiceCollection();
         
-    //    // Act
-    //    services.AddCleanupServices();
+        // Add required services first
+        services.AddLogging(builder => builder.AddConsole());
         
-    //    // Assert
-    //    var provider = services.BuildServiceProvider();
-    //    var dbCleanupService = provider.GetService<DatabaseCleanupService>();
-    //    var jsonCleanupService = provider.GetService<JsonDataCleanupService>();
+        // Add a mock DbContext for dependency resolution
+        services.AddDbContext<SchedulerDbContext>(options => 
+            options.UseInMemoryDatabase("TestDb"));
+            
+        // Add a mock UnitOfWork
+        services.AddScoped<IUnitOfWork>(sp => {
+            var mockUnitOfWork = new Mock<IUnitOfWork>().Object;
+            return mockUnitOfWork;
+        });
         
-    //    Assert.NotNull(dbCleanupService);
-    //    Assert.NotNull(jsonCleanupService);
-    //}
+        // Act
+        services.AddCleanupServices();
+        
+        // Assert
+        var provider = services.BuildServiceProvider();
+        var dbCleanupService = provider.GetService<DatabaseCleanupService>();
+        var jsonCleanupService = provider.GetService<JsonDataCleanupService>();
+        
+        Assert.NotNull(dbCleanupService);
+        Assert.NotNull(jsonCleanupService);
+    }
     
     [Fact]
     public void AddSchedulerDataLayer_ThrowsException_WhenConfigIsNull()
@@ -171,6 +199,10 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
+        
+        // Add logging services required by our updated services
+        services.AddLogging(builder => builder.AddConsole());
+        
         var config = new StorageConfiguration
         {
             Provider = StorageProviderType.Json,

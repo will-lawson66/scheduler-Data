@@ -2,8 +2,7 @@ using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
 using Instrument.Scheduling.Data.Repository;
-using Instrument.Scheduling.Data.Services;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
@@ -16,8 +15,7 @@ public class UnitOfWorkTests
     private readonly Mock<IStorageProvider<RangeValue>> _mockRangeValueProvider;
     private readonly Mock<IStorageProvider<Resource>> _mockResourceProvider;
     private readonly Mock<IStorageProvider<SequenceGroup>> _mockSequenceGroupProvider;
-    private readonly Mock<SchedulerDbContext> _mockDbContext;
-    private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
+    private readonly SchedulerDbContext _dbContext;
     private readonly UnitOfWork _unitOfWork;
     
     public UnitOfWorkTests()
@@ -29,20 +27,12 @@ public class UnitOfWorkTests
         _mockRangeValueProvider = new Mock<IStorageProvider<RangeValue>>();
         _mockResourceProvider = new Mock<IStorageProvider<Resource>>();
         _mockSequenceGroupProvider = new Mock<IStorageProvider<SequenceGroup>>();
-        _mockDbContext = new Mock<SchedulerDbContext>();
-        _mockLogger = new Mock<ILogger<SequenceGroupService>>();
         
-        // Create a mock sequenceGroupService that will be injected into UnitOfWork
-        var mockSequenceGroupService = new SequenceGroupService(
-            new SequenceGroupRepository(
-                _mockSequenceGroupProvider.Object, 
-                new SequenceRepository(_mockSequenceProvider.Object),
-                _mockDbContext.Object
-            ),
-            new SequenceRepository(_mockSequenceProvider.Object),
-            _mockDbContext.Object,
-            _mockLogger.Object
-        );
+        // Create a real DbContext with in-memory database for testing
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .Options;
+        _dbContext = new SchedulerDbContext(options);
         
         _unitOfWork = new UnitOfWork(
             _mockSequenceProvider.Object,
@@ -52,8 +42,7 @@ public class UnitOfWorkTests
             _mockRangeValueProvider.Object,
             _mockResourceProvider.Object,
             _mockSequenceGroupProvider.Object,
-            _mockDbContext.Object,
-            mockSequenceGroupService
+            _dbContext
         );
     }
     
@@ -124,17 +113,6 @@ public class UnitOfWorkTests
     }
     
     [Fact]
-    public void SequenceGroupService_ReturnsServiceInstance()
-    {
-        // Act
-        var service = _unitOfWork.SequenceGroupService;
-        
-        // Assert
-        Assert.NotNull(service);
-        Assert.IsType<SequenceGroupService>(service);
-    }
-    
-    [Fact]
     public async Task SaveChangesAsync_CallsSaveChanges_OnAllProviders()
     {
         // Act
@@ -178,17 +156,6 @@ public class UnitOfWorkTests
         
         // Assert
         Assert.Same(repository1, repository2); // Should be the exact same instance, not just equal
-    }
-    
-    [Fact]
-    public void SequenceGroupServiceIsCached_ReturnsSameInstance()
-    {
-        // Act
-        var service1 = _unitOfWork.SequenceGroupService;
-        var service2 = _unitOfWork.SequenceGroupService;
-        
-        // Assert
-        Assert.Same(service1, service2); // Should be the exact same instance, not just equal
     }
     
     [Fact]
@@ -249,20 +216,12 @@ public class UnitOfWorkTests
         var mockRangeValueProvider = new Mock<IStorageProvider<RangeValue>>();
         var mockResourceProvider = new Mock<IStorageProvider<Resource>>();
         var mockSequenceGroupProvider = new Mock<IStorageProvider<SequenceGroup>>();
-        var mockDbContext = new Mock<SchedulerDbContext>();
-        var mockLogger = new Mock<ILogger<SequenceGroupService>>();
         
-        // Create the mock service to use in the tests
-        var mockSequenceGroupService = new SequenceGroupService(
-            new SequenceGroupRepository(
-                mockSequenceGroupProvider.Object, 
-                new SequenceRepository(mockSequenceProvider.Object),
-                mockDbContext.Object
-            ),
-            new SequenceRepository(mockSequenceProvider.Object),
-            mockDbContext.Object,
-            mockLogger.Object
-        );
+        // Create a real DbContext with in-memory database for testing
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .Options;
+        var dbContext = new SchedulerDbContext(options);
         
         // Test each parameter for null check
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -273,8 +232,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -285,8 +243,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -297,8 +254,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -309,8 +265,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -321,8 +276,7 @@ public class UnitOfWorkTests
             null, // Test null range value provider
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -333,8 +287,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             null, // Test null resource provider
             mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -345,8 +298,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             null, // Test null sequence group provider
-            mockDbContext.Object,
-            mockSequenceGroupService
+            dbContext
         ));
         
         Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
@@ -357,20 +309,7 @@ public class UnitOfWorkTests
             mockRangeValueProvider.Object,
             mockResourceProvider.Object,
             mockSequenceGroupProvider.Object,
-            null, // Test null db context
-            mockSequenceGroupService
-        ));
-        
-        Assert.Throws<ArgumentNullException>(() => new UnitOfWork(
-            mockSequenceProvider.Object,
-            mockParameterProvider.Object,
-            mockSequenceParameterProvider.Object,
-            mockRangeProvider.Object,
-            mockRangeValueProvider.Object,
-            mockResourceProvider.Object,
-            mockSequenceGroupProvider.Object,
-            mockDbContext.Object,
-            null // Test null sequence group service
+            null // Test null db context
         ));
     }
 }

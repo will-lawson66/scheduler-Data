@@ -1,5 +1,4 @@
 namespace Instrument.Scheduling.Data.Interfaces;
-using Instrument.Scheduling.Data.Services;
 
 public interface IUnitOfWork : IDisposable
 {
@@ -9,6 +8,5 @@ public interface IUnitOfWork : IDisposable
     IRangeValueRepository RangeValues { get; }
     IResourceRepository Resources { get; }
     ISequenceGroupRepository SequenceGroups { get; }
-    SequenceGroupService SequenceGroupService { get; }
     Task<int> SaveChangesAsync();
 }

@@ -8,6 +8,7 @@ using Instrument.Scheduling.Data.Repository;
 using Instrument.Scheduling.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Instrument.Scheduling.Data;
 public static class ServiceCollectionExtensions
@@ -15,6 +16,11 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSchedulerDataLayer(this IServiceCollection services, 
         StorageConfiguration config)
     {
+        // Ensure logging services are available
+        services.AddLogging(builder => builder
+            .SetMinimumLevel(LogLevel.Information)
+            .AddConsole());
+
         switch (config.Provider)
         {
             case StorageProviderType.Json:
@@ -64,15 +70,31 @@ public static class ServiceCollectionExtensions
                 break;
         }
 
+        // Register repositories
         services.AddScoped<ISequenceRepository, SequenceRepository>();
         services.AddScoped<IParameterRepository, ParameterRepository>();
         services.AddScoped<IRangeRepository, RangeRepository>();
         services.AddScoped<IRangeValueRepository, RangeValueRepository>();
         services.AddScoped<IResourceRepository, ResourceRepository>();
         services.AddScoped<ISequenceGroupRepository, SequenceGroupRepository>();
-        services.AddScoped<SequenceGroupService>();
+        
+        // Register the UnitOfWork
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         
+        // Register services with explicit logging dependencies
+        services.AddScoped<SequenceService>((sp) => new SequenceService(
+            sp.GetRequiredService<IUnitOfWork>(),
+            sp.GetRequiredService<ILogger<SequenceService>>()));
+            
+        services.AddScoped<SequenceGroupService>((sp) => new SequenceGroupService(
+            sp.GetRequiredService<IUnitOfWork>(),
+            sp.GetRequiredService<SchedulerDbContext>(),
+            sp.GetRequiredService<ILogger<SequenceGroupService>>()));
+            
+        services.AddScoped<ParameterService>((sp) => new ParameterService(
+            sp.GetRequiredService<IUnitOfWork>(),
+            sp.GetRequiredService<ILogger<ParameterService>>()));
+            
         return services;
     }
 
@@ -103,8 +125,13 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCleanupServices(this IServiceCollection services)
     {
         // register the data cleanup services
-        services.AddScoped<DatabaseCleanupService>();
-        services.AddScoped<JsonDataCleanupService>();
+        services.AddScoped<DatabaseCleanupService>((sp) => new DatabaseCleanupService(
+            sp.GetRequiredService<SchedulerDbContext>(),
+            sp.GetRequiredService<IUnitOfWork>(),
+            sp.GetRequiredService<ILogger<DatabaseCleanupService>>()));
+            
+        services.AddScoped<JsonDataCleanupService>((sp) => new JsonDataCleanupService(
+            sp.GetRequiredService<ILogger<JsonDataCleanupService>>()));
 
         return services;
     }

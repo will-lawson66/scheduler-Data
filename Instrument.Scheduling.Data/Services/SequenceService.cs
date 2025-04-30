@@ -1,49 +1,138 @@
 using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Instrument.Scheduling.Data.Services;
 public class SequenceService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<SequenceService> _logger;
 
-    public SequenceService(IUnitOfWork unitOfWork)
+    public SequenceService(
+        IUnitOfWork unitOfWork,
+        ILogger<SequenceService> logger)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Sequence?> GetSequenceAsync(string id)
     {
+        _logger.LogInformation("Retrieving sequence with ID: {Id}", id);
         return await _unitOfWork.SequenceDefinitions.GetByIdAsync(id);
     }
 
     public async Task CreateSequenceAsync(Sequence sequence)
     {
-        //sequence.CreatedDate = DateTime.UtcNow;
-        await _unitOfWork.SequenceDefinitions.AddAsync(sequence);
-        await _unitOfWork.SaveChangesAsync();
+        if (sequence == null)
+            throw new ArgumentNullException(nameof(sequence));
+
+        _logger.LogInformation("Creating new sequence with ID: {Id}", sequence.Id);
+        
+        // Validate if a sequence with this ID already exists
+        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequence.Id);
+        if (existingSequence != null)
+        {
+            _logger.LogWarning("Sequence with ID {Id} already exists", sequence.Id);
+            throw new SchedulerDataException($"Sequence with ID {sequence.Id} already exists");
+        }
+
+        try
+        {
+            await _unitOfWork.SequenceDefinitions.AddAsync(sequence);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Successfully created sequence with ID: {Id}", sequence.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating sequence with ID: {Id}", sequence.Id);
+            throw new StorageProviderException("CreateSequence", ex);
+        }
     }
 
     public async Task UpdateSequenceAsync(Sequence sequence)
     {
-        await _unitOfWork.SequenceDefinitions.UpdateAsync(sequence);
-        await _unitOfWork.SaveChangesAsync();
+        if (sequence == null)
+            throw new ArgumentNullException(nameof(sequence));
+
+        _logger.LogInformation("Updating sequence with ID: {Id}", sequence.Id);
+        
+        // Validate if the sequence exists
+        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequence.Id);
+        if (existingSequence == null)
+        {
+            _logger.LogWarning("Sequence with ID {Id} does not exist", sequence.Id);
+            throw new EntityNotFoundException("Sequence", sequence.Id);
+        }
+
+        try
+        {
+            await _unitOfWork.SequenceDefinitions.UpdateAsync(sequence);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Successfully updated sequence with ID: {Id}", sequence.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating sequence with ID: {Id}", sequence.Id);
+            throw new StorageProviderException("UpdateSequence", ex);
+        }
     }
 
     public async Task DeleteSequenceAsync(string id)
     {
-        await _unitOfWork.SequenceDefinitions.DeleteAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        _logger.LogInformation("Deleting sequence with ID: {Id}", id);
+        
+        // Validate if the sequence exists
+        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(id);
+        if (existingSequence == null)
+        {
+            _logger.LogWarning("Sequence with ID {Id} does not exist", id);
+            throw new EntityNotFoundException("Sequence", id);
+        }
+
+        try
+        {
+            await _unitOfWork.SequenceDefinitions.DeleteAsync(id);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Successfully deleted sequence with ID: {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting sequence with ID: {Id}", id);
+            throw new StorageProviderException("DeleteSequence", ex);
+        }
     }
 
     public async Task<IEnumerable<Sequence>> GetAllSequencesAsync()
     {
-        return await _unitOfWork.SequenceDefinitions.GetAllAsync();
+        _logger.LogInformation("Retrieving all sequences");
+        try
+        {
+            return await _unitOfWork.SequenceDefinitions.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all sequences");
+            throw new StorageProviderException("GetAllSequences", ex);
+        }
     }
 
     public async Task<IEnumerable<Sequence>> SearchSequencesAsync(
         Func<Sequence, bool> predicate)
     {
-        var queryable = await _unitOfWork.SequenceDefinitions.GetQueryableAsync();
-        return queryable.AsEnumerable().Where(predicate);
+        _logger.LogInformation("Searching sequences with custom predicate");
+        try
+        {
+            var queryable = await _unitOfWork.SequenceDefinitions.GetQueryableAsync();
+            var result = queryable.AsEnumerable().Where(predicate);
+            _logger.LogInformation("Found {Count} sequences matching criteria", result.Count());
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching sequences");
+            throw new StorageProviderException("SearchSequences", ex);
+        }
     }
 }

@@ -1,3 +1,4 @@
+using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
 using System.Text.Json;
 
@@ -19,74 +20,151 @@ public class JsonStorageProvider<T> : IStorageProvider<T> where T : class
 
     private void LoadData()
     {
-        if (File.Exists(_filePath))
+        try
         {
-            var json = File.ReadAllText(_filePath);
-            _data = JsonSerializer.Deserialize<List<T>>(json, _options) ?? new List<T>();
+            if (File.Exists(_filePath))
+            {
+                var json = File.ReadAllText(_filePath);
+                _data = JsonSerializer.Deserialize<List<T>>(json, _options) ?? new List<T>();
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("LoadData", ex);
         }
     }
 
     public Task<IEnumerable<T>> GetAllAsync()
     {
-        return Task.FromResult<IEnumerable<T>>(_data.ToList());
+        try
+        {
+            return Task.FromResult<IEnumerable<T>>(_data.ToList());
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("GetAll", ex);
+        }
     }
 
     public Task<T?> GetByIdAsync(string id)
     {
-        var idProperty = typeof(T).GetProperty("Id");
-        if (idProperty == null)
-            throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
+        try
+        {
+            var idProperty = typeof(T).GetProperty("Id");
+            if (idProperty == null)
+                throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
 
-        var entity = _data.FirstOrDefault(x => 
-            idProperty.GetValue(x)?.ToString() == id);
-        return Task.FromResult(entity);
+            var entity = _data.FirstOrDefault(x => 
+                idProperty.GetValue(x)?.ToString() == id);
+            return Task.FromResult(entity);
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("GetById", ex);
+        }
     }
 
     public Task AddAsync(T entity)
     {
-        _data.Add(entity);
-        _isDirty = true;
-        return Task.CompletedTask;
+        try
+        {
+            _data.Add(entity);
+            _isDirty = true;
+            return Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("Add", ex);
+        }
     }
 
     public Task UpdateAsync(T entity)
     {
-        var idProperty = typeof(T).GetProperty("Id");
-        if (idProperty == null)
-            throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
-
-        var id = idProperty.GetValue(entity)?.ToString();
-        var index = _data.FindIndex(x => 
-            idProperty.GetValue(x)?.ToString() == id);
-
-        if (index >= 0)
+        try
         {
-            _data[index] = entity;
-            _isDirty = true;
+            var idProperty = typeof(T).GetProperty("Id");
+            if (idProperty == null)
+                throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
+
+            var id = idProperty.GetValue(entity)?.ToString();
+            var index = _data.FindIndex(x => 
+                idProperty.GetValue(x)?.ToString() == id);
+
+            if (index >= 0)
+            {
+                _data[index] = entity;
+                _isDirty = true;
+            }
+            else
+            {
+                throw new EntityNotFoundException(typeof(T).Name, id ?? "unknown");
+            }
+            
+            return Task.CompletedTask;
         }
-        
-        return Task.CompletedTask;
+        catch (EntityNotFoundException)
+        {
+            // Re-throw entity not found exceptions
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("Update", ex);
+        }
     }
 
     public Task DeleteAsync(string id)
     {
-        var idProperty = typeof(T).GetProperty("Id");
-        if (idProperty == null)
-            throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
+        try
+        {
+            var idProperty = typeof(T).GetProperty("Id");
+            if (idProperty == null)
+                throw new InvalidOperationException($"Type {typeof(T).Name} must have an Id property");
 
-        _data.RemoveAll(x => idProperty.GetValue(x)?.ToString() == id);
-        _isDirty = true;
-        return Task.CompletedTask;
+            var originalCount = _data.Count;
+            _data.RemoveAll(x => idProperty.GetValue(x)?.ToString() == id);
+            
+            if (_data.Count == originalCount)
+            {
+                throw new EntityNotFoundException(typeof(T).Name, id);
+            }
+            
+            _isDirty = true;
+            return Task.CompletedTask;
+        }
+        catch (EntityNotFoundException)
+        {
+            // Re-throw entity not found exceptions
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("Delete", ex);
+        }
     }
 
     public Task SaveChangesAsync()
     {
-        if (_isDirty)
+        try
         {
-            var json = JsonSerializer.Serialize(_data, _options);
-            File.WriteAllText(_filePath, json);
-            _isDirty = false;
+            if (_isDirty)
+            {
+                // Ensure directory exists
+                var directory = Path.GetDirectoryName(_filePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                
+                var json = JsonSerializer.Serialize(_data, _options);
+                File.WriteAllText(_filePath, json);
+                _isDirty = false;
+            }
+            return Task.CompletedTask;
         }
-        return Task.CompletedTask;
+        catch (Exception ex)
+        {
+            throw new StorageProviderException("SaveChanges", ex);
+        }
     }
 }

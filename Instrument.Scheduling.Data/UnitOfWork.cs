@@ -21,7 +21,6 @@ public class UnitOfWork : IUnitOfWork
     private IRangeValueRepository? _rangeValueRepository;
     private IResourceRepository? _resourceRepository;
     private ISequenceGroupRepository? _sequenceGroupRepository;
-    private SequenceGroupService? _sequenceGroupService;
 
     public UnitOfWork(
         IStorageProvider<Sequence> sequenceStorageProvider,
@@ -31,8 +30,7 @@ public class UnitOfWork : IUnitOfWork
         IStorageProvider<RangeValue> rangeValueStorageProvider,
         IStorageProvider<Resource> resourceStorageProvider,
         IStorageProvider<SequenceGroup> sequenceGroupStorageProvider,
-        DataContext.SchedulerDbContext dbContext,
-        SequenceGroupService sequenceGroupService)
+        DataContext.SchedulerDbContext dbContext)
     {
         _sequenceStorageProvider = sequenceStorageProvider ?? throw new ArgumentNullException(nameof(sequenceStorageProvider));
         _parameterStorageProvider = parameterStorageProvider ?? throw new ArgumentNullException(nameof(parameterStorageProvider));
@@ -42,7 +40,6 @@ public class UnitOfWork : IUnitOfWork
         _resourceStorageProvider = resourceStorageProvider ?? throw new ArgumentNullException(nameof(resourceStorageProvider));
         _sequenceGroupStorageProvider = sequenceGroupStorageProvider ?? throw new ArgumentNullException(nameof(sequenceGroupStorageProvider));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _sequenceGroupService = sequenceGroupService ?? throw new ArgumentNullException(nameof(sequenceGroupService));
     }
 
     public ISequenceRepository SequenceDefinitions =>
@@ -62,9 +59,6 @@ public class UnitOfWork : IUnitOfWork
         
     public ISequenceGroupRepository SequenceGroups =>
         _sequenceGroupRepository ??= new SequenceGroupRepository(_sequenceGroupStorageProvider, SequenceDefinitions, _dbContext);
-        
-    public SequenceGroupService SequenceGroupService =>
-        _sequenceGroupService;
 
     public async Task<int> SaveChangesAsync()
     {
