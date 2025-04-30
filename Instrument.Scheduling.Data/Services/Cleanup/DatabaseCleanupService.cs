@@ -33,11 +33,13 @@ namespace Instrument.Scheduling.Data.Services
                 // Clear data in the correct order to avoid foreign key constraints
                 // Start with tables that reference others (child tables)
                 await _context.SequenceParameters.ExecuteDeleteAsync();
+                await _context.SequenceGroupSequences.ExecuteDeleteAsync();
                 await _context.RangeValues.ExecuteDeleteAsync();
 
                 // Then clear parent tables
                 await _context.Parameters.ExecuteDeleteAsync();
                 await _context.Sequences.ExecuteDeleteAsync();
+                await _context.SequenceGroups.ExecuteDeleteAsync();
                 await _context.Ranges.ExecuteDeleteAsync();
                 await _context.Resources.ExecuteDeleteAsync();
 
