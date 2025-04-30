@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Instrument.Scheduling.Data.DataContext;
@@ -8,7 +8,7 @@ using Instrument.Scheduling.Data.Providers;
 namespace Instrument.Scheduling.Data.Initialization
 {
     /// <summary>
-    /// Factory for creating the appropriate data initializer based on storage configuration
+    /// Factory for creating database initializers
     /// </summary>
     public class DataInitializerFactory
     {
@@ -35,9 +35,6 @@ namespace Instrument.Scheduling.Data.Initialization
                 case StorageProviderType.SQLite:
                     return CreateSqliteInitializer();
 
-                case StorageProviderType.Json:
-                    return CreateJsonInitializer(config.JsonFilePath);
-
                 case StorageProviderType.SqlServer:
                     throw new NotImplementedException("SQL Server initializer not implemented");
 
@@ -55,20 +52,6 @@ namespace Instrument.Scheduling.Data.Initialization
             var logger = _serviceProvider.GetRequiredService<ILogger<SqliteDatabaseInitializer>>();
 
             return new SqliteDatabaseInitializer(context, logger);
-        }
-
-        /// <summary>
-        /// Creates a JSON file initializer
-        /// </summary>
-        private IDataInitializer CreateJsonInitializer(string jsonFilePath)
-        {
-            var basePath = string.IsNullOrEmpty(jsonFilePath)
-                ? "./data"
-                : System.IO.Path.GetDirectoryName(jsonFilePath) ?? "./data";
-
-            var logger = _serviceProvider.GetRequiredService<ILogger<JsonFileInitializer>>();
-
-            return new JsonFileInitializer(basePath, logger);
         }
     }
 }

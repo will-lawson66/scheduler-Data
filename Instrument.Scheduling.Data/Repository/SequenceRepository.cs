@@ -1,50 +1,72 @@
+using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Instrument.Scheduling.Data.Repository;
-public class SequenceRepository : ISequenceRepository
+
+/// <summary>
+/// Repository for sequences
+/// </summary>
+public class SequenceRepository : Repository<Sequence>, ISequenceRepository
 {
-    private readonly IStorageProvider<Sequence> _storageProvider;
-
-    public SequenceRepository(IStorageProvider<Sequence> storageProvider)
+    /// <summary>
+    /// Creates a new sequence repository
+    /// </summary>
+    /// <param name="dbContext">Database context</param>
+    public SequenceRepository(SchedulerDbContext dbContext)
+        : base(dbContext)
     {
-        _storageProvider = storageProvider;
     }
-
-    public async Task<IEnumerable<Sequence>> GetAllAsync()
+    
+    /// <summary>
+    /// Gets a sequence with its parameters
+    /// </summary>
+    /// <param name="id">Sequence ID</param>
+    public async Task<Sequence?> GetSequenceWithParametersAsync(string id)
     {
-        return await _storageProvider.GetAllAsync();
+        return await DbContext.Sequences
+            .Include(s => s.SequenceParameters)
+            .ThenInclude(sp => sp.Parameter)
+            .FirstOrDefaultAsync(s => s.Id == id);
     }
-
-    public async Task<Sequence?> GetByIdAsync(string id)
+    
+    /// <summary>
+    /// Gets sequences by name
+    /// </summary>
+    /// <param name="name">Sequence name</param>
+    public async Task<IEnumerable<Sequence>> GetSequencesByNameAsync(string name)
     {
-        return await _storageProvider.GetByIdAsync(id);
+        return await DbContext.Sequences
+            .Where(s => s.Name.Contains(name))
+            .ToListAsync();
     }
-
-    public async Task<IQueryable<Sequence>> GetQueryableAsync()
+    
+    /// <summary>
+    /// Removes a parameter from a sequence
+    /// </summary>
+    /// <param name="parameterId">Parameter ID</param>
+    /// <param name="sequenceId">Sequence ID</param>
+    public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
     {
-        var data = await _storageProvider.GetAllAsync();
-        return data.AsQueryable();
+        var sequenceParameter = await DbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
+            
+        if (sequenceParameter != null)
+        {
+            DbContext.SequenceParameters.Remove(sequenceParameter);
+            await DbContext.SaveChangesAsync();
+        }
     }
-
-    public async Task AddAsync(Sequence sequence)
+    
+    /// <summary>
+    /// Gets sequences by their IDs
+    /// </summary>
+    /// <param name="ids">Sequence IDs</param>
+    public async Task<IEnumerable<Sequence>> GetSequencesByIdsAsync(IEnumerable<string> ids)
     {
-        await _storageProvider.AddAsync(sequence);
-    }
-
-    public async Task UpdateAsync(Sequence sequence)
-    {
-        //sequence.ModifiedDate = DateTime.UtcNow;
-        await _storageProvider.UpdateAsync(sequence);
-    }
-
-    public async Task DeleteAsync(string id)
-    {
-        await _storageProvider.DeleteAsync(id);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _storageProvider.SaveChangesAsync();
+        return await DbContext.Sequences
+            .Where(s => ids.Contains(s.Id))
+            .ToListAsync();
     }
 }

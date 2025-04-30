@@ -45,11 +45,6 @@ public class ResourceService
         return await _unitOfWork.Resources.GetParametersForResourceAsync(resourceId);
     }
     
-    public async Task<IEnumerable<Resource>> GetAvailableResourcesAsync()
-    {
-        return await _unitOfWork.Resources.GetAvailableResourcesAsync();
-    }
-    
     // Lock a resource
     public async Task LockResourceAsync(string id)
     {

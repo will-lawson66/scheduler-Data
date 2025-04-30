@@ -2,29 +2,29 @@ using Instrument.Scheduling.Data.Entities;
 
 namespace Instrument.Scheduling.Data.Interfaces;
 
-public interface IParameterRepository
+/// <summary>
+/// Repository interface for parameters
+/// </summary>
+public interface IParameterRepository : IRepository<Parameter>
 {
-    Task<IEnumerable<Parameter>> GetAllAsync();
-    Task<Parameter?> GetByIdAsync(string id);
-    Task<IQueryable<Parameter>> GetQueryableAsync();
-    Task AddAsync(Parameter parameter);
-    Task UpdateAsync(Parameter parameter);
-    Task DeleteAsync(string id);
-    
-    // Get parameters for a specific sequence
+    /// <summary>
+    /// Gets parameters for a sequence
+    /// </summary>
+    /// <param name="sequenceId">Sequence ID</param>
     Task<IEnumerable<Parameter>> GetParametersForSequenceAsync(string sequenceId);
     
-    // Add a parameter to a sequence
-    Task AddParameterToSequenceAsync(string sequenceId, string parameterId, int orderNumber);
+    /// <summary>
+    /// Adds a parameter to a sequence
+    /// </summary>
+    /// <param name="parameterId">Parameter ID</param>
+    /// <param name="sequenceId">Sequence ID</param>
+    /// <param name="orderNumber">Order number</param>
+    Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber);
     
-    // Remove a parameter from a sequence
-    Task RemoveParameterFromSequenceAsync(string sequenceId, string parameterId);
-    
-    // Get parameters by range
-    Task<IEnumerable<Parameter>> GetParametersByRangeAsync(string rangeId);
-    
-    // Get parameters by resource
-    Task<IEnumerable<Parameter>> GetParametersByResourceAsync(string resourceId);
-    
-    Task SaveChangesAsync();
+    /// <summary>
+    /// Removes a parameter from a sequence
+    /// </summary>
+    /// <param name="parameterId">Parameter ID</param>
+    /// <param name="sequenceId">Sequence ID</param>
+    Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId);
 }

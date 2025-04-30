@@ -1,17 +1,21 @@
 using Instrument.Scheduling.Data.Entities;
 
 namespace Instrument.Scheduling.Data.Interfaces;
-public interface ISequenceGroupRepository
+/// <summary>
+/// Repository interface for sequence groups
+/// </summary>
+public interface ISequenceGroupRepository : IRepository<SequenceGroup>
 {
-    Task<IEnumerable<SequenceGroup>> GetAllAsync();
-    Task<SequenceGroup?> GetByIdAsync(string id);
-    Task<IQueryable<SequenceGroup>> GetQueryableAsync();
-    Task AddAsync(SequenceGroup sequenceGroup);
-    Task UpdateAsync(SequenceGroup sequenceGroup);
-    Task DeleteAsync(string id);
-    Task SaveChangesAsync();
     
-    // Specialized methods for SequenceGroup
+    /// <summary>
+    /// Gets a sequence group with its sequences
+    /// </summary>
+    /// <param name="id">Sequence group ID</param>
     Task<SequenceGroup?> GetWithSequencesAsync(string id);
+    
+    /// <summary>
+    /// Gets ordered sequences for a sequence group
+    /// </summary>
+    /// <param name="sequenceGroupId">Sequence group ID</param>
     Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string sequenceGroupId);
 }

@@ -10,12 +10,12 @@ public class StorageConfiguration
     /// <summary>
     /// The type of storage provider to use
     /// </summary>
-    public StorageProviderType Provider { get; set; } = StorageProviderType.Json;
+    public StorageProviderType Provider { get; set; } = StorageProviderType.SQLite;
 
     /// <summary>
-    /// Path to the JSON file (used for Json provider)
+    /// Path to directory for JSON import/export
     /// </summary>
-    public string JsonFilePath { get; set; } = "sequence_definitions.json";
+    public string JsonExportPath { get; set; } = "export";
 
     /// <summary>
     /// Connection string (used for SQLite and SqlServer providers)

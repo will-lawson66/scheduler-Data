@@ -1,3 +1,5 @@
+using Instrument.Scheduling.Data.Adapters;
+using Instrument.Scheduling.Data.Commands;
 using Instrument.Scheduling.Data.Configuration;
 using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
@@ -23,35 +25,10 @@ public static class ServiceCollectionExtensions
 
         switch (config.Provider)
         {
-            case StorageProviderType.Json:
-                // Register JSON providers
-                services.AddSingleton<IStorageProvider<Sequence>>(
-                    sp => new JsonStorageProvider<Sequence>(config.JsonFilePath));
-                services.AddSingleton<IStorageProvider<Parameter>>(
-                    sp => new JsonStorageProvider<Parameter>(config.JsonFilePath.Replace(".json", "_parameters.json")));
-                services.AddSingleton<IStorageProvider<SequenceParameter>>(
-                    sp => new JsonStorageProvider<SequenceParameter>(config.JsonFilePath.Replace(".json", "_sequence_parameters.json")));
-                services.AddSingleton<IStorageProvider<Entities.Range>>(
-                    sp => new JsonStorageProvider<Entities.Range>(config.JsonFilePath.Replace(".json", "_ranges.json")));
-                services.AddSingleton<IStorageProvider<RangeValue>>(
-                    sp => new JsonStorageProvider<RangeValue>(config.JsonFilePath.Replace(".json", "_range_values.json")));
-                services.AddSingleton<IStorageProvider<Resource>>(
-                    sp => new JsonStorageProvider<Resource>(config.JsonFilePath.Replace(".json", "_resources.json")));
-                services.AddSingleton<IStorageProvider<SequenceGroup>>(
-                    sp => new JsonStorageProvider<SequenceGroup>(config.JsonFilePath.Replace(".json", "_sequence_groups.json")));
-                services.AddScoped<JsonDataCleanupService>();
-                break;
 
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlite(config.ConnectionString));
-                services.AddScoped<IStorageProvider<Sequence>, SqliteStorageProvider<Sequence>>();
-                services.AddScoped<IStorageProvider<Parameter>, SqliteStorageProvider<Parameter>>();
-                services.AddScoped<IStorageProvider<SequenceParameter>, SqliteSequenceParameterProvider>();
-                services.AddScoped<IStorageProvider<Entities.Range>, SqliteStorageProvider<Entities.Range>>();
-                services.AddScoped<IStorageProvider<RangeValue>, SqliteStorageProvider<RangeValue>>();
-                services.AddScoped<IStorageProvider<Resource>, SqliteStorageProvider<Resource>>();
-                services.AddScoped<IStorageProvider<SequenceGroup>, SqliteStorageProvider<SequenceGroup>>();
                 services.AddScoped<DatabaseCleanupService>();
 
                 break;
@@ -59,17 +36,13 @@ public static class ServiceCollectionExtensions
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options.UseSqlServer(config.ConnectionString));
-                services.AddScoped<IStorageProvider<Sequence>, SqlServerStorageProvider<Sequence>>();
-                services.AddScoped<IStorageProvider<Parameter>, SqlServerStorageProvider<Parameter>>();
-                services.AddScoped<IStorageProvider<SequenceParameter>, SqlServerSequenceParameterProvider>();
-                services.AddScoped<IStorageProvider<Entities.Range>, SqlServerStorageProvider<Entities.Range>>();
-                services.AddScoped<IStorageProvider<RangeValue>, SqlServerStorageProvider<RangeValue>>();
-                services.AddScoped<IStorageProvider<Resource>, SqlServerStorageProvider<Resource>>();
-                services.AddScoped<IStorageProvider<SequenceGroup>, SqlServerStorageProvider<SequenceGroup>>();
                 services.AddScoped<DatabaseCleanupService>();
                 break;
         }
 
+        // Register the JSON adapter
+        services.AddScoped<IJsonDataAdapter, Adapters.JsonDataAdapter>();
+        
         // Register repositories
         services.AddScoped<ISequenceRepository, SequenceRepository>();
         services.AddScoped<IParameterRepository, ParameterRepository>();
@@ -114,10 +87,14 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Adds data initialization services to the service collection
+    /// </summary>
     public static IServiceCollection AddDataInitialization(this IServiceCollection services)
     {
-        // Register factory
+        // Register the factory and database initializers
         services.AddSingleton<DataInitializerFactory>();
+        services.AddScoped<SqliteDatabaseInitializer>();
 
         return services;
     }
@@ -129,9 +106,22 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<SchedulerDbContext>(),
             sp.GetRequiredService<IUnitOfWork>(),
             sp.GetRequiredService<ILogger<DatabaseCleanupService>>()));
+
+        return services;
+    }
+    
+    /// <summary>
+    /// Adds JSON import/export commands to the service collection
+    /// </summary>
+    public static IServiceCollection AddJsonCommands(this IServiceCollection services)
+    {
+        services.AddScoped<ICommand, ExportDataCommand>((sp) => new ExportDataCommand(
+            sp.GetRequiredService<IJsonDataAdapter>(),
+            sp.GetRequiredService<ILogger<ExportDataCommand>>()));
             
-        services.AddScoped<JsonDataCleanupService>((sp) => new JsonDataCleanupService(
-            sp.GetRequiredService<ILogger<JsonDataCleanupService>>()));
+        services.AddScoped<ICommand, ImportDataCommand>((sp) => new ImportDataCommand(
+            sp.GetRequiredService<IJsonDataAdapter>(),
+            sp.GetRequiredService<ILogger<ImportDataCommand>>()));
 
         return services;
     }

@@ -13,7 +13,7 @@ public record Parameter
     public string? DefaultValue { get; init; }
     public string? Format { get; init; }
     public string? RangeId { get; init; }
-    public string? ResourceId { get; init; }
+    public string? ResourceId { get; set; }
     
     // Navigation properties
     public Range? Range { get; init; }
