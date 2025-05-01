@@ -1,5 +1,4 @@
-﻿
-namespace Instrument.Scheduling.Data.Providers;
+﻿namespace Instrument.Scheduling.Data.Configuration;
 
 public enum StorageProviderType
 {

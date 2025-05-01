@@ -6,21 +6,20 @@ using Microsoft.Extensions.Logging;
 namespace Instrument.Scheduling.Data.Services;
 public class SequenceService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly ISequenceRepository _sequenceRepository;
     private readonly ILogger<SequenceService> _logger;
 
-    public SequenceService(
-        IUnitOfWork unitOfWork,
+    public SequenceService(ISequenceRepository sequenceRepository,
         ILogger<SequenceService> logger)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _sequenceRepository = sequenceRepository ?? throw new ArgumentNullException(nameof(sequenceRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Sequence?> GetSequenceAsync(string id)
     {
         _logger.LogInformation("Retrieving sequence with ID: {Id}", id);
-        return await _unitOfWork.SequenceDefinitions.GetByIdAsync(id);
+        return await _sequenceRepository.GetByIdAsync(id);
     }
 
     public async Task CreateSequenceAsync(Sequence sequence)
@@ -31,7 +30,7 @@ public class SequenceService
         _logger.LogInformation("Creating new sequence with ID: {Id}", sequence.Id);
         
         // Validate if a sequence with this ID already exists
-        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequence.Id);
+        var existingSequence = await _sequenceRepository.GetByIdAsync(sequence.Id);
         if (existingSequence != null)
         {
             _logger.LogWarning("Sequence with ID {Id} already exists", sequence.Id);
@@ -40,8 +39,8 @@ public class SequenceService
 
         try
         {
-            await _unitOfWork.SequenceDefinitions.AddAsync(sequence);
-            await _unitOfWork.SaveChangesAsync();
+            await _sequenceRepository.AddAsync(sequence);
+            await _sequenceRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully created sequence with ID: {Id}", sequence.Id);
         }
         catch (Exception ex)
@@ -59,7 +58,7 @@ public class SequenceService
         _logger.LogInformation("Updating sequence with ID: {Id}", sequence.Id);
         
         // Validate if the sequence exists
-        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequence.Id);
+        var existingSequence = await _sequenceRepository.GetByIdAsync(sequence.Id);
         if (existingSequence == null)
         {
             _logger.LogWarning("Sequence with ID {Id} does not exist", sequence.Id);
@@ -68,8 +67,8 @@ public class SequenceService
 
         try
         {
-            await _unitOfWork.SequenceDefinitions.UpdateAsync(sequence);
-            await _unitOfWork.SaveChangesAsync();
+            await _sequenceRepository.UpdateAsync(sequence);
+            await _sequenceRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully updated sequence with ID: {Id}", sequence.Id);
         }
         catch (Exception ex)
@@ -84,7 +83,7 @@ public class SequenceService
         _logger.LogInformation("Deleting sequence with ID: {Id}", id);
         
         // Validate if the sequence exists
-        var existingSequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(id);
+        var existingSequence = await _sequenceRepository.GetByIdAsync(id);
         if (existingSequence == null)
         {
             _logger.LogWarning("Sequence with ID {Id} does not exist", id);
@@ -93,8 +92,8 @@ public class SequenceService
 
         try
         {
-            await _unitOfWork.SequenceDefinitions.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _sequenceRepository.DeleteAsync(id);
+            await _sequenceRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully deleted sequence with ID: {Id}", id);
         }
         catch (Exception ex)
@@ -109,7 +108,7 @@ public class SequenceService
         _logger.LogInformation("Retrieving all sequences");
         try
         {
-            return await _unitOfWork.SequenceDefinitions.GetAllAsync();
+            return await _sequenceRepository.GetAllAsync();
         }
         catch (Exception ex)
         {
@@ -124,7 +123,7 @@ public class SequenceService
         _logger.LogInformation("Searching sequences with custom predicate");
         try
         {
-            var queryable = await _unitOfWork.SequenceDefinitions.GetQueryableAsync();
+            var queryable = await _sequenceRepository.GetQueryableAsync();
             var result = queryable.AsEnumerable().Where(predicate);
             _logger.LogInformation("Found {Count} sequences matching criteria", result.Count());
             return result;

@@ -25,7 +25,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
 
         // Extract database path from connection string
         var connectionString = _context.Database.GetConnectionString();
-        _dbPath = ExtractDbPathFromConnectionString(connectionString);
+        if (connectionString != null) _dbPath = ExtractDbPathFromConnectionString(connectionString);
     }
 
     /// <summary>

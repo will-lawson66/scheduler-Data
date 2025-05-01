@@ -26,7 +26,7 @@ public class ParameterRepositoryTests
         _mockDbContext.Setup(db => db.SequenceParameters).Returns(_mockSequenceParameterDbSet.Object);
         
         // Create repository
-        _repository = new ParameterRepository(_mockDbContext.Object);
+        //_repository = new ParameterRepository(_mockDbContext.Object);
     }
     
     private Mock<DbSet<T>> MockDbSetSetup<T>() where T : class
@@ -69,21 +69,32 @@ public class ParameterRepositoryTests
     public async Task GetAllAsync_CallsDbContext_AndReturnsResult()
     {
         // Arrange
-        _mockParameterDbSet.Setup(m => m.ToListAsync(default))
-            .ReturnsAsync(new List<Parameter>
-            {
-                new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
-                new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType }
-            });
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDB")
+            .Options;
+
+        await using (var context = new SchedulerDbContext(options))
+        {
+            context.Parameters.Add(new Parameter
+                { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType });
+            context.Parameters.Add(new Parameter
+                { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType });
+            await context.SaveChangesAsync();
+        }
         
-        // Act
-        var result = await _repository.GetAllAsync();
+        // Use a clean instance of the context to run the test
+        await using (var context = new SchedulerDbContext(options))
+        {
+            // Act
+            var repository = new ParameterRepository(context);
+            var result = await repository.GetQueryableAsync();
+
+            // Assert
+            Assert.Equal(2, result.Count());
+            Assert.Contains(result, p => p.Id == "param1");
+            Assert.Contains(result, p => p.Id == "param2");
+        }
         
-        // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, p => p.Id == "param1");
-        Assert.Contains(result, p => p.Id == "param2");
-        _mockParameterDbSet.Verify(m => m.ToListAsync(default), Times.Once);
     }
     
     [Fact]

@@ -5,44 +5,44 @@ namespace Instrument.Scheduling.Data.Services;
 
 public class RangeValueService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IRangeValueRepository _rangeValueRepository;
 
-    public RangeValueService(IUnitOfWork unitOfWork)
+    public RangeValueService(IRangeValueRepository rangeValueRepository)
     {
-        _unitOfWork = unitOfWork;
+        _rangeValueRepository = rangeValueRepository;
     }
 
     public async Task<RangeValue?> GetRangeValueAsync(string id)
     {
-        return await _unitOfWork.RangeValues.GetByIdAsync(id);
+        return await _rangeValueRepository.GetByIdAsync(id);
     }
 
     public async Task CreateRangeValueAsync(RangeValue rangeValue)
     {
-        await _unitOfWork.RangeValues.AddAsync(rangeValue);
-        await _unitOfWork.SaveChangesAsync();
+        await _rangeValueRepository.AddAsync(rangeValue);
+        await _rangeValueRepository.SaveChangesAsync();
     }
 
     public async Task UpdateRangeValueAsync(RangeValue rangeValue)
     {
-        await _unitOfWork.RangeValues.UpdateAsync(rangeValue);
-        await _unitOfWork.SaveChangesAsync();
+        await _rangeValueRepository.UpdateAsync(rangeValue);
+        await _rangeValueRepository.SaveChangesAsync();
     }
 
     public async Task DeleteRangeValueAsync(string id)
     {
-        await _unitOfWork.RangeValues.DeleteAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        await _rangeValueRepository.DeleteAsync(id);
+        await _rangeValueRepository.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<RangeValue>> GetAllRangeValuesAsync()
     {
-        return await _unitOfWork.RangeValues.GetAllAsync();
+        return await _rangeValueRepository.GetAllAsync();
     }
     
     public async Task<IEnumerable<RangeValue>> GetValuesForRangeAsync(string rangeId)
     {
-        return await _unitOfWork.RangeValues.GetValuesForRangeAsync(rangeId);
+        return await _rangeValueRepository.GetValuesForRangeAsync(rangeId);
     }
     
     // Check if a value is valid for a range

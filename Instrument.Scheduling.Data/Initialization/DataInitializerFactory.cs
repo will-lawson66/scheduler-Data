@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Configuration;
-using Instrument.Scheduling.Data.Providers;
 
 namespace Instrument.Scheduling.Data.Initialization
 {

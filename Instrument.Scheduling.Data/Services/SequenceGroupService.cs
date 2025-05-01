@@ -12,17 +12,20 @@ namespace Instrument.Scheduling.Data.Services;
 /// </summary>
 public class SequenceGroupService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly SchedulerDbContext _dbContext;
+    private readonly ISequenceGroupRepository _sequenceGroupRepository;
+    private readonly ISequenceRepository _sequenceRepository;
     private readonly ILogger<SequenceGroupService> _logger;
 
     public SequenceGroupService(
-        IUnitOfWork unitOfWork,
         SchedulerDbContext dbContext,
+        ISequenceGroupRepository sequenceGroupRepository,
+        ISequenceRepository sequenceRepository,
         ILogger<SequenceGroupService> logger)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _sequenceGroupRepository = sequenceGroupRepository;
+        _sequenceRepository = sequenceRepository;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -45,7 +48,7 @@ public class SequenceGroupService
             throw new ArgumentException("Sequence group name cannot be empty", nameof(name));
 
         // Check if ID already exists
-        var existingGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(id);
+        var existingGroup = await _sequenceGroupRepository.GetByIdAsync(id);
         if (existingGroup != null)
             throw new SchedulerDataException($"Sequence group with ID {id} already exists");
 
@@ -59,8 +62,8 @@ public class SequenceGroupService
 
         try
         {
-            await _unitOfWork.SequenceGroups.AddAsync(sequenceGroup);
-            await _unitOfWork.SaveChangesAsync();
+            await _sequenceGroupRepository.AddAsync(sequenceGroup);
+            await _sequenceGroupRepository.SaveChangesAsync();
 
             _logger.LogInformation("Sequence group created successfully: {Id}", id);
             return sequenceGroup;
@@ -87,7 +90,7 @@ public class SequenceGroupService
         try
         {
             // Get the sequence group
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(sequenceGroupId);
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
             if (sequenceGroup == null)
             {
                 _logger.LogError("Sequence group not found: {Id}", sequenceGroupId);
@@ -95,7 +98,7 @@ public class SequenceGroupService
             }
 
             // Get the sequence
-            var sequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequenceId);
+            var sequence = await _sequenceRepository.GetByIdAsync(sequenceId);
             if (sequence == null)
             {
                 _logger.LogError("Sequence not found: {Id}", sequenceId);
@@ -133,13 +136,13 @@ public class SequenceGroupService
         try
         {
             // Validate if the sequence group exists
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(sequenceGroupId);
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
             if (sequenceGroup == null)
             {
                 throw new EntityNotFoundException("SequenceGroup", sequenceGroupId);
             }
             
-            return await _unitOfWork.SequenceGroups.GetOrderedSequencesAsync(sequenceGroupId);
+            return await _sequenceGroupRepository.GetOrderedSequencesAsync(sequenceGroupId);
         }
         catch (EntityNotFoundException)
         {
@@ -161,7 +164,7 @@ public class SequenceGroupService
     {
         try
         {
-            return await _unitOfWork.SequenceGroups.GetAllAsync();
+            return await _sequenceGroupRepository.GetAllAsync();
         }
         catch (Exception ex)
         {
@@ -179,7 +182,7 @@ public class SequenceGroupService
     {
         try
         {
-            return await _unitOfWork.SequenceGroups.GetByIdAsync(id);
+            return await _sequenceGroupRepository.GetByIdAsync(id);
         }
         catch (Exception ex)
         {
@@ -197,7 +200,7 @@ public class SequenceGroupService
     {
         try
         {
-            var result = await _unitOfWork.SequenceGroups.GetWithSequencesAsync(id);
+            var result = await _sequenceGroupRepository.GetWithSequencesAsync(id);
             if (result == null)
             {
                 _logger.LogWarning("Sequence group not found: {Id}", id);
@@ -221,14 +224,14 @@ public class SequenceGroupService
         try
         {
             // Validate if the sequence group exists
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(id);
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(id);
             if (sequenceGroup == null)
             {
                 throw new EntityNotFoundException("SequenceGroup", id);
             }
             
-            await _unitOfWork.SequenceGroups.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _sequenceGroupRepository.DeleteAsync(id);
+            await _sequenceGroupRepository.SaveChangesAsync();
             return true;
         }
         catch (EntityNotFoundException)
@@ -254,7 +257,7 @@ public class SequenceGroupService
         try
         {
             // Validate if the sequence group exists
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(sequenceGroupId);
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
             if (sequenceGroup == null)
             {
                 throw new EntityNotFoundException("SequenceGroup", sequenceGroupId);
@@ -307,7 +310,7 @@ public class SequenceGroupService
         try
         {
             // Validate if the sequence group exists
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetByIdAsync(sequenceGroupId);
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
             if (sequenceGroup == null)
             {
                 throw new EntityNotFoundException("SequenceGroup", sequenceGroupId);
@@ -337,7 +340,7 @@ public class SequenceGroupService
             _dbContext.SequenceGroupSequences.Remove(sequenceGroupSequence);
             
             // Get the sequence
-            var sequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequenceId);
+            var sequence = await _sequenceRepository.GetByIdAsync(sequenceId);
             if (sequence == null)
             {
                 _logger.LogError("Sequence not found: {Id}", sequenceId);
@@ -374,7 +377,7 @@ public class SequenceGroupService
     {
         try
         {
-            var sequenceGroup = await _unitOfWork.SequenceGroups.GetWithSequencesAsync(sequenceGroupId);
+            var sequenceGroup = await _sequenceGroupRepository.GetWithSequencesAsync(sequenceGroupId);
             if (sequenceGroup == null)
             {
                 _logger.LogError("Sequence group not found: {Id}", sequenceGroupId);
@@ -389,7 +392,7 @@ public class SequenceGroupService
             }
 
             // Get the ordered sequences
-            var orderedSequences = await _unitOfWork.SequenceGroups.GetOrderedSequencesAsync(sequenceGroupId);
+            var orderedSequences = await _sequenceGroupRepository.GetOrderedSequencesAsync(sequenceGroupId);
             
             // Validate that the ordered sequences form a continuous sequence (no gaps in order)
             var orderNumbers = orderedSequences.Keys.ToList();

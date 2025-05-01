@@ -36,7 +36,7 @@ public class ExportDataCommand : ICommand
             return;
         }
 
-        string exportPath = args[0];
+        string exportPath = args[0]; // or config value
         
         try
         {

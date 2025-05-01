@@ -1,5 +1,4 @@
 ﻿using Instrument.Scheduling.Data.Interfaces;
-using Instrument.Scheduling.Data.Providers;
 using Microsoft.Extensions.Logging;
 using System.IO;
 
