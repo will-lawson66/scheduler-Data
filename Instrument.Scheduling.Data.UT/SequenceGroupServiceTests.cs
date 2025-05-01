@@ -11,7 +11,6 @@ namespace Instrument.Scheduling.Data.UT;
 
 public class SequenceGroupServiceTests
 {
-    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<ISequenceGroupRepository> _mockSequenceGroupRepository;
     private readonly Mock<ISequenceRepository> _mockSequenceRepository;
     private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
@@ -21,7 +20,6 @@ public class SequenceGroupServiceTests
     public SequenceGroupServiceTests()
     {
         // Set up mocks
-        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockSequenceGroupRepository = new Mock<ISequenceGroupRepository>();
         _mockSequenceRepository = new Mock<ISequenceRepository>();
         _mockLogger = new Mock<ILogger<SequenceGroupService>>();
@@ -32,14 +30,12 @@ public class SequenceGroupServiceTests
             .Options;
         _dbContext = new SchedulerDbContext(options);
 
-        // Configure UnitOfWork mock to return our repository mocks
-        _mockUnitOfWork.Setup(uow => uow.SequenceGroups).Returns(_mockSequenceGroupRepository.Object);
-        _mockUnitOfWork.Setup(uow => uow.SequenceDefinitions).Returns(_mockSequenceRepository.Object);
 
         // Create the service
         _service = new SequenceGroupService(
-            _mockUnitOfWork.Object,
             _dbContext,
+            _mockSequenceGroupRepository.Object,
+            _mockSequenceRepository.Object,
             _mockLogger.Object
         );
     }
@@ -65,7 +61,6 @@ public class SequenceGroupServiceTests
         Assert.Equal(description, result.Description);
 
         _mockSequenceGroupRepository.Verify(repo => repo.AddAsync(It.IsAny<SequenceGroup>()), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -86,7 +81,6 @@ public class SequenceGroupServiceTests
         Assert.Contains(id, exception.Message);
         
         _mockSequenceGroupRepository.Verify(repo => repo.AddAsync(It.IsAny<SequenceGroup>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -127,7 +121,6 @@ public class SequenceGroupServiceTests
         // Assert
         Assert.True(result);
         _mockSequenceGroupRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -147,7 +140,6 @@ public class SequenceGroupServiceTests
         Assert.Equal("SequenceGroup", exception.EntityType);
         
         _mockSequenceGroupRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]

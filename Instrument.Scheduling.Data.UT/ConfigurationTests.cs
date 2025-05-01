@@ -1,5 +1,4 @@
 using Instrument.Scheduling.Data.Configuration;
-using Instrument.Scheduling.Data.Providers;
 
 namespace Instrument.Scheduling.Data.UT;
 public class ConfigurationTests
@@ -38,7 +37,7 @@ public class ConfigurationTests
     public void StorageProviderType_HasExpectedValues()
     {
         // Act & Assert
-        Assert.Equal(1, (int)StorageProviderType.SQLite);
-        Assert.Equal(2, (int)StorageProviderType.SqlServer);
+        Assert.Equal(0, (int)StorageProviderType.SQLite);
+        Assert.Equal(1, (int)StorageProviderType.SqlServer);
     }
 }

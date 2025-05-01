@@ -8,15 +8,15 @@ namespace Instrument.Scheduling.Data.Services;
 
 public class ParameterService
 {
-    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ParameterService> _logger;
+    private readonly IParameterRepository _parameterRepository;
 
     public ParameterService(
-        IUnitOfWork unitOfWork,
+        IParameterRepository parameterRepository,
         ILogger<ParameterService> logger)
     {
-        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _parameterRepository = parameterRepository ?? throw new ArgumentNullException(nameof(parameterRepository));
     }
 
     public async Task<Parameter?> GetParameterAsync(string id)
@@ -24,7 +24,7 @@ public class ParameterService
         _logger.LogInformation("Retrieving parameter with ID: {Id}", id);
         try
         {
-            return await _unitOfWork.Parameters.GetByIdAsync(id);
+            return await _parameterRepository.GetByIdAsync(id);
         }
         catch (Exception ex)
         {
@@ -41,7 +41,7 @@ public class ParameterService
         _logger.LogInformation("Creating new parameter with ID: {Id}, Name: {Name}", parameter.Id, parameter.Name);
         
         // Validate if a parameter with this ID already exists
-        var existingParameter = await _unitOfWork.Parameters.GetByIdAsync(parameter.Id);
+        var existingParameter = await _parameterRepository.GetByIdAsync(parameter.Id);
         if (existingParameter != null)
         {
             _logger.LogWarning("Parameter with ID {Id} already exists", parameter.Id);
@@ -50,8 +50,8 @@ public class ParameterService
 
         try
         {
-            await _unitOfWork.Parameters.AddAsync(parameter);
-            await _unitOfWork.SaveChangesAsync();
+            await _parameterRepository.AddAsync(parameter);
+            await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully created parameter with ID: {Id}", parameter.Id);
         }
         catch (Exception ex)
@@ -69,7 +69,7 @@ public class ParameterService
         _logger.LogInformation("Updating parameter with ID: {Id}, Name: {Name}", parameter.Id, parameter.Name);
         
         // Validate if the parameter exists
-        var existingParameter = await _unitOfWork.Parameters.GetByIdAsync(parameter.Id);
+        var existingParameter = await _parameterRepository.GetByIdAsync(parameter.Id);
         if (existingParameter == null)
         {
             _logger.LogWarning("Parameter with ID {Id} does not exist", parameter.Id);
@@ -78,8 +78,8 @@ public class ParameterService
 
         try
         {
-            await _unitOfWork.Parameters.UpdateAsync(parameter);
-            await _unitOfWork.SaveChangesAsync();
+            await _parameterRepository.UpdateAsync(parameter);
+            await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully updated parameter with ID: {Id}", parameter.Id);
         }
         catch (Exception ex)
@@ -94,7 +94,7 @@ public class ParameterService
         _logger.LogInformation("Deleting parameter with ID: {Id}", id);
         
         // Validate if the parameter exists
-        var existingParameter = await _unitOfWork.Parameters.GetByIdAsync(id);
+        var existingParameter = await _parameterRepository.GetByIdAsync(id);
         if (existingParameter == null)
         {
             _logger.LogWarning("Parameter with ID {Id} does not exist", id);
@@ -103,8 +103,8 @@ public class ParameterService
 
         try
         {
-            await _unitOfWork.Parameters.DeleteAsync(id);
-            await _unitOfWork.SaveChangesAsync();
+            await _parameterRepository.DeleteAsync(id);
+            await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully deleted parameter with ID: {Id}", id);
         }
         catch (Exception ex)
@@ -119,7 +119,7 @@ public class ParameterService
         _logger.LogInformation("Retrieving all parameters");
         try
         {
-            return await _unitOfWork.Parameters.GetAllAsync();
+            return await _parameterRepository.GetAllAsync();
         }
         catch (Exception ex)
         {
@@ -134,7 +134,7 @@ public class ParameterService
         _logger.LogInformation("Retrieving parameters for sequence ID: {SequenceId}", sequenceId);
         try
         {
-            return await _unitOfWork.Parameters.GetParametersForSequenceAsync(sequenceId);
+            return await _parameterRepository.GetParametersForSequenceAsync(sequenceId);
         }
         catch (Exception ex)
         {
@@ -150,25 +150,17 @@ public class ParameterService
             parameterId, sequenceId, orderNumber);
         
         // Validate parameter exists
-        var parameter = await _unitOfWork.Parameters.GetByIdAsync(parameterId);
+        var parameter = await _parameterRepository.GetByIdAsync(parameterId);
         if (parameter == null)
         {
             _logger.LogWarning("Parameter with ID {Id} does not exist", parameterId);
             throw new EntityNotFoundException("Parameter", parameterId);
         }
         
-        // Validate sequence exists
-        var sequence = await _unitOfWork.SequenceDefinitions.GetByIdAsync(sequenceId);
-        if (sequence == null)
-        {
-            _logger.LogWarning("Sequence with ID {Id} does not exist", sequenceId);
-            throw new EntityNotFoundException("Sequence", sequenceId);
-        }
-
         try
         {
-            await _unitOfWork.Parameters.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
-            await _unitOfWork.SaveChangesAsync();
+            await _parameterRepository.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
+            await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully added parameter {ParameterId} to sequence {SequenceId}", 
                 parameterId, sequenceId);
         }
@@ -188,8 +180,8 @@ public class ParameterService
         
         try
         {
-            await _unitOfWork.Parameters.RemoveParameterFromSequenceAsync(sequenceId, parameterId);
-            await _unitOfWork.SaveChangesAsync();
+            await _parameterRepository.RemoveParameterFromSequenceAsync(sequenceId, parameterId);
+            await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully removed parameter {ParameterId} from sequence {SequenceId}", 
                 parameterId, sequenceId);
         }

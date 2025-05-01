@@ -9,7 +9,6 @@ namespace Instrument.Scheduling.Data.UT;
 
 public class SequenceServiceTests
 {
-    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<ISequenceRepository> _mockSequenceRepository;
     private readonly Mock<ILogger<SequenceService>> _mockLogger;
     private readonly SequenceService _service;
@@ -17,16 +16,12 @@ public class SequenceServiceTests
     public SequenceServiceTests()
     {
         // Set up mocks
-        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockSequenceRepository = new Mock<ISequenceRepository>();
         _mockLogger = new Mock<ILogger<SequenceService>>();
 
-        // Configure UnitOfWork mock to return our repository mock
-        _mockUnitOfWork.Setup(uow => uow.SequenceDefinitions).Returns(_mockSequenceRepository.Object);
-
         // Create the service
         _service = new SequenceService(
-            _mockUnitOfWork.Object,
+            _mockSequenceRepository.Object,
             _mockLogger.Object
         );
     }
@@ -75,7 +70,6 @@ public class SequenceServiceTests
 
         // Assert
         _mockSequenceRepository.Verify(repo => repo.AddAsync(sequence), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -106,7 +100,6 @@ public class SequenceServiceTests
         Assert.Contains(id, exception.Message);
         
         _mockSequenceRepository.Verify(repo => repo.AddAsync(It.IsAny<Sequence>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -135,7 +128,6 @@ public class SequenceServiceTests
 
         // Assert
         _mockSequenceRepository.Verify(repo => repo.UpdateAsync(sequence), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -161,7 +153,6 @@ public class SequenceServiceTests
         Assert.Equal("Sequence", exception.EntityType);
         
         _mockSequenceRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Sequence>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -184,7 +175,6 @@ public class SequenceServiceTests
 
         // Assert
         _mockSequenceRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -204,7 +194,6 @@ public class SequenceServiceTests
         Assert.Equal("Sequence", exception.EntityType);
         
         _mockSequenceRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -284,21 +273,19 @@ public class SequenceServiceTests
     public void Constructor_WithNullUnitOfWork_ThrowsArgumentNullException()
     {
         // Arrange
-        IUnitOfWork? nullUnitOfWork = null;
         var logger = new Mock<ILogger<SequenceService>>().Object;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SequenceService(nullUnitOfWork!, logger));
+        Assert.Throws<ArgumentNullException>(() => new SequenceService(null!, logger));
     }
 
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         // Arrange
-        var unitOfWork = new Mock<IUnitOfWork>().Object;
         ILogger<SequenceService>? nullLogger = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SequenceService(unitOfWork, nullLogger!));
+        Assert.Throws<ArgumentNullException>(() => new SequenceService(_mockSequenceRepository.Object, null!));
     }
 }

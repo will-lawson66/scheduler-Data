@@ -10,14 +10,14 @@ public class SchedulerDbContext : DbContext
     {
     }
 
-    public DbSet<Sequence> Sequences { get; set; }
-    public DbSet<Parameter> Parameters { get; set; }
-    public DbSet<SequenceParameter> SequenceParameters { get; set; }
-    public DbSet<Entities.Range> Ranges { get; set; }
-    public DbSet<RangeValue> RangeValues { get; set; }
-    public DbSet<Resource> Resources { get; set; }
-    public DbSet<SequenceGroup> SequenceGroups { get; set; }
-    public DbSet<SequenceGroupSequences> SequenceGroupSequences { get; set; }
+    public virtual DbSet<Sequence> Sequences { get; set; }
+    public virtual DbSet<Parameter> Parameters { get; set; }
+    public virtual DbSet<SequenceParameter> SequenceParameters { get; set; }
+    public virtual DbSet<Entities.Range> Ranges { get; set; }
+    public virtual DbSet<RangeValue> RangeValues { get; set; }
+    public virtual DbSet<Resource> Resources { get; set; }
+    public virtual DbSet<SequenceGroup> SequenceGroups { get; set; }
+    public virtual DbSet<SequenceGroupSequences> SequenceGroupSequences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,6 +1,4 @@
-﻿using Instrument.Scheduling.Data.Providers;
-
-namespace Instrument.Scheduling.Data.Configuration;
+﻿namespace Instrument.Scheduling.Data.Configuration;
 
 /// <summary>
 /// Configuration for the storage provider
@@ -15,7 +13,7 @@ public class StorageConfiguration
     /// <summary>
     /// Path to directory for JSON import/export
     /// </summary>
-    public string JsonExportPath { get; set; } = "export";
+    public string JsonDataPath { get; set; } = "./data";
 
     /// <summary>
     /// Connection string (used for SQLite and SqlServer providers)

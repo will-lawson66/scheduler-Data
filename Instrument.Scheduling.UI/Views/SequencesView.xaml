@@ -50,7 +50,7 @@
                 <!-- Column Headers -->
                 <Grid Grid.Row="0" 
                       Background="{StaticResource PrimaryLightBrush}"
-                      Padding="15,12">
+                   >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>

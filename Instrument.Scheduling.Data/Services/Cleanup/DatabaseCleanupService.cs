@@ -9,15 +9,12 @@ namespace Instrument.Scheduling.Data.Services
     {
         private readonly SchedulerDbContext _context;
         private readonly ILogger<DatabaseCleanupService> _logger;
-        private readonly IUnitOfWork _unitOfWork;
 
         public DatabaseCleanupService(
             SchedulerDbContext context,
-            IUnitOfWork unitOfWork,
             ILogger<DatabaseCleanupService> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

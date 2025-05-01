@@ -36,7 +36,7 @@ public class ImportDataCommand : ICommand
             return;
         }
 
-        string importPath = args[0];
+        string importPath = args[0]; // or config value JsonDataPath as fallback
         
         try
         {

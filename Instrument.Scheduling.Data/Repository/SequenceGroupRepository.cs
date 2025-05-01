@@ -1,16 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.DataContext;
 
 namespace Instrument.Scheduling.Data.Repository;
 public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroupRepository
 {
-    public SequenceGroupRepository(DataContext.SchedulerDbContext dbContext)
-        : base(dbContext)
+    public SequenceGroupRepository(SchedulerDbContext dbContext) : base(dbContext)
     {
     }
-
-    // These methods are inherited from the base Repository class
 
     // Specialized methods for SequenceGroup
     public async Task<SequenceGroup?> GetWithSequencesAsync(string id)

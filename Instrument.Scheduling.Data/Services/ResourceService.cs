@@ -5,44 +5,44 @@ namespace Instrument.Scheduling.Data.Services;
 
 public class ResourceService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IResourceRepository _resourceRepository;
 
-    public ResourceService(IUnitOfWork unitOfWork)
+    public ResourceService(IResourceRepository resourceRepository)
     {
-        _unitOfWork = unitOfWork;
+        _resourceRepository = resourceRepository;
     }
 
     public async Task<Resource?> GetResourceAsync(string id)
     {
-        return await _unitOfWork.Resources.GetByIdAsync(id);
+        return await _resourceRepository.GetByIdAsync(id);
     }
 
     public async Task CreateResourceAsync(Resource resource)
     {
-        await _unitOfWork.Resources.AddAsync(resource);
-        await _unitOfWork.SaveChangesAsync();
+        await _resourceRepository.AddAsync(resource);
+        await _resourceRepository.SaveChangesAsync();
     }
 
     public async Task UpdateResourceAsync(Resource resource)
     {
-        await _unitOfWork.Resources.UpdateAsync(resource);
-        await _unitOfWork.SaveChangesAsync();
+        await _resourceRepository.UpdateAsync(resource);
+        await _resourceRepository.SaveChangesAsync();
     }
 
     public async Task DeleteResourceAsync(string id)
     {
-        await _unitOfWork.Resources.DeleteAsync(id);
-        await _unitOfWork.SaveChangesAsync();
+        await _resourceRepository.DeleteAsync(id);
+        await _resourceRepository.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Resource>> GetAllResourcesAsync()
     {
-        return await _unitOfWork.Resources.GetAllAsync();
+        return await _resourceRepository.GetAllAsync();
     }
     
     public async Task<IEnumerable<Parameter>> GetParametersForResourceAsync(string resourceId)
     {
-        return await _unitOfWork.Resources.GetParametersForResourceAsync(resourceId);
+        return await _resourceRepository.GetParametersForResourceAsync(resourceId);
     }
     
     // Lock a resource

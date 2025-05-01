@@ -10,7 +10,6 @@ namespace Instrument.Scheduling.Data.UT;
 
 public class ParameterServiceTests
 {
-    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<IParameterRepository> _mockParameterRepository;
     private readonly Mock<ISequenceRepository> _mockSequenceRepository;
     private readonly Mock<ILogger<ParameterService>> _mockLogger;
@@ -19,18 +18,15 @@ public class ParameterServiceTests
     public ParameterServiceTests()
     {
         // Set up mocks
-        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockParameterRepository = new Mock<IParameterRepository>();
         _mockSequenceRepository = new Mock<ISequenceRepository>();
         _mockLogger = new Mock<ILogger<ParameterService>>();
 
         // Configure UnitOfWork mock to return our repository mocks
-        _mockUnitOfWork.Setup(uow => uow.Parameters).Returns(_mockParameterRepository.Object);
-        _mockUnitOfWork.Setup(uow => uow.SequenceDefinitions).Returns(_mockSequenceRepository.Object);
 
         // Create the service
         _service = new ParameterService(
-            _mockUnitOfWork.Object,
+            _mockParameterRepository.Object,
             _mockLogger.Object
         );
     }
@@ -79,7 +75,6 @@ public class ParameterServiceTests
 
         // Assert
         _mockParameterRepository.Verify(repo => repo.AddAsync(parameter), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -110,7 +105,6 @@ public class ParameterServiceTests
         Assert.Contains(id, exception.Message);
         
         _mockParameterRepository.Verify(repo => repo.AddAsync(It.IsAny<Parameter>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -139,7 +133,6 @@ public class ParameterServiceTests
 
         // Assert
         _mockParameterRepository.Verify(repo => repo.UpdateAsync(parameter), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -165,7 +158,6 @@ public class ParameterServiceTests
         Assert.Equal("Parameter", exception.EntityType);
         
         _mockParameterRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Parameter>()), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -188,7 +180,6 @@ public class ParameterServiceTests
 
         // Assert
         _mockParameterRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -208,7 +199,6 @@ public class ParameterServiceTests
         Assert.Equal("Parameter", exception.EntityType);
         
         _mockParameterRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -234,7 +224,6 @@ public class ParameterServiceTests
         // Assert
         _mockParameterRepository.Verify(repo => 
             repo.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber), Times.Once);
-        _mockUnitOfWork.Verify(uow => uow.SaveChangesAsync(), Times.Once);
     }
     
     [Fact]

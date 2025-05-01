@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Instrument.Scheduling.UI.ViewModels
 {
-    public abstract class ViewModelBase : ObservableObject
+    public abstract partial class ViewModelBase : ObservableObject
     {
         protected readonly NavigationService NavigationService;
         protected readonly DialogService DialogService;

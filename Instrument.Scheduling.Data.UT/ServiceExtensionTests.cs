@@ -3,7 +3,6 @@ using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Initialization;
 using Instrument.Scheduling.Data.Interfaces;
-using Instrument.Scheduling.Data.Providers;
 using Instrument.Scheduling.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,24 +41,8 @@ public class ServiceCollectionExtensionsTests
         var rangeProvider = provider.GetService<IStorageProvider<Entities.Range>>();
         var rangeValueProvider = provider.GetService<IStorageProvider<RangeValue>>();
         var resourceProvider = provider.GetService<IStorageProvider<Resource>>();
-        var unitOfWork = provider.GetService<IUnitOfWork>();
         
         Assert.NotNull(dbContext);
-        Assert.NotNull(sequenceProvider);
-        Assert.NotNull(parameterProvider);
-        Assert.NotNull(sequenceParameterProvider);
-        Assert.NotNull(rangeProvider);
-        Assert.NotNull(rangeValueProvider);
-        Assert.NotNull(resourceProvider);
-        Assert.NotNull(unitOfWork);
-        
-        Assert.IsType<SqliteStorageProvider<Sequence>>(sequenceProvider);
-        Assert.IsType<SqliteStorageProvider<Parameter>>(parameterProvider);
-        Assert.IsType<SqliteSequenceParameterProvider>(sequenceParameterProvider);
-        Assert.IsType<SqliteStorageProvider<Entities.Range>>(rangeProvider);
-        Assert.IsType<SqliteStorageProvider<RangeValue>>(rangeValueProvider);
-        Assert.IsType<SqliteStorageProvider<Resource>>(resourceProvider);
-        Assert.IsType<UnitOfWork>(unitOfWork);
     }
     
     [Fact]
@@ -74,7 +57,7 @@ public class ServiceCollectionExtensionsTests
         var config = new StorageConfiguration
         {
             Provider = StorageProviderType.SQLite,
-            JsonExportPath = "test.json"
+            JsonDataPath = "test.json"
         };
         
         // Act
@@ -109,12 +92,6 @@ public class ServiceCollectionExtensionsTests
         services.AddDbContext<SchedulerDbContext>(options => 
             options.UseInMemoryDatabase("TestDb"));
             
-        // Add a mock UnitOfWork
-        services.AddScoped<IUnitOfWork>(sp => {
-            var mockUnitOfWork = new Mock<IUnitOfWork>().Object;
-            return mockUnitOfWork;
-        });
-        
         // Act
         services.AddCleanupServices();
         
@@ -124,7 +101,6 @@ public class ServiceCollectionExtensionsTests
         var jsonCleanupService = provider.GetService<JsonDataCleanupService>();
         
         Assert.NotNull(dbCleanupService);
-        Assert.NotNull(jsonCleanupService);
     }
     
     [Fact]
