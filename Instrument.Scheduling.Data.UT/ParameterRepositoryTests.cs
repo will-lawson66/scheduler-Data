@@ -13,6 +13,7 @@ public class ParameterRepositoryTests
     private readonly Mock<DbSet<Parameter>> _mockParameterDbSet;
     private readonly Mock<DbSet<SequenceParameter>> _mockSequenceParameterDbSet;
     private readonly ParameterRepository _repository;
+    private readonly SchedulerDbContext _dbContext;
     
     public ParameterRepositoryTests()
     {
@@ -24,9 +25,20 @@ public class ParameterRepositoryTests
         _mockDbContext = new Mock<SchedulerDbContext>(new DbContextOptionsBuilder<SchedulerDbContext>().Options);
         _mockDbContext.Setup(db => db.Parameters).Returns(_mockParameterDbSet.Object);
         _mockDbContext.Setup(db => db.SequenceParameters).Returns(_mockSequenceParameterDbSet.Object);
-        
+
+        _dbContext = InMemoryDbContext();
+
         // Create repository
-        //_repository = new ParameterRepository(_mockDbContext.Object);
+        _repository = new ParameterRepository(_dbContext);
+    }
+
+    private SchedulerDbContext InMemoryDbContext()
+    {
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDB")
+            .Options;
+        
+        return new SchedulerDbContext(options);
     }
     
     private Mock<DbSet<T>> MockDbSetSetup<T>() where T : class
@@ -69,80 +81,75 @@ public class ParameterRepositoryTests
     public async Task GetAllAsync_CallsDbContext_AndReturnsResult()
     {
         // Arrange
-        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDB")
-            .Options;
+        await using var setupContext = InMemoryDbContext();
+        setupContext.Parameters.Add(new Parameter
+            { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType });
+        setupContext.Parameters.Add(new Parameter
+            { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType });
+        await setupContext.SaveChangesAsync();
 
-        await using (var context = new SchedulerDbContext(options))
-        {
-            context.Parameters.Add(new Parameter
-                { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType });
-            context.Parameters.Add(new Parameter
-                { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType });
-            await context.SaveChangesAsync();
-        }
-        
         // Use a clean instance of the context to run the test
-        await using (var context = new SchedulerDbContext(options))
-        {
-            // Act
-            var repository = new ParameterRepository(context);
-            var result = await repository.GetQueryableAsync();
+        await using var context = InMemoryDbContext();
 
-            // Assert
-            Assert.Equal(2, result.Count());
-            Assert.Contains(result, p => p.Id == "param1");
-            Assert.Contains(result, p => p.Id == "param2");
-        }
-        
+        // Act
+        var repository = new ParameterRepository(context);
+        var result = await repository.GetQueryableAsync();
+
+        // Assert
+        Assert.Equal(2, result.Count());
+        Assert.Contains(result, p => p.Id == "param1");
+        Assert.Contains(result, p => p.Id == "param2");
     }
     
     [Fact]
     public async Task GetByIdAsync_CallsDbContext_WithCorrectId()
     {
         // Arrange
-        var parameter = new Parameter { 
-            Id = "test-id", 
-            Name = "Test Parameter",
-            Type = ParameterType.StringType,
-            DefaultValue = "Default"
-        };
-        
-        _mockParameterDbSet.Setup(m => m.FindAsync(new object[] { "test-id" }))
-            .ReturnsAsync(parameter);
-        
+        await using var setupContext = InMemoryDbContext();
+        setupContext.Parameters.Add(new Parameter
+            { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType });
+        setupContext.Parameters.Add(new Parameter
+            { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType });
+        await setupContext.SaveChangesAsync();
+
+        // Use a clean instance of the context to run the test
+        await using var context = InMemoryDbContext();
+
         // Act
-        var result = await _repository.GetByIdAsync("test-id");
-        
+        var repository = new ParameterRepository(context);
+        var result = await repository.GetByIdAsync("param1");
+
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("test-id", result.Id);
-        Assert.Equal("Test Parameter", result.Name);
+        Assert.Equal("param1", result.Id);
+        Assert.Equal("Parameter 1", result.Name);
         Assert.Equal(ParameterType.StringType, result.Type);
-        Assert.Equal("Default", result.DefaultValue);
-        _mockParameterDbSet.Verify(m => m.FindAsync(new object[] { "test-id" }), Times.Once);
+        Assert.Null(result.DefaultValue);
     }
     
     [Fact]
     public async Task GetByIdAsync_ReturnsNull_WhenParameterNotFound()
     {
         // Arrange
-        _mockParameterDbSet.Setup(m => m.FindAsync(new object[] { "non-existent" }))
-            .ReturnsAsync((Parameter)null);
-        
+        await using var context = InMemoryDbContext();
+
         // Act
-        var result = await _repository.GetByIdAsync("non-existent");
+        var repository = new ParameterRepository(context);
+        var result = await repository.GetByIdAsync("non-existent");
         
         // Assert
         Assert.Null(result);
-        _mockParameterDbSet.Verify(m => m.FindAsync(new object[] { "non-existent" }), Times.Once);
     }
     
     [Fact]
     public async Task GetQueryableAsync_ReturnsQueryable()
     {
+        // Arrange
+        await using var context = InMemoryDbContext();
+
         // Act
-        var result = await _repository.GetQueryableAsync();
+        var repository = new ParameterRepository(context);
+        var result = await repository.GetQueryableAsync();
         
         // Assert
         Assert.NotNull(result);
@@ -159,28 +166,50 @@ public class ParameterRepositoryTests
             Type = ParameterType.StringType
         };
         
-        // Act
-        await _repository.AddAsync(parameter);
+        await using var context = InMemoryDbContext();
+        var repository = new ParameterRepository(context);
+        var content = await repository.GetAllAsync();
+        Assert.Empty(content);
         
+        // Act
+        await repository.AddAsync(parameter);
+        var result = await repository.GetByIdAsync("new-id");
+
         // Assert
-        _mockParameterDbSet.Verify(m => m.AddAsync(parameter, default), Times.Once);
+        Assert.Equal(parameter, result);
     }
     
     [Fact]
     public async Task UpdateAsync_CallsDbContext_WithCorrectEntity()
     {
         // Arrange
+        await using var setupContext = InMemoryDbContext();
+        setupContext.Parameters.Add(new Parameter
+            { Id = "orig-id", Name = "Original parameter", Type = ParameterType.StringType });
+        await setupContext.SaveChangesAsync();
+        
+        var repository = new ParameterRepository(setupContext);
+        var content = await repository.GetByIdAsync("orig-id");
+        Assert.Equal("orig-id", content?.Id);
+        Assert.NotNull(content)
+
+        content.Id = "update-id";
+
         var parameter = new Parameter { 
             Id = "update-id", 
             Name = "Updated Parameter",
             Type = ParameterType.StringType
         };
-        
+
         // Act
-        await _repository.UpdateAsync(parameter);
-        
+        await repository.UpdateAsync(parameter);
+        var result = await repository.GetAllAsync();
+
         // Assert
-        _mockParameterDbSet.Verify(m => m.Update(parameter), Times.Once);
+        var collection = result.ToList();
+        Assert.Single(collection);
+        Assert.Equal(parameter, collection.FirstOrDefault());
+
     }
     
     [Fact]
