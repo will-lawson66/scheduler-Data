@@ -191,7 +191,7 @@ public class ParameterRepositoryTests
         var repository = new ParameterRepository(setupContext);
         var content = await repository.GetByIdAsync("orig-id");
         Assert.Equal("orig-id", content?.Id);
-        Assert.NotNull(content)
+        Assert.NotNull(content);
 
         content.Id = "update-id";
 
