@@ -21,6 +21,8 @@ namespace Instrument.Scheduling.UI.ViewModels
         [ObservableProperty]
         private Sequence? _selectedSequence;
 
+        public bool HasNoSequences => !Sequences.Any();
+
         public SequencesViewModel(
             NavigationService navigationService,
             DialogService dialogService,
@@ -44,6 +46,7 @@ namespace Instrument.Scheduling.UI.ViewModels
                 {
                     Sequences.Add(sequence);
                 }
+                OnPropertyChanged(nameof(HasNoSequences));
             }
             catch (StorageProviderException ex)
             {
@@ -90,6 +93,7 @@ namespace Instrument.Scheduling.UI.ViewModels
                 await _sequenceService.DeleteSequenceAsync(SelectedSequence.Id);
                 Sequences.Remove(SelectedSequence);
                 SelectedSequence = null;
+                OnPropertyChanged(nameof(HasNoSequences));
                 
                 DialogService.ShowInformation("Success", "Sequence deleted successfully.");
             }

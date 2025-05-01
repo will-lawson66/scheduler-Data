@@ -41,6 +41,12 @@ namespace Instrument.Scheduling.UI
             // Add Data Layer
             services.AddSchedulerDataLayer(storageConfig);
             
+            // Add Data Initialization
+            services.AddDataInitialization();
+            
+            // Add JSON Commands for import/export
+            services.AddJsonCommands();
+            
             // Add UI Services
             services.AddSingleton<NavigationService>();
             services.AddSingleton<DialogService>();
@@ -81,6 +87,9 @@ namespace Instrument.Scheduling.UI
             
             navigationService.Initialize(mainWindow);
             mainWindow.Show();
+
+            // Navigate to the Sequences view by default
+            navigationService.NavigateTo<SequencesView>();
 
             base.OnStartup(e);
         }

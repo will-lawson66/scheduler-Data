@@ -101,4 +101,14 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
             .Where(p => p.ResourceId == resourceId)
             .ToListAsync();
     }
+    
+    /// <summary>
+    /// Gets available resources (not locked)
+    /// </summary>
+    public async Task<IEnumerable<Resource>> GetAvailableResourcesAsync()
+    {
+        return await DbContext.Resources
+            .Where(r => !r.Locked)
+            .ToListAsync();
+    }
 }

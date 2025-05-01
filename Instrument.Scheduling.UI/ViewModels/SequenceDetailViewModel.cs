@@ -283,7 +283,6 @@ namespace Instrument.Scheduling.UI.ViewModels
             }
         }
 
-        [RelayCommand]
         protected override void GoBack()
         {
             NavigationService.NavigateTo<SequencesView>();
