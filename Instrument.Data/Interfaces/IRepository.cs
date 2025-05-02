@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Interfaces;
+namespace Instrument.Data.Interfaces;
 
 /// <summary>
 /// Generic repository interface for data access

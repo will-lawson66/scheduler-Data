@@ -1,6 +1,6 @@
-using Instrument\.Data.Exceptions;
+using Instrument.Data.Exceptions;
 
-namespace Instrument\.Data.UT;
+namespace Instrument.Data.UT;
 public class ExceptionTests
 {
     [Fact]

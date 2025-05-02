@@ -1,9 +1,9 @@
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Interfaces;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Instrument\.Data.Repository;
+namespace Instrument.Data.Repository;
 
 /// <summary>
 /// Repository for parameters

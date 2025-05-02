@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Exceptions;
+namespace Instrument.Data.Exceptions;
 
 /// <summary>
 /// Base exception type for all Scheduler Data layer exceptions

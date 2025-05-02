@@ -1,10 +1,10 @@
-using Instrument\.Data.Entities.Enums;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Exceptions;
-using Instrument\.Data.Interfaces;
+using Instrument.Data.Entities.Enums;
+using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument\.Data.Services;
+namespace Instrument.Data.Services;
 
 public class ParameterService
 {

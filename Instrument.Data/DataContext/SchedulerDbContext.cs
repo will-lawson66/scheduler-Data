@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Instrument\.Data.Entities;
+using Instrument.Data.Entities;
 using System.Text.Json;
 
-namespace Instrument\.Data.DataContext;
+namespace Instrument.Data.DataContext;
 public class SchedulerDbContext : DbContext
 {
     public SchedulerDbContext(DbContextOptions<SchedulerDbContext> options) 

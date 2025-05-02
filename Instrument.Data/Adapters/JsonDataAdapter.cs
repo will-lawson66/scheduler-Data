@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Interfaces;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Interfaces;
 
-namespace Instrument\.Data.Adapters;
+namespace Instrument.Data.Adapters;
 
 /// <summary>
 /// Adapter for importing from and exporting to JSON files

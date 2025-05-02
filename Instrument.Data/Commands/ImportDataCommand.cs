@@ -1,7 +1,7 @@
-using Instrument\.Data.Interfaces;
+using Instrument.Data.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument\.Data.Commands;
+namespace Instrument.Data.Commands;
 
 /// <summary>
 /// Command to import data from JSON files

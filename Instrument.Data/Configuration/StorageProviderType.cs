@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Configuration;
+namespace Instrument.Data.Configuration;
 
 public enum StorageProviderType
 {

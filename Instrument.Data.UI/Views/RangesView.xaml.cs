@@ -1,7 +1,7 @@
-using Instrument.Scheduling.UI.ViewModels;
+using Instrument.Data.UI.ViewModels;
 using System.Windows.Controls;
 
-namespace Instrument.Scheduling.UI.Views
+namespace Instrument.Data.UI.Views
 {
     public partial class RangesView : UserControl
     {

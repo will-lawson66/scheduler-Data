@@ -2,73 +2,72 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Instrument.Scheduling.UI.Helpers.Converters
+namespace Instrument.Data.UI.Helpers.Converters;
+
+public class BooleanToVisibilityConverter : IValueConverter
 {
-    public class BooleanToVisibilityConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is bool boolValue)
         {
-            if (value is bool boolValue)
-            {
-                return boolValue ? Visibility.Visible : Visibility.Collapsed;
-            }
-            return Visibility.Collapsed;
+            return boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is Visibility visibility)
-            {
-                return visibility == Visibility.Visible;
-            }
-            return false;
-        }
+        return Visibility.Collapsed;
     }
 
-    public class InverseBooleanToVisibilityConverter : IValueConverter
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is Visibility visibility)
         {
-            if (value is bool boolValue)
-            {
-                return !boolValue ? Visibility.Visible : Visibility.Collapsed;
-            }
-            return Visibility.Visible;
+            return visibility == Visibility.Visible;
         }
+        return false;
+    }
+}
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+public class InverseBooleanToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool boolValue)
         {
-            if (value is Visibility visibility)
-            {
-                return visibility != Visibility.Visible;
-            }
-            return true;
+            return !boolValue ? Visibility.Visible : Visibility.Collapsed;
         }
+        return Visibility.Visible;
     }
 
-    public class NullValueToBooleanConverter : IValueConverter
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is Visibility visibility)
         {
-            return value != null;
+            return visibility != Visibility.Visible;
         }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        return true;
     }
-    
-    public class InverseNullValueToBooleanConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value == null;
-        }
+}
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+public class NullValueToBooleanConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value != null;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class InverseNullValueToBooleanConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value == null;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Commands;
+namespace Instrument.Data.Commands;
 
 /// <summary>
 /// Interface for command line commands

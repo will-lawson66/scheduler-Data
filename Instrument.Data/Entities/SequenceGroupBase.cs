@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Entities;
+namespace Instrument.Data.Entities;
 public abstract record SequenceGroupBase
 {
     public required string Id { get; init; }

@@ -1,6 +1,4 @@
-using Instrument.Data;
 using Instrument.Data.Configuration;
-using Instrument.Data.Providers;
 using Instrument.Data.UI.Services;
 using Instrument.Data.UI.ViewModels;
 using Instrument.Data.UI.Views;

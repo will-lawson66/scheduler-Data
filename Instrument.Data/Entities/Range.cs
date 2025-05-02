@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Entities;
+namespace Instrument.Data.Entities;
 
 public record Range
 {

@@ -1,7 +1,7 @@
-using Instrument\.Data.Interfaces;
+using Instrument.Data.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument\.Data.Commands;
+namespace Instrument.Data.Commands;
 
 /// <summary>
 /// Command to export data to JSON files

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
 
-namespace Instrument.Scheduling.UI.Services
+namespace Instrument.Data.UI.Services
 {
     public class NavigationService
     {

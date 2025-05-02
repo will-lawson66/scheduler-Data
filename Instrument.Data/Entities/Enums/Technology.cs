@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Entities.Enums;
+namespace Instrument.Data.Entities.Enums;
 public enum Technology
 {
     ImmunoCap,

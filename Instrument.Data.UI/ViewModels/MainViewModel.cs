@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Instrument.Scheduling.UI.Services;
-using Instrument.Scheduling.UI.Views;
+using Instrument.Data.UI.Services;
+using Instrument.Data.UI.Views;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument.Scheduling.UI.ViewModels
+namespace Instrument.Data.UI.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {

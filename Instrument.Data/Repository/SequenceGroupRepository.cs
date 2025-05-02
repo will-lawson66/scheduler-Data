@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Interfaces;
-using Instrument\.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Interfaces;
+using Instrument.Data.DataContext;
 
-namespace Instrument\.Data.Repository;
+namespace Instrument.Data.Repository;
 public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroupRepository
 {
     public SequenceGroupRepository(SchedulerDbContext dbContext) : base(dbContext)

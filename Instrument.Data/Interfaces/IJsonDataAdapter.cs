@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Interfaces;
+namespace Instrument.Data.Interfaces;
 
 /// <summary>
 /// Interface for JSON data import/export adapter
