@@ -1,6 +1,6 @@
-using Instrument\.Data.Entities.Enums;
+using Instrument.Data.Entities.Enums;
 
-namespace Instrument\.Data.Entities;
+namespace Instrument.Data.Entities;
 
 
 public record Parameter

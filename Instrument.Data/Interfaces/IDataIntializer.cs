@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Instrument\.Data.Initialization;
+namespace Instrument.Data.Initialization;
 
 /// <summary>
 /// Interface for data storage initialization

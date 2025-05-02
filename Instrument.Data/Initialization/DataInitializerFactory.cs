@@ -1,10 +1,10 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Configuration;
+using Instrument.Data.DataContext;
+using Instrument.Data.Configuration;
 
-namespace Instrument\.Data.Initialization
+namespace Instrument.Data.Initialization
 {
     /// <summary>
     /// Factory for creating database initializers

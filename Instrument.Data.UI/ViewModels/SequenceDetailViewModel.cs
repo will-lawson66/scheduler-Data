@@ -1,14 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Exceptions;
-using Instrument\.Data.Services;
-using Instrument.Scheduling.UI.Services;
-using Instrument.Scheduling.UI.Views;
+using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Services;
+using Instrument.Data.UI.Services;
+using Instrument.Data.UI.Views;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 
-namespace Instrument.Scheduling.UI.ViewModels
+namespace Instrument.Data.UI.ViewModels
 {
     public partial class SequenceDetailViewModel : EntityViewModelBase<Sequence>
     {

@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Instrument.Scheduling.UI.Services;
+using Instrument.Data.UI.Services;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument.Scheduling.UI.ViewModels
+namespace Instrument.Data.UI.ViewModels
 {
     public abstract partial class ViewModelBase : ObservableObject
     {
@@ -31,7 +31,7 @@ namespace Instrument.Scheduling.UI.ViewModels
         }
     }
     
-    public abstract class EntityViewModelBase<T> : ViewModelBase, INavigationAware
+    public abstract partial class EntityViewModelBase<T> : ViewModelBase, INavigationAware
     {
         [ObservableProperty]
         protected T? _entity;

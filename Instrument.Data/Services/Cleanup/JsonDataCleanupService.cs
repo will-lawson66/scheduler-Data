@@ -1,8 +1,8 @@
-using Instrument\.Data.Interfaces;
+using Instrument.Data.Interfaces;
 using Microsoft.Extensions.Logging;
 using System.IO;
 
-namespace Instrument\.Data.Services;
+namespace Instrument.Data.Services;
 
 public class JsonDataCleanupService
 {

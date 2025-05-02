@@ -1,6 +1,6 @@
-using Instrument\.Data.Entities;
+using Instrument.Data.Entities;
 
-namespace Instrument\.Data.Interfaces;
+namespace Instrument.Data.Interfaces;
 
 /// <summary>
 /// Repository interface for parameters

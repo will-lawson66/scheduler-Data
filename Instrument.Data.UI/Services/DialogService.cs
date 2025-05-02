@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace Instrument.Scheduling.UI.Services
+namespace Instrument.Data.UI.Services
 {
     public class DialogService
     {

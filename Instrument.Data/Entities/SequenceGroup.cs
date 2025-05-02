@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Entities;
+namespace Instrument.Data.Entities;
 public record SequenceGroup : SequenceGroupBase
 {
     // Navigation property for the one-to-many relationship with SequenceGroupSequences

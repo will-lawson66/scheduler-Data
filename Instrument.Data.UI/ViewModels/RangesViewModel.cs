@@ -1,7 +1,7 @@
-using Instrument.Scheduling.UI.Services;
+using Instrument.Data.UI.Services;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument.Scheduling.UI.ViewModels
+namespace Instrument.Data.UI.ViewModels
 {
     public class RangesViewModel : ViewModelBase
     {

@@ -1,6 +1,6 @@
-using Instrument\.Data.Configuration;
+using Instrument.Data.Configuration;
 
-namespace Instrument\.Data.UT;
+namespace Instrument.Data.UT;
 public class ConfigurationTests
 {
     [Fact]

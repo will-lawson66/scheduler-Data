@@ -1,11 +1,11 @@
-using Instrument\.Data.Entities.Enums;
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Entities;
+using Instrument.Data.Entities.Enums;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Range = Instrument\.Data.Entities.Range;
+using Range = Instrument.Data.Entities.Range;
 
-namespace Instrument\.Data.Initialization;
+namespace Instrument.Data.Initialization;
 
 /// <summary>
 /// Handles SQLite database initialization and migrations

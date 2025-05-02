@@ -1,4 +1,4 @@
-namespace Instrument\.Data.Entities.Enums;
+namespace Instrument.Data.Entities.Enums;
 
 /// <summary>
 /// These are the defined stations on the Enzyme Reaction Wheel (ERW) 

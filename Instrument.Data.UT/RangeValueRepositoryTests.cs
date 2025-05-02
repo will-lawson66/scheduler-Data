@@ -1,10 +1,10 @@
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Exceptions;
-using Instrument\.Data.Repository;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace Instrument\.Data.UT;
+namespace Instrument.Data.UT;
 
 public class RangeValueRepositoryTests : IDisposable
 {

@@ -1,15 +1,15 @@
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Entities;
-using Instrument\.Data.Entities.Enums;
-using Instrument\.Data.Exceptions;
-using Instrument\.Data.Interfaces;
-using Instrument\.Data.Repository;
-using Instrument\.Data.Services;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Interfaces;
+using Instrument.Data.Repository;
+using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Instrument\.Data.UT;
+namespace Instrument.Data.UT;
 
 public class ParameterServiceTests : IDisposable
 {

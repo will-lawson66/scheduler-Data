@@ -1,8 +1,8 @@
-using Instrument.Scheduling.UI.Services;
-using Instrument.Scheduling.UI.ViewModels;
+using Instrument.Data.UI.Services;
+using Instrument.Data.UI.ViewModels;
 using System.Windows;
 
-namespace Instrument.Scheduling.UI
+namespace Instrument.Data.UI
 {
     public partial class MainWindow : Window
     {

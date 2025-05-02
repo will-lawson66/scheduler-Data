@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.EntityFrameworkCore;
 
-namespace Instrument\.Data.Entities;
+namespace Instrument.Data.Entities;
 
 /// <summary>
 /// Extension methods for working with SequenceGroups and their sequences

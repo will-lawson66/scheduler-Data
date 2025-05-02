@@ -1,9 +1,9 @@
-using Instrument\.Data.DataContext;
-using Instrument\.Data.Interfaces;
+using Instrument.Data.DataContext;
+using Instrument.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument\.Data.Services
+namespace Instrument.Data.Services
 {
     public class DatabaseCleanupService
     {
