@@ -3,226 +3,232 @@ using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Repository;
 using Microsoft.EntityFrameworkCore;
-using Moq;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 namespace Instrument.Scheduling.Data.UT;
-public class SequenceRepositoryTests
+
+public class SequenceRepositoryTests : IDisposable
 {
-    private readonly Mock<SchedulerDbContext> _mockDbContext;
-    private readonly Mock<DbSet<Sequence>> _mockSequenceDbSet;
-    private readonly Mock<DbSet<SequenceParameter>> _mockSequenceParameterDbSet;
+    private readonly SchedulerDbContext _dbContext;
     private readonly SequenceRepository _repository;
-    
+    private readonly string _dbName;
+
     public SequenceRepositoryTests()
     {
-        // Create mock DbSets
-        _mockSequenceDbSet = MockDbSetSetup();
-        _mockSequenceParameterDbSet = MockDbSetSetup<SequenceParameter>();
+        // Create a unique database name for each test run to ensure isolation
+        _dbName = $"TestDB_{Guid.NewGuid()}";
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: _dbName)
+            .Options;
         
-        // Create mock DbContext
-        _mockDbContext = new Mock<SchedulerDbContext>(new DbContextOptionsBuilder<SchedulerDbContext>().Options);
-        _mockDbContext.Setup(db => db.Sequences).Returns(_mockSequenceDbSet.Object);
-        _mockDbContext.Setup(db => db.SequenceParameters).Returns(_mockSequenceParameterDbSet.Object);
+        _dbContext = new SchedulerDbContext(options);
+        _repository = new SequenceRepository(_dbContext);
+    }
 
-        // Create repository
-        _repository = new SequenceRepository(_mockDbContext.Object);
-    }
-    
-    private Mock<DbSet<T>> MockDbSetSetup<T>() where T : class
+    public void Dispose()
     {
-        var mockSet = new Mock<DbSet<T>>();
-        var data = new List<T>().AsQueryable();
-        
-        mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
-        mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
-        mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-        mockSet.Setup(m => m.Add(It.IsAny<T>())).Returns((EntityEntry<T>)null);
-        
-        return mockSet;
-    }
-    
-    private Mock<DbSet<Sequence>> MockDbSetSetup()
-    {
-        var sequences = new List<Sequence>
-        {
-            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero},
-            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
-        }.AsQueryable();
-        
-        var mockSet = new Mock<DbSet<Sequence>>();
-        mockSet.As<IQueryable<Sequence>>().Setup(m => m.Provider).Returns(sequences.Provider);
-        mockSet.As<IQueryable<Sequence>>().Setup(m => m.Expression).Returns(sequences.Expression);
-        mockSet.As<IQueryable<Sequence>>().Setup(m => m.ElementType).Returns(sequences.ElementType);
-        mockSet.As<IQueryable<Sequence>>().Setup(m => m.GetEnumerator()).Returns(sequences.GetEnumerator());
-        
-        mockSet.Setup(m => m.Find(It.IsAny<object[]>())).Returns<object[]>(ids => 
-        {
-            var id = ids[0].ToString();
-            return sequences.FirstOrDefault(s => s.Id == id);
-        });
-        
-        mockSet.Setup(m => m.Add(It.IsAny<Sequence>())).Returns((EntityEntry<Sequence>)null);
-        
-        return mockSet;
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
     }
     
     [Fact]
-    public async Task GetAllAsync_CallsDbContext_AndReturnsResult()
+    public async Task GetAllAsync_ReturnsAllSequences()
     {
         // Arrange
-        _mockSequenceDbSet.Setup(m => m.ToListAsync(default))
-            .ReturnsAsync(new List<Sequence>
-            {
-                new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero},
-                new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
-            });
-        
+        await _dbContext.Sequences.AddRangeAsync(
+            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero },
+            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
+        );
+        await _dbContext.SaveChangesAsync();
+
         // Act
         var result = await _repository.GetAllAsync();
-        
+
         // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, s => s.Id == "seq1");
-        Assert.Contains(result, s => s.Id == "seq2");
-        _mockSequenceDbSet.Verify(m => m.ToListAsync(default), Times.Once);
+        var sequences = result.ToList();
+        Assert.Equal(2, sequences.Count);
+        Assert.Contains(sequences, s => s.Id == "seq1");
+        Assert.Contains(sequences, s => s.Id == "seq2");
     }
     
     [Fact]
-    public async Task GetByIdAsync_CallsDbContext_WithCorrectId()
+    public async Task GetByIdAsync_WithValidId_ReturnsSequence()
     {
         // Arrange
-        var sequence = new Sequence { Id = "test-id", Name = "Test Sequence", Description = "Test description", WorstCaseTime = TimeSpan.Zero };
-        _mockSequenceDbSet.Setup(m => m.FindAsync(new object[] { "test-id" }))
-            .ReturnsAsync(sequence);
+        var sequence = new Sequence 
+        { 
+            Id = "seq-id",
+            Name = "Test Sequence", 
+            Description = "Test description", 
+            WorstCaseTime = TimeSpan.Zero 
+        };
         
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
         // Act
-        var result = await _repository.GetByIdAsync("test-id");
-        
+        var result = await _repository.GetByIdAsync("seq-id");
+
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("test-id", result.Id);
+        Assert.Equal("seq-id", result.Id);
         Assert.Equal("Test Sequence", result.Name);
-        _mockSequenceDbSet.Verify(m => m.FindAsync(new object[] { "test-id" }), Times.Once);
+        Assert.Equal("Test description", result.Description);
     }
     
     [Fact]
-    public async Task GetByIdAsync_ReturnsNull_WhenSequenceNotFound()
+    public async Task GetByIdAsync_WithInvalidId_ReturnsNull()
     {
-        // Arrange
-        _mockSequenceDbSet.Setup(m => m.FindAsync(new object[] { "non-existent" }))
-            .ReturnsAsync((Sequence)null);
-        
         // Act
         var result = await _repository.GetByIdAsync("non-existent");
         
         // Assert
         Assert.Null(result);
-        _mockSequenceDbSet.Verify(m => m.FindAsync(new object[] { "non-existent" }), Times.Once);
     }
     
     [Fact]
     public async Task GetQueryableAsync_ReturnsQueryable()
     {
+        // Arrange
+        await _dbContext.Sequences.AddRangeAsync(
+            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero },
+            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
+        );
+        await _dbContext.SaveChangesAsync();
+
         // Act
         var result = await _repository.GetQueryableAsync();
         
         // Assert
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IQueryable<Sequence>>(result);
+        Assert.Equal(2, result.Count());
     }
     
     [Fact]
-    public async Task AddAsync_CallsDbContext_WithCorrectEntity()
+    public async Task AddAsync_AddsSequence()
     {
         // Arrange
-        var sequence = new Sequence { Id = "new-id", Name = "New Sequence", Description = "New description", WorstCaseTime = TimeSpan.Zero };
+        var sequence = new Sequence 
+        { 
+            Id = "new-id", 
+            Name = "New Sequence",
+            Description = "New description", 
+            WorstCaseTime = TimeSpan.Zero 
+        };
         
         // Act
         await _repository.AddAsync(sequence);
-        
+        await _repository.SaveChangesAsync();
+
         // Assert
-        _mockSequenceDbSet.Verify(m => m.AddAsync(sequence, default), Times.Once);
+        var result = await _dbContext.Sequences.FindAsync("new-id");
+        Assert.NotNull(result);
+        Assert.Equal("New Sequence", result.Name);
+        Assert.Equal("New description", result.Description);
     }
     
     [Fact]
-    public async Task UpdateAsync_CallsDbContext_WithCorrectEntity()
+    public async Task UpdateAsync_UpdatesSequence()
     {
         // Arrange
-        var sequence = new Sequence { Id = "update-id", Name = "Updated Sequence", Description = "Updated description", WorstCaseTime = TimeSpan.Zero };
+        var original = new Sequence 
+        { 
+            Id = "seq-id", 
+            Name = "Original Sequence",
+            Description = "Original description", 
+            WorstCaseTime = TimeSpan.Zero 
+        };
         
+        await _dbContext.Sequences.AddAsync(original);
+        await _dbContext.SaveChangesAsync();
+        
+        var updated = new Sequence 
+        { 
+            Id = "seq-id", 
+            Name = "Updated Sequence",
+            Description = "Updated description", 
+            WorstCaseTime = TimeSpan.FromSeconds(10) 
+        };
+
         // Act
-        await _repository.UpdateAsync(sequence);
-        
+        await _repository.UpdateAsync(updated);
+        await _repository.SaveChangesAsync();
+
         // Assert
-        _mockSequenceDbSet.Verify(m => m.Update(sequence), Times.Once);
+        var result = await _dbContext.Sequences.FindAsync("seq-id");
+        Assert.NotNull(result);
+        Assert.Equal("Updated Sequence", result.Name);
+        Assert.Equal("Updated description", result.Description);
+        Assert.Equal(TimeSpan.FromSeconds(10), result.WorstCaseTime);
     }
     
     [Fact]
-    public async Task DeleteAsync_CallsDbContext_WithCorrectId()
+    public async Task DeleteAsync_DeletesSequence()
     {
         // Arrange
-        var sequence = new Sequence { Id = "delete-id", Name = "Delete Sequence", Description = "Delete description", WorstCaseTime = TimeSpan.Zero };
+        var sequence = new Sequence 
+        { 
+            Id = "delete-id", 
+            Name = "Delete Sequence",
+            Description = "Delete description", 
+            WorstCaseTime = TimeSpan.Zero 
+        };
         
-        _mockSequenceDbSet.Setup(m => m.FindAsync(new object[] { "delete-id" }))
-            .ReturnsAsync(sequence);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         await _repository.DeleteAsync("delete-id");
-        
-        // Assert
-        _mockSequenceDbSet.Verify(m => m.Remove(sequence), Times.Once);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_ThrowsException_WhenEntityNotFound()
-    {
-        // Arrange
-        _mockSequenceDbSet.Setup(m => m.FindAsync(new object[] { "non-existent" }))
-            .ReturnsAsync((Sequence)null);
-        
-        // Act & Assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => _repository.DeleteAsync("non-existent"));
-    }
-    
-    [Fact]
-    public async Task SaveChangesAsync_CallsDbContext_SaveChanges()
-    {
-        // Act
         await _repository.SaveChangesAsync();
         
         // Assert
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        var result = await _dbContext.Sequences.FindAsync("delete-id");
+        Assert.Null(result);
+    }
+    
+    [Fact]
+    public async Task DeleteAsync_WithInvalidId_ThrowsEntityNotFoundException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => 
+            _repository.DeleteAsync("non-existent"));
     }
     
     [Fact]
     public async Task GetSequenceWithParametersAsync_ReturnsSequenceWithParameters()
     {
         // Arrange
-        var sequences = new List<Sequence>
+        var sequence = new Sequence 
+        { 
+            Id = "seq1", 
+            Name = "Sequence 1", 
+            Description = "Sequence description", 
+            WorstCaseTime = TimeSpan.Zero
+        };
+        
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+        
+        var parameter = new Parameter
         {
-            new Sequence 
-            { 
-                Id = "seq1", 
-                Name = "Sequence 1", 
-                Description = "Sequence description", 
-                WorstCaseTime = TimeSpan.Zero,
-                SequenceParameters = new List<SequenceParameter>
-                {
-                    new SequenceParameter { SequenceId = "seq1", ParameterId = "param1", OrderNumber = 1 }
-                }
-            }
-        }.AsQueryable();
+            Id = "param1",
+            Name = "Parameter 1",
+            Type = Entities.Enums.ParameterType.StringType
+        };
         
-        var mockDbSet = new Mock<DbSet<Sequence>>();
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Provider).Returns(sequences.Provider);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Expression).Returns(sequences.Expression);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.ElementType).Returns(sequences.ElementType);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.GetEnumerator()).Returns(sequences.GetEnumerator());
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
         
-        _mockDbContext.Setup(db => db.Sequences).Returns(mockDbSet.Object);
+        var sequenceParameter = new SequenceParameter 
+        { 
+            SequenceId = "seq1", 
+            ParameterId = "param1", 
+            OrderNumber = 1 
+        };
+        
+        await _dbContext.SequenceParameters.AddAsync(sequenceParameter);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetSequenceWithParametersAsync("seq1");
@@ -232,26 +238,19 @@ public class SequenceRepositoryTests
         Assert.Equal("seq1", result.Id);
         Assert.NotNull(result.SequenceParameters);
         Assert.Single(result.SequenceParameters);
+        Assert.Equal("param1", result.SequenceParameters.First().ParameterId);
     }
     
     [Fact]
     public async Task GetSequencesByNameAsync_ReturnsMatchingSequences()
     {
         // Arrange
-        var sequences = new List<Sequence>
-        {
+        await _dbContext.Sequences.AddRangeAsync(
             new Sequence { Id = "seq1", Name = "Alpha Sequence", Description = "Alpha description", WorstCaseTime = TimeSpan.Zero },
             new Sequence { Id = "seq2", Name = "Beta Sequence", Description = "Beta description", WorstCaseTime = TimeSpan.Zero },
             new Sequence { Id = "seq3", Name = "Gamma Sequence", Description = "Gamma description", WorstCaseTime = TimeSpan.Zero }
-        }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Sequence>>();
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Provider).Returns(sequences.Provider);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Expression).Returns(sequences.Expression);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.ElementType).Returns(sequences.ElementType);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.GetEnumerator()).Returns(sequences.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Sequences).Returns(mockDbSet.Object);
+        );
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetSequencesByNameAsync("Beta");
@@ -268,40 +267,55 @@ public class SequenceRepositoryTests
         // Arrange
         var parameterId = "param1";
         var sequenceId = "seq1";
-        var sequenceParameter = new SequenceParameter { SequenceId = sequenceId, ParameterId = parameterId, OrderNumber = 1 };
         
-        var mockQuery = new List<SequenceParameter> { sequenceParameter }.AsQueryable();
-        _mockSequenceParameterDbSet.As<IQueryable<SequenceParameter>>().Setup(m => m.Provider).Returns(mockQuery.Provider);
-        _mockSequenceParameterDbSet.As<IQueryable<SequenceParameter>>().Setup(m => m.Expression).Returns(mockQuery.Expression);
-        _mockSequenceParameterDbSet.As<IQueryable<SequenceParameter>>().Setup(m => m.ElementType).Returns(mockQuery.ElementType);
-        _mockSequenceParameterDbSet.As<IQueryable<SequenceParameter>>().Setup(m => m.GetEnumerator()).Returns(mockQuery.GetEnumerator());
+        var sequence = new Sequence 
+        { 
+            Id = sequenceId, 
+            Name = "Test Sequence", 
+            Description = "Test description", 
+            WorstCaseTime = TimeSpan.Zero 
+        };
+        
+        var parameter = new Parameter
+        {
+            Id = parameterId,
+            Name = "Test Parameter",
+            Type = Entities.Enums.ParameterType.StringType
+        };
+        
+        var sequenceParameter = new SequenceParameter 
+        { 
+            SequenceId = sequenceId, 
+            ParameterId = parameterId, 
+            OrderNumber = 1 
+        };
+        
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
+        
+        await _dbContext.SequenceParameters.AddAsync(sequenceParameter);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         await _repository.RemoveParameterFromSequenceAsync(parameterId, sequenceId);
         
         // Assert
-        _mockSequenceParameterDbSet.Verify(m => m.Remove(It.IsAny<SequenceParameter>()), Times.Once);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        var result = await _dbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
+        Assert.Null(result);
     }
     
     [Fact]
     public async Task GetSequencesByIdsAsync_ReturnsMatchingSequences()
     {
         // Arrange
-        var sequences = new List<Sequence>
-        {
+        await _dbContext.Sequences.AddRangeAsync(
             new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Description 1", WorstCaseTime = TimeSpan.Zero },
             new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Description 2", WorstCaseTime = TimeSpan.Zero },
             new Sequence { Id = "seq3", Name = "Sequence 3", Description = "Description 3", WorstCaseTime = TimeSpan.Zero }
-        }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Sequence>>();
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Provider).Returns(sequences.Provider);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.Expression).Returns(sequences.Expression);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.ElementType).Returns(sequences.ElementType);
-        mockDbSet.As<IQueryable<Sequence>>().Setup(m => m.GetEnumerator()).Returns(sequences.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Sequences).Returns(mockDbSet.Object);
+        );
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetSequencesByIdsAsync(new[] { "seq1", "seq3" });

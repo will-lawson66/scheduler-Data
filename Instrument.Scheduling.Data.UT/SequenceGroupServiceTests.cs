@@ -231,11 +231,18 @@ public class SequenceGroupServiceTests : IDisposable
         // Act
         var result = await _service.AddSequenceToGroupAsync(groupId, sequenceId, order);
         
+        // Make sure all changes are committed before any assertions
+        await _dbContext.SaveChangesAsync();
+
+        // Detach all entities to ensure fresh retrieval
+        _dbContext.ChangeTracker.Clear();
+        
         // Assert
         Assert.True(result);
         
-        // Verify association was created
+        // Verify association was created using AsNoTracking to get fresh data
         var association = await _dbContext.SequenceGroupSequences
+            .AsNoTracking()
             .FirstOrDefaultAsync(sgs => sgs.SequenceGroupId == groupId && sgs.SequenceId == sequenceId);
         Assert.NotNull(association);
         Assert.Equal(order, association.Order);
