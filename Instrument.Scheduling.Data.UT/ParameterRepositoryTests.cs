@@ -193,7 +193,6 @@ public class ParameterRepositoryTests
         Assert.Equal("orig-id", content?.Id);
         Assert.NotNull(content);
 
-        content.Id = "update-id";
 
         var parameter = new Parameter { 
             Id = "update-id", 

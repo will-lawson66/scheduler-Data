@@ -2,6 +2,7 @@ using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.Repository;
 using Instrument.Scheduling.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -9,35 +10,43 @@ using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
 
-public class SequenceGroupServiceTests
+public class SequenceGroupServiceTests : IDisposable
 {
-    private readonly Mock<ISequenceGroupRepository> _mockSequenceGroupRepository;
-    private readonly Mock<ISequenceRepository> _mockSequenceRepository;
-    private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
     private readonly SchedulerDbContext _dbContext;
+    private readonly ISequenceGroupRepository _sequenceGroupRepository;
+    private readonly ISequenceRepository _sequenceRepository;
+    private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
     private readonly SequenceGroupService _service;
 
     public SequenceGroupServiceTests()
     {
-        // Set up mocks
-        _mockSequenceGroupRepository = new Mock<ISequenceGroupRepository>();
-        _mockSequenceRepository = new Mock<ISequenceRepository>();
-        _mockLogger = new Mock<ILogger<SequenceGroupService>>();
-
-        // Set up DbContext with in-memory database
+        // Set up in-memory database
         var options = new DbContextOptionsBuilder<SchedulerDbContext>()
             .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
             .Options;
         _dbContext = new SchedulerDbContext(options);
 
+        // Set up real repositories with in-memory database
+        _sequenceGroupRepository = new SequenceGroupRepository(_dbContext);
+        _sequenceRepository = new SequenceRepository(_dbContext);
+        
+        // Set up logger mock
+        _mockLogger = new Mock<ILogger<SequenceGroupService>>();
 
         // Create the service
         _service = new SequenceGroupService(
             _dbContext,
-            _mockSequenceGroupRepository.Object,
-            _mockSequenceRepository.Object,
+            _sequenceGroupRepository,
+            _sequenceRepository,
             _mockLogger.Object
         );
+    }
+    
+    public void Dispose()
+    {
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
     }
 
     [Fact]
@@ -48,9 +57,6 @@ public class SequenceGroupServiceTests
         var name = "Test Group";
         var description = "Test description";
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((SequenceGroup?)null);
-
         // Act
         var result = await _service.CreateSequenceGroupAsync(id, name, description);
 
@@ -60,7 +66,10 @@ public class SequenceGroupServiceTests
         Assert.Equal(name, result.Name);
         Assert.Equal(description, result.Description);
 
-        _mockSequenceGroupRepository.Verify(repo => repo.AddAsync(It.IsAny<SequenceGroup>()), Times.Once);
+        var savedGroup = await _dbContext.SequenceGroups.FindAsync(id);
+        Assert.NotNull(savedGroup);
+        Assert.Equal(name, savedGroup.Name);
+        Assert.Equal(description, savedGroup.Description);
     }
 
     [Fact]
@@ -71,8 +80,8 @@ public class SequenceGroupServiceTests
         var name = "Test Group";
         var existingGroup = new SequenceGroup { Id = id, Name = "Existing Group" };
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingGroup);
+        await _dbContext.SequenceGroups.AddAsync(existingGroup);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
@@ -80,7 +89,9 @@ public class SequenceGroupServiceTests
 
         Assert.Contains(id, exception.Message);
         
-        _mockSequenceGroupRepository.Verify(repo => repo.AddAsync(It.IsAny<SequenceGroup>()), Times.Never);
+        // Verify the group wasn't changed
+        var unchangedGroup = await _dbContext.SequenceGroups.FindAsync(id);
+        Assert.Equal("Existing Group", unchangedGroup.Name);
     }
 
     [Fact]
@@ -93,8 +104,8 @@ public class SequenceGroupServiceTests
             new SequenceGroup { Id = "group2", Name = "Group 2" }
         };
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetAllAsync())
-            .ReturnsAsync(groups);
+        await _dbContext.SequenceGroups.AddRangeAsync(groups);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetAllSequenceGroupsAsync();
@@ -112,15 +123,16 @@ public class SequenceGroupServiceTests
         var id = "test-group-1";
         var existingGroup = new SequenceGroup { Id = id, Name = "Group To Delete" };
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingGroup);
+        await _dbContext.SequenceGroups.AddAsync(existingGroup);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.DeleteSequenceGroupAsync(id);
 
         // Assert
         Assert.True(result);
-        _mockSequenceGroupRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
+        var deletedGroup = await _dbContext.SequenceGroups.FindAsync(id);
+        Assert.Null(deletedGroup);
     }
 
     [Fact]
@@ -129,17 +141,12 @@ public class SequenceGroupServiceTests
         // Arrange
         var id = "test-group-1";
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((SequenceGroup?)null);
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.DeleteSequenceGroupAsync(id));
             
         Assert.Equal(id, exception.EntityId);
         Assert.Equal("SequenceGroup", exception.EntityType);
-        
-        _mockSequenceGroupRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
     }
 
     [Fact]
@@ -149,8 +156,8 @@ public class SequenceGroupServiceTests
         var id = "test-group-1";
         var group = new SequenceGroup { Id = id, Name = "Test Group" };
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(group);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetSequenceGroupByIdAsync(id);
@@ -166,24 +173,30 @@ public class SequenceGroupServiceTests
     {
         // Arrange
         var id = "test-group-1";
-        var group = new SequenceGroup 
-        { 
+        var sequence = new Sequence { 
+            Id = "seq1", 
+            Name = "Sequence 1", 
+            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
+        };
+        
+        var group = new SequenceGroup { 
             Id = id, 
-            Name = "Test Group",
-            SequenceGroupSequences = new List<SequenceGroupSequences>
-            {
-                new SequenceGroupSequences 
-                { 
-                    SequenceId = "seq1", 
-                    SequenceGroupId = id, 
-                    Order = 1,
-                    Sequence = new Sequence { Id = "seq1", Name = "Sequence 1", WorstCaseTime  = TimeSpan.FromMilliseconds(30000)} 
-                }
-            }
+            Name = "Test Group"
         };
 
-        _mockSequenceGroupRepository.Setup(repo => repo.GetWithSequencesAsync(id))
-            .ReturnsAsync(group);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
+        
+        // Create association
+        var sequenceGroupSequences = new SequenceGroupSequences {
+            SequenceId = "seq1",
+            SequenceGroupId = id,
+            Order = 1
+        };
+        
+        await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequences);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetSequenceGroupWithSequencesAsync(id);
@@ -191,8 +204,9 @@ public class SequenceGroupServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(id, result.Id);
+        Assert.NotNull(result.SequenceGroupSequences);
         Assert.Single(result.SequenceGroupSequences);
-        Assert.Equal("seq1", result.SequenceGroupSequences[0].SequenceId);
+        Assert.Equal("seq1", result.SequenceGroupSequences.First().SequenceId);
     }
     
     [Fact]
@@ -204,19 +218,27 @@ public class SequenceGroupServiceTests
         var order = 1;
         
         var group = new SequenceGroup { Id = groupId, Name = "Test Group" };
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000)};
+        var sequence = new Sequence { 
+            Id = sequenceId, 
+            Name = "Test Sequence", 
+            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
+        };
         
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(groupId))
-            .ReturnsAsync(group);
-            
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequenceId))
-            .ReturnsAsync(sequence);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
             
         // Act
         var result = await _service.AddSequenceToGroupAsync(groupId, sequenceId, order);
         
         // Assert
         Assert.True(result);
+        
+        // Verify association was created
+        var association = await _dbContext.SequenceGroupSequences
+            .FirstOrDefaultAsync(sgs => sgs.SequenceGroupId == groupId && sgs.SequenceId == sequenceId);
+        Assert.NotNull(association);
+        Assert.Equal(order, association.Order);
     }
     
     [Fact]
@@ -227,8 +249,14 @@ public class SequenceGroupServiceTests
         var sequenceId = "seq1";
         var order = 1;
         
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(groupId))
-            .ReturnsAsync((SequenceGroup?)null);
+        var sequence = new Sequence { 
+            Id = sequenceId, 
+            Name = "Test Sequence", 
+            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
+        };
+        
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
             
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
@@ -248,11 +276,8 @@ public class SequenceGroupServiceTests
         
         var group = new SequenceGroup { Id = groupId, Name = "Test Group" };
         
-        _mockSequenceGroupRepository.Setup(repo => repo.GetByIdAsync(groupId))
-            .ReturnsAsync(group);
-            
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequenceId))
-            .ReturnsAsync((Sequence?)null);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
             
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
@@ -267,9 +292,6 @@ public class SequenceGroupServiceTests
     {
         // Arrange
         var groupId = "invalid-group";
-        
-        _mockSequenceGroupRepository.Setup(repo => repo.GetWithSequencesAsync(groupId))
-            .ReturnsAsync((SequenceGroup?)null);
             
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
