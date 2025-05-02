@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data", "Instrume
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data.UT", "Instrument.Data.UT\Instrument.Data.UT.csproj", "{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data.UI", "Instrument.Data.UI\Instrument.Data.UI.csproj", "{10D89284-C048-4855-87AB-BFB3BDB05B00}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,10 +20,6 @@ Global
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10D89284-C048-4855-87AB-BFB3BDB05B00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{10D89284-C048-4855-87AB-BFB3BDB05B00}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{10D89284-C048-4855-87AB-BFB3BDB05B00}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10D89284-C048-4855-87AB-BFB3BDB05B00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
