@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Instrument.Data.UI"
-             xmlns:converters="clr-namespace:Instrument.Data.UI.Helpers.Converters">
+             xmlns:converters="clr-namespace:Instrument.Data.UI.Helpers.Converters"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
     <Application.Resources>
         <ResourceDictionary>
             <!-- Value Converters -->
@@ -12,6 +13,10 @@
             <converters:InverseNullValueToBooleanConverter x:Key="InverseNullValueToBooleanConverter"/>
             
             <ResourceDictionary.MergedDictionaries>
+                <!-- Material Design Resources -->
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Pink" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                
                 <!-- Add any application-wide resources here -->
                 <ResourceDictionary>
                     <!-- Colors -->

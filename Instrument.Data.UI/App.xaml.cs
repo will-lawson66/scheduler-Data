@@ -62,6 +62,9 @@ namespace Instrument.Data.UI
             services.AddTransient<SequenceGroupsViewModel>();
             services.AddTransient<SequenceGroupDetailViewModel>();
             
+            // Add RelationshipVisualizer
+            services.AddTransient<RelationshipVisualizerViewModel>();
+            
             // Add Views
             services.AddSingleton<MainWindow>();
             services.AddTransient<SequencesView>();
@@ -74,6 +77,7 @@ namespace Instrument.Data.UI
             services.AddTransient<ResourceDetailView>();
             services.AddTransient<SequenceGroupsView>();
             services.AddTransient<SequenceGroupDetailView>();
+            services.AddTransient<RelationshipVisualizerView>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

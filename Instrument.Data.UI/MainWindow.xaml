@@ -4,9 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Instrument.Data.UI"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
         mc:Ignorable="d"
         Title="Instrument Scheduler Manager" Height="750" Width="1200" 
-        Background="{StaticResource BackgroundBrush}"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
@@ -15,12 +22,12 @@
         </Grid.RowDefinitions>
         
         <!-- Header -->
-        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="16">
+        <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryDark" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2">
             <TextBlock Text="Instrument Scheduler Manager" 
                        Foreground="White" 
                        FontSize="24" 
                        FontWeight="Bold"/>
-        </Border>
+        </materialDesign:ColorZone>
         
         <!-- Main Content -->
         <Grid Grid.Row="1">
@@ -30,48 +37,84 @@
             </Grid.ColumnDefinitions>
             
             <!-- Navigation Menu -->
-            <Border Grid.Column="0" Background="White" BorderBrush="#DDDDDD" BorderThickness="0,0,1,0">
-                <StackPanel Margin="0,20,0,0">
-                    <TextBlock Text="ENTITIES" 
-                               Margin="16,0,0,8" 
-                               Foreground="{StaticResource TextLightBrush}" 
-                               FontSize="12"/>
-                    
-                    <Button Command="{Binding NavigateToSequencesCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Sequences"/>
-                    
-                    <Button Command="{Binding NavigateToParametersCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Parameters"/>
-                    
-                    <Button Command="{Binding NavigateToRangesCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Ranges"/>
-                    
-                    <Button Command="{Binding NavigateToResourcesCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Resources"/>
-                    
-                    <Button Command="{Binding NavigateToSequenceGroupsCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Sequence Groups"/>
-                    
-                    <TextBlock Text="TOOLS" 
-                               Margin="16,20,0,8" 
-                               Foreground="{StaticResource TextLightBrush}" 
-                               FontSize="12"/>
-                    
-                    <Button Command="{Binding NavigateToVisualizerCommand}" 
-                            Style="{StaticResource NavButtonStyle}"
-                            Content="Relationship Visualizer"/>
-                </StackPanel>
-            </Border>
+            <materialDesign:Card Grid.Column="0" materialDesign:ShadowAssist.ShadowDepth="Depth1" Margin="0" Background="White">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="ENTITIES" 
+                                   Margin="16,0,0,8" 
+                                   Foreground="{DynamicResource MaterialDesignBodyLight}" 
+                                   FontSize="12"/>
+                        
+                        <ListBox x:Name="NavigationItems" SelectedIndex="{Binding SelectedViewIndex, Mode=TwoWay}" Margin="0,8">
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Sequence" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Sequences" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Function" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Parameters" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="ListStatus" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Ranges" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="ToolboxOutline" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Resources" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="FolderMultipleOutline" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Sequence Groups" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+                        
+                        <Separator Margin="16,8" />
+                        
+                        <TextBlock Text="TOOLS" 
+                                   Margin="16,8,0,8" 
+                                   Foreground="{DynamicResource MaterialDesignBodyLight}" 
+                                   FontSize="12"/>
+                        
+                        <ListBox Margin="0,8">
+                            <ListBoxItem Command="{Binding NavigateToVisualizerCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="GraphOutline" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Relationship Visualizer" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Command="{Binding ImportCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Import" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Import Data" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem Command="{Binding ExportCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Export" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <TextBlock Text="Export Data" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </materialDesign:Card>
             
             <!-- Content Area -->
-            <Border Grid.Column="1" Padding="20">
-                <ContentControl x:Name="MainContent"/>
-            </Border>
+            <Grid Grid.Column="1">
+                <materialDesign:Card Margin="16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+                    <ContentControl x:Name="MainContent"/>
+                </materialDesign:Card>
+            </Grid>
         </Grid>
     </Grid>
     

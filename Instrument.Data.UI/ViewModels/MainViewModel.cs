@@ -12,34 +12,39 @@ namespace Instrument.Data.UI.ViewModels
         private readonly ILogger<MainViewModel> _logger;
 
         [ObservableProperty]
-        private bool _isSequencesSelected;
-
-        [ObservableProperty]
-        private bool _isParametersSelected;
-
-        [ObservableProperty]
-        private bool _isRangesSelected;
-
-        [ObservableProperty]
-        private bool _isResourcesSelected;
-
-        [ObservableProperty]
-        private bool _isSequenceGroupsSelected;
-
-        [ObservableProperty]
-        private bool _isVisualizerSelected;
+        private int _selectedViewIndex = 0;
 
         public MainViewModel(NavigationService navigationService, ILogger<MainViewModel> logger)
         {
             _navigationService = navigationService;
             _logger = logger;
         }
+        
+        partial void OnSelectedViewIndexChanged(int value)
+        {
+            switch(value)
+            {
+                case 0:
+                    NavigateToSequences();
+                    break;
+                case 1:
+                    NavigateToParameters();
+                    break;
+                case 2:
+                    NavigateToRanges();
+                    break;
+                case 3:
+                    NavigateToResources();
+                    break;
+                case 4:
+                    NavigateToSequenceGroups();
+                    break;
+            }
+        }
 
         [RelayCommand]
         private void NavigateToSequences()
         {
-            ClearSelections();
-            IsSequencesSelected = true;
             _navigationService.NavigateTo<SequencesView>();
             _logger.LogInformation("Navigated to Sequences view");
         }
@@ -47,8 +52,6 @@ namespace Instrument.Data.UI.ViewModels
         [RelayCommand]
         private void NavigateToParameters()
         {
-            ClearSelections();
-            IsParametersSelected = true;
             _navigationService.NavigateTo<ParametersView>();
             _logger.LogInformation("Navigated to Parameters view");
         }
@@ -56,8 +59,6 @@ namespace Instrument.Data.UI.ViewModels
         [RelayCommand]
         private void NavigateToRanges()
         {
-            ClearSelections();
-            IsRangesSelected = true;
             _navigationService.NavigateTo<RangesView>();
             _logger.LogInformation("Navigated to Ranges view");
         }
@@ -65,8 +66,6 @@ namespace Instrument.Data.UI.ViewModels
         [RelayCommand]
         private void NavigateToResources()
         {
-            ClearSelections();
-            IsResourcesSelected = true;
             _navigationService.NavigateTo<ResourcesView>();
             _logger.LogInformation("Navigated to Resources view");
         }
@@ -74,8 +73,6 @@ namespace Instrument.Data.UI.ViewModels
         [RelayCommand]
         private void NavigateToSequenceGroups()
         {
-            ClearSelections();
-            IsSequenceGroupsSelected = true;
             _navigationService.NavigateTo<SequenceGroupsView>();
             _logger.LogInformation("Navigated to Sequence Groups view");
         }
@@ -83,20 +80,24 @@ namespace Instrument.Data.UI.ViewModels
         [RelayCommand]
         private void NavigateToVisualizer()
         {
-            ClearSelections();
-            IsVisualizerSelected = true;
-            // To be implemented later when we add the visualizer
+            _navigationService.NavigateTo<RelationshipVisualizerView>();
             _logger.LogInformation("Navigated to Visualizer view");
         }
-
-        private void ClearSelections()
+        
+        [RelayCommand]
+        private void Import()
         {
-            IsSequencesSelected = false;
-            IsParametersSelected = false;
-            IsRangesSelected = false;
-            IsResourcesSelected = false;
-            IsSequenceGroupsSelected = false;
-            IsVisualizerSelected = false;
+            // Will implement import functionality
+            _logger.LogInformation("Import command executed");
         }
+        
+        [RelayCommand]
+        private void Export()
+        {
+            // Will implement export functionality
+            _logger.LogInformation("Export command executed");
+        }
+
+
     }
 }
