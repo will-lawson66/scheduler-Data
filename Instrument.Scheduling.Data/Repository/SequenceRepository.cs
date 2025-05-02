@@ -101,35 +101,4 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
             throw new StorageProviderException($"Update-{typeof(Sequence).Name}", ex);
         }
     }
-    
-    /// <summary>
-    /// Updates a sequence with specific property changes
-    /// </summary>
-    /// <param name="id">Sequence ID</param>
-    /// <param name="name">Optional new name</param>
-    /// <param name="worstCaseTime">Optional new worst case time</param>
-    /// <param name="description">Optional new description</param>
-    /// <param name="canBeParallel">Optional new canBeParallel value</param>
-    /// <returns>The updated sequence</returns>
-    public async Task<Sequence> UpdateSequencePropertiesAsync(
-        string id, 
-        string? name = null, 
-        TimeSpan? worstCaseTime = null, 
-        string? description = null,
-        bool? canBeParallel = null)
-    {
-        var entity = await DbSet.FindAsync(id);
-        if (entity == null)
-            throw new EntityNotFoundException(typeof(Sequence).Name, id);
-            
-        // Use the entity's Update method to create a new instance with updated properties
-        var updatedEntity = entity.Update(name, worstCaseTime, description, canBeParallel);
-        
-        // Detach the original entity and update with the new one
-        DbContext.Entry(entity).State = EntityState.Detached;
-        DbSet.Update(updatedEntity);
-        await DbContext.SaveChangesAsync();
-        
-        return updatedEntity;
-    }
 }

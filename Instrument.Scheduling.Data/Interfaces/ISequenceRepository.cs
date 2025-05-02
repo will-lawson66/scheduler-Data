@@ -31,20 +31,4 @@ public interface ISequenceRepository : IRepository<Sequence>
     /// </summary>
     /// <param name="ids">Sequence IDs</param>
     Task<IEnumerable<Sequence>> GetSequencesByIdsAsync(IEnumerable<string> ids);
-    
-    /// <summary>
-    /// Updates a sequence with specific property changes
-    /// </summary>
-    /// <param name="id">Sequence ID</param>
-    /// <param name="name">Optional new name</param>
-    /// <param name="worstCaseTime">Optional new worst case time</param>
-    /// <param name="description">Optional new description</param>
-    /// <param name="canBeParallel">Optional new canBeParallel value</param>
-    /// <returns>The updated sequence</returns>
-    Task<Sequence> UpdateSequencePropertiesAsync(
-        string id, 
-        string? name = null, 
-        TimeSpan? worstCaseTime = null, 
-        string? description = null,
-        bool? canBeParallel = null);
 }
