@@ -79,7 +79,7 @@ public class SequenceService
         }
     }
     
-    // New property-based update method
+    // Updated property-based update method using the entity's Update method and repository's UpdateAsync
     public async Task<Sequence> UpdateSequencePropertiesAsync(
         string id, 
         string? name = null, 
@@ -91,17 +91,27 @@ public class SequenceService
         
         try
         {
-            // Use the repository's new method
-            var updatedSequence = await _sequenceRepository.UpdateSequencePropertiesAsync(
-                id, name, worstCaseTime, description, canBeParallel);
-                
+            // Get the current entity
+            var sequence = await _sequenceRepository.GetByIdAsync(id);
+            if (sequence == null)
+            {
+                _logger.LogWarning("Sequence with ID {Id} does not exist", id);
+                throw new EntityNotFoundException("Sequence", id);
+            }
+            
+            // Use the entity's Update method to create a modified copy
+            var updatedSequence = sequence.Update(name, worstCaseTime, description, canBeParallel);
+            
+            // Use the repository's UpdateAsync method
+            await _sequenceRepository.UpdateAsync(updatedSequence);
+            await _sequenceRepository.SaveChangesAsync();
+            
             _logger.LogInformation("Successfully updated properties for sequence with ID: {Id}", id);
             return updatedSequence;
         }
         catch (EntityNotFoundException)
         {
             // Re-throw entity not found exceptions
-            _logger.LogWarning("Sequence with ID {Id} does not exist", id);
             throw;
         }
         catch (Exception ex)
