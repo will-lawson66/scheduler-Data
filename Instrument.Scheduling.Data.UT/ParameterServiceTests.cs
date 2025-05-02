@@ -1,34 +1,51 @@
-using Instrument.Scheduling.Data.Entities.Enums;
+using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
+using Instrument.Scheduling.Data.Entities.Enums;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.Repository;
 using Instrument.Scheduling.Data.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
 
-public class ParameterServiceTests
+public class ParameterServiceTests : IDisposable
 {
-    private readonly Mock<IParameterRepository> _mockParameterRepository;
-    private readonly Mock<ISequenceRepository> _mockSequenceRepository;
+    private readonly SchedulerDbContext _dbContext;
+    private readonly IParameterRepository _parameterRepository;
+    private readonly ISequenceRepository _sequenceRepository;
     private readonly Mock<ILogger<ParameterService>> _mockLogger;
     private readonly ParameterService _service;
 
     public ParameterServiceTests()
     {
-        // Set up mocks
-        _mockParameterRepository = new Mock<IParameterRepository>();
-        _mockSequenceRepository = new Mock<ISequenceRepository>();
-        _mockLogger = new Mock<ILogger<ParameterService>>();
+        // Set up in-memory database
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .Options;
+        _dbContext = new SchedulerDbContext(options);
 
-        // Configure UnitOfWork mock to return our repository mocks
+        // Set up real repositories with in-memory database
+        _parameterRepository = new ParameterRepository(_dbContext);
+        _sequenceRepository = new SequenceRepository(_dbContext);
+        
+        // Set up logger mock
+        _mockLogger = new Mock<ILogger<ParameterService>>();
 
         // Create the service
         _service = new ParameterService(
-            _mockParameterRepository.Object,
+            _parameterRepository,
             _mockLogger.Object
         );
+    }
+    
+    public void Dispose()
+    {
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
     }
 
     [Fact]
@@ -43,8 +60,8 @@ public class ParameterServiceTests
             Type = ParameterType.StringType
         };
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(parameter);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetParameterAsync(id);
@@ -67,14 +84,14 @@ public class ParameterServiceTests
             Type = ParameterType.StringType
         };
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameter.Id))
-            .ReturnsAsync((Parameter?)null);
-
         // Act
         await _service.CreateParameterAsync(parameter);
 
         // Assert
-        _mockParameterRepository.Verify(repo => repo.AddAsync(parameter), Times.Once);
+        var createdParameter = await _dbContext.Parameters.FindAsync(parameter.Id);
+        Assert.NotNull(createdParameter);
+        Assert.Equal("Test Parameter", createdParameter.Name);
+        Assert.Equal(ParameterType.StringType, createdParameter.Type);
     }
 
     [Fact]
@@ -82,21 +99,22 @@ public class ParameterServiceTests
     {
         // Arrange
         var id = "test-param-1";
-        var parameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Test Parameter", 
-            Type = ParameterType.StringType
-        };
         var existingParameter = new Parameter 
         { 
             Id = id, 
             Name = "Existing Parameter", 
             Type = ParameterType.IntegerType
         };
+        
+        await _dbContext.Parameters.AddAsync(existingParameter);
+        await _dbContext.SaveChangesAsync();
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingParameter);
+        var parameter = new Parameter 
+        { 
+            Id = id, 
+            Name = "Test Parameter", 
+            Type = ParameterType.StringType
+        };
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
@@ -104,7 +122,9 @@ public class ParameterServiceTests
             
         Assert.Contains(id, exception.Message);
         
-        _mockParameterRepository.Verify(repo => repo.AddAsync(It.IsAny<Parameter>()), Times.Never);
+        var unchangedParameter = await _dbContext.Parameters.FindAsync(id);
+        Assert.Equal("Existing Parameter", unchangedParameter.Name);
+        Assert.Equal(ParameterType.IntegerType, unchangedParameter.Type);
     }
 
     [Fact]
@@ -112,27 +132,31 @@ public class ParameterServiceTests
     {
         // Arrange
         var id = "test-param-1";
-        var parameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Updated Parameter", 
-            Type = ParameterType.IntegerType
-        };
         var existingParameter = new Parameter 
         { 
             Id = id, 
             Name = "Original Parameter", 
             Type = ParameterType.StringType
         };
+        
+        await _dbContext.Parameters.AddAsync(existingParameter);
+        await _dbContext.SaveChangesAsync();
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingParameter);
+        var updatedParameter = new Parameter 
+        { 
+            Id = id, 
+            Name = "Updated Parameter", 
+            Type = ParameterType.IntegerType
+        };
 
         // Act
-        await _service.UpdateParameterAsync(parameter);
+        await _service.UpdateParameterAsync(updatedParameter);
 
         // Assert
-        _mockParameterRepository.Verify(repo => repo.UpdateAsync(parameter), Times.Once);
+        var resultParameter = await _dbContext.Parameters.FindAsync(id);
+        Assert.NotNull(resultParameter);
+        Assert.Equal("Updated Parameter", resultParameter.Name);
+        Assert.Equal(ParameterType.IntegerType, resultParameter.Type);
     }
 
     [Fact]
@@ -147,9 +171,6 @@ public class ParameterServiceTests
             Type = ParameterType.StringType
         };
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((Parameter?)null);
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.UpdateParameterAsync(parameter));
@@ -157,7 +178,8 @@ public class ParameterServiceTests
         Assert.Equal(id, exception.EntityId);
         Assert.Equal("Parameter", exception.EntityType);
         
-        _mockParameterRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Parameter>()), Times.Never);
+        var parameterCount = await _dbContext.Parameters.CountAsync();
+        Assert.Equal(0, parameterCount);
     }
 
     [Fact]
@@ -171,15 +193,16 @@ public class ParameterServiceTests
             Name = "Parameter to Delete", 
             Type = ParameterType.StringType
         };
-
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingParameter);
+        
+        await _dbContext.Parameters.AddAsync(existingParameter);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         await _service.DeleteParameterAsync(id);
 
         // Assert
-        _mockParameterRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
+        var deletedParameter = await _dbContext.Parameters.FindAsync(id);
+        Assert.Null(deletedParameter);
     }
 
     [Fact]
@@ -188,17 +211,12 @@ public class ParameterServiceTests
         // Arrange
         var id = "test-param-1";
 
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((Parameter?)null);
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.DeleteParameterAsync(id));
             
         Assert.Equal(id, exception.EntityId);
         Assert.Equal("Parameter", exception.EntityType);
-        
-        _mockParameterRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
     }
 
     [Fact]
@@ -212,18 +230,18 @@ public class ParameterServiceTests
         var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType};
         var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000)};
         
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
-            .ReturnsAsync(parameter);
-        
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequenceId))
-            .ReturnsAsync(sequence);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         await _service.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
 
         // Assert
-        _mockParameterRepository.Verify(repo => 
-            repo.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber), Times.Once);
+        var association = await _dbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
+        Assert.NotNull(association);
+        Assert.Equal(orderNumber, association.OrderNumber);
     }
     
     [Fact]
@@ -235,12 +253,8 @@ public class ParameterServiceTests
         int orderNumber = 1;
         
         var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000)};
-        
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
-            .ReturnsAsync((Parameter?)null);
-        
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequenceId))
-            .ReturnsAsync(sequence);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
@@ -259,12 +273,8 @@ public class ParameterServiceTests
         int orderNumber = 1;
         
         var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType};
-        
-        _mockParameterRepository.Setup(repo => repo.GetByIdAsync(parameterId))
-            .ReturnsAsync(parameter);
-        
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequenceId))
-            .ReturnsAsync((Sequence?)null);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 

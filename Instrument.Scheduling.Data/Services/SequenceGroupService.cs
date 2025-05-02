@@ -74,6 +74,47 @@ public class SequenceGroupService
             throw new StorageProviderException("CreateSequenceGroup", ex);
         }
     }
+    
+    /// <summary>
+    /// Updates a sequence group's properties
+    /// </summary>
+    /// <param name="id">Identifier of the sequence group</param>
+    /// <param name="name">Optional new name</param>
+    /// <param name="description">Optional new description</param>
+    /// <returns>The updated sequence group</returns>
+    public async Task<SequenceGroup> UpdateSequenceGroupPropertiesAsync(
+        string id,
+        string? name = null,
+        string? description = null)
+    {
+        _logger.LogInformation("Updating properties for sequence group with ID: {Id}", id);
+        
+        try
+        {
+            // Get the current entity
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(id);
+            if (sequenceGroup == null)
+            {
+                _logger.LogWarning("Sequence group with ID {Id} does not exist", id);
+                throw new EntityNotFoundException("SequenceGroup", id);
+            }
+            
+            // Use the entity's Update method to create a modified copy
+            var updatedSequenceGroup = sequenceGroup.Update(name, description);
+            
+            // Use the existing UpdateAsync method
+            await _sequenceGroupRepository.UpdateAsync(updatedSequenceGroup);
+            await _sequenceGroupRepository.SaveChangesAsync();
+            
+            _logger.LogInformation("Successfully updated properties for sequence group with ID: {Id}", id);
+            return updatedSequenceGroup;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating properties for sequence group with ID: {Id}", id);
+            throw new StorageProviderException("UpdateSequenceGroupProperties", ex);
+        }
+    }
 
     /// <summary>
     /// Adds a sequence to a sequence group in a specific order

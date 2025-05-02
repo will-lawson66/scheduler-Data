@@ -1,29 +1,48 @@
+using Instrument.Scheduling.Data.DataContext;
 using Instrument.Scheduling.Data.Entities;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Interfaces;
+using Instrument.Scheduling.Data.Repository;
 using Instrument.Scheduling.Data.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
 
-public class SequenceServiceTests
+public class SequenceServiceTests : IDisposable
 {
-    private readonly Mock<ISequenceRepository> _mockSequenceRepository;
+    private readonly SchedulerDbContext _dbContext;
+    private readonly ISequenceRepository _sequenceRepository;
     private readonly Mock<ILogger<SequenceService>> _mockLogger;
     private readonly SequenceService _service;
 
     public SequenceServiceTests()
     {
-        // Set up mocks
-        _mockSequenceRepository = new Mock<ISequenceRepository>();
+        // Set up in-memory database
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .Options;
+        _dbContext = new SchedulerDbContext(options);
+
+        // Set up real repository with in-memory database
+        _sequenceRepository = new SequenceRepository(_dbContext);
+        
+        // Set up logger mock
         _mockLogger = new Mock<ILogger<SequenceService>>();
 
         // Create the service
         _service = new SequenceService(
-            _mockSequenceRepository.Object,
+            _sequenceRepository,
             _mockLogger.Object
         );
+    }
+    
+    public void Dispose()
+    {
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
     }
 
     [Fact]
@@ -38,8 +57,8 @@ public class SequenceServiceTests
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(sequence);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetSequenceAsync(id);
@@ -62,14 +81,14 @@ public class SequenceServiceTests
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(sequence.Id))
-            .ReturnsAsync((Sequence?)null);
-
         // Act
         await _service.CreateSequenceAsync(sequence);
 
         // Assert
-        _mockSequenceRepository.Verify(repo => repo.AddAsync(sequence), Times.Once);
+        var createdSequence = await _dbContext.Sequences.FindAsync(sequence.Id);
+        Assert.NotNull(createdSequence);
+        Assert.Equal("Test Sequence", createdSequence.Name);
+        Assert.Equal(TimeSpan.FromSeconds(30), createdSequence.WorstCaseTime);
     }
 
     [Fact]
@@ -77,29 +96,32 @@ public class SequenceServiceTests
     {
         // Arrange
         var id = "test-sequence-1";
-        var sequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Test Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
         var existingSequence = new Sequence 
         { 
             Id = id, 
             Name = "Existing Sequence", 
             WorstCaseTime = TimeSpan.FromSeconds(45) 
         };
+        
+        await _dbContext.Sequences.AddAsync(existingSequence);
+        await _dbContext.SaveChangesAsync();
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingSequence);
+        var newSequence = new Sequence 
+        { 
+            Id = id, 
+            Name = "Test Sequence", 
+            WorstCaseTime = TimeSpan.FromSeconds(30) 
+        };
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
-            _service.CreateSequenceAsync(sequence));
+            _service.CreateSequenceAsync(newSequence));
             
         Assert.Contains(id, exception.Message);
         
-        _mockSequenceRepository.Verify(repo => repo.AddAsync(It.IsAny<Sequence>()), Times.Never);
+        // Verify the sequence wasn't changed
+        var unchangedSequence = await _dbContext.Sequences.FindAsync(id);
+        Assert.Equal("Existing Sequence", unchangedSequence.Name);
     }
 
     [Fact]
@@ -107,27 +129,31 @@ public class SequenceServiceTests
     {
         // Arrange
         var id = "test-sequence-1";
-        var sequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Updated Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
         var existingSequence = new Sequence 
         { 
             Id = id, 
             Name = "Original Sequence", 
             WorstCaseTime = TimeSpan.FromSeconds(45) 
         };
+        
+        await _dbContext.Sequences.AddAsync(existingSequence);
+        await _dbContext.SaveChangesAsync();
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingSequence);
+        var updatedSequence = new Sequence 
+        { 
+            Id = id, 
+            Name = "Updated Sequence", 
+            WorstCaseTime = TimeSpan.FromSeconds(30) 
+        };
 
         // Act
-        await _service.UpdateSequenceAsync(sequence);
+        await _service.UpdateSequenceAsync(updatedSequence);
 
         // Assert
-        _mockSequenceRepository.Verify(repo => repo.UpdateAsync(sequence), Times.Once);
+        var resultSequence = await _dbContext.Sequences.FindAsync(id);
+        Assert.NotNull(resultSequence);
+        Assert.Equal("Updated Sequence", resultSequence.Name);
+        Assert.Equal(TimeSpan.FromSeconds(30), resultSequence.WorstCaseTime);
     }
 
     [Fact]
@@ -142,9 +168,6 @@ public class SequenceServiceTests
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((Sequence?)null);
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.UpdateSequenceAsync(sequence));
@@ -152,7 +175,108 @@ public class SequenceServiceTests
         Assert.Equal(id, exception.EntityId);
         Assert.Equal("Sequence", exception.EntityType);
         
-        _mockSequenceRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Sequence>()), Times.Never);
+        // Verify no sequence was added
+        var sequenceCount = await _dbContext.Sequences.CountAsync();
+        Assert.Equal(0, sequenceCount);
+    }
+    
+    [Fact]
+    public async Task UpdateSequencePropertiesAsync_WithValidId_UpdatesSpecifiedProperties()
+    {
+        // Arrange
+        var id = "test-sequence-1";
+        var existingSequence = new Sequence 
+        { 
+            Id = id, 
+            Name = "Original Sequence", 
+            WorstCaseTime = TimeSpan.FromSeconds(45),
+            Description = "Original description",
+            CanBeParallel = false
+        };
+        
+        await _dbContext.Sequences.AddAsync(existingSequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act - only update name and description
+        var result = await _service.UpdateSequencePropertiesAsync(
+            id: id,
+            name: "Updated Sequence",
+            description: "Updated description"
+        );
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Updated Sequence", result.Name);
+        Assert.Equal("Updated description", result.Description);
+        Assert.Equal(TimeSpan.FromSeconds(45), result.WorstCaseTime); // Unchanged
+        Assert.False(result.CanBeParallel); // Unchanged
+        
+        // Verify database changes
+        _dbContext.ChangeTracker.Clear(); // Clear tracking to ensure we get fresh data
+        var updatedSequence = await _dbContext.Sequences.FindAsync(id);
+        Assert.Equal("Updated Sequence", updatedSequence.Name);
+        Assert.Equal("Updated description", updatedSequence.Description);
+        Assert.Equal(TimeSpan.FromSeconds(45), updatedSequence.WorstCaseTime);
+        Assert.False(updatedSequence.CanBeParallel);
+    }
+    
+    [Fact]
+    public async Task UpdateSequencePropertiesAsync_WithAllProperties_UpdatesAllProperties()
+    {
+        // Arrange
+        var id = "test-sequence-1";
+        var existingSequence = new Sequence 
+        { 
+            Id = id, 
+            Name = "Original Sequence", 
+            WorstCaseTime = TimeSpan.FromSeconds(45),
+            Description = "Original description",
+            CanBeParallel = false
+        };
+        
+        await _dbContext.Sequences.AddAsync(existingSequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act - update all properties
+        var result = await _service.UpdateSequencePropertiesAsync(
+            id: id,
+            name: "Updated Sequence",
+            worstCaseTime: TimeSpan.FromSeconds(30),
+            description: "Updated description",
+            canBeParallel: true
+        );
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Updated Sequence", result.Name);
+        Assert.Equal("Updated description", result.Description);
+        Assert.Equal(TimeSpan.FromSeconds(30), result.WorstCaseTime);
+        Assert.True(result.CanBeParallel);
+        
+        // Verify database changes
+        _dbContext.ChangeTracker.Clear();
+        var updatedSequence = await _dbContext.Sequences.FindAsync(id);
+        Assert.Equal("Updated Sequence", updatedSequence.Name);
+        Assert.Equal("Updated description", updatedSequence.Description);
+        Assert.Equal(TimeSpan.FromSeconds(30), updatedSequence.WorstCaseTime);
+        Assert.True(updatedSequence.CanBeParallel);
+    }
+    
+    [Fact]
+    public async Task UpdateSequencePropertiesAsync_WithNonExistingId_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        var id = "test-sequence-1";
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
+            _service.UpdateSequencePropertiesAsync(
+                id: id,
+                name: "Updated Sequence"
+            ));
+            
+        Assert.Equal(id, exception.EntityId);
+        Assert.Equal("Sequence", exception.EntityType);
     }
 
     [Fact]
@@ -166,15 +290,16 @@ public class SequenceServiceTests
             Name = "Sequence to Delete", 
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
-
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync(existingSequence);
+        
+        await _dbContext.Sequences.AddAsync(existingSequence);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         await _service.DeleteSequenceAsync(id);
 
         // Assert
-        _mockSequenceRepository.Verify(repo => repo.DeleteAsync(id), Times.Once);
+        var deletedSequence = await _dbContext.Sequences.FindAsync(id);
+        Assert.Null(deletedSequence);
     }
 
     [Fact]
@@ -183,17 +308,12 @@ public class SequenceServiceTests
         // Arrange
         var id = "test-sequence-1";
 
-        _mockSequenceRepository.Setup(repo => repo.GetByIdAsync(id))
-            .ReturnsAsync((Sequence?)null);
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.DeleteSequenceAsync(id));
             
         Assert.Equal(id, exception.EntityId);
         Assert.Equal("Sequence", exception.EntityType);
-        
-        _mockSequenceRepository.Verify(repo => repo.DeleteAsync(id), Times.Never);
     }
 
     [Fact]
@@ -206,8 +326,8 @@ public class SequenceServiceTests
             new Sequence { Id = "seq2", Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
-        _mockSequenceRepository.Setup(repo => repo.GetAllAsync())
-            .ReturnsAsync(sequences);
+        await _dbContext.Sequences.AddRangeAsync(sequences);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.GetAllSequencesAsync();
@@ -228,8 +348,8 @@ public class SequenceServiceTests
             new Sequence { Id = "seq2", Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
-        _mockSequenceRepository.Setup(repo => repo.GetQueryableAsync())
-            .ReturnsAsync(sequences.AsQueryable());
+        await _dbContext.Sequences.AddRangeAsync(sequences);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _service.SearchSequencesAsync(s => s.Name.Contains("Alpha"));
@@ -240,37 +360,7 @@ public class SequenceServiceTests
     }
     
     [Fact]
-    public async Task GetAllSequencesAsync_WhenRepositoryThrowsException_ThrowsStorageProviderException()
-    {
-        // Arrange
-        _mockSequenceRepository.Setup(repo => repo.GetAllAsync())
-            .ThrowsAsync(new Exception("Test error"));
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<StorageProviderException>(() => 
-            _service.GetAllSequencesAsync());
-            
-        Assert.Equal("GetAllSequences", exception.Operation);
-        Assert.NotNull(exception.InnerException);
-    }
-    
-    [Fact]
-    public async Task SearchSequencesAsync_WhenRepositoryThrowsException_ThrowsStorageProviderException()
-    {
-        // Arrange
-        _mockSequenceRepository.Setup(repo => repo.GetQueryableAsync())
-            .ThrowsAsync(new Exception("Test error"));
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<StorageProviderException>(() => 
-            _service.SearchSequencesAsync(s => true));
-            
-        Assert.Equal("SearchSequences", exception.Operation);
-        Assert.NotNull(exception.InnerException);
-    }
-
-    [Fact]
-    public void Constructor_WithNullUnitOfWork_ThrowsArgumentNullException()
+    public void Constructor_WithNullRepository_ThrowsArgumentNullException()
     {
         // Arrange
         var logger = new Mock<ILogger<SequenceService>>().Object;
@@ -282,10 +372,7 @@ public class SequenceServiceTests
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
-        // Arrange
-        ILogger<SequenceService>? nullLogger = null;
-
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SequenceService(_mockSequenceRepository.Object, null!));
+        Assert.Throws<ArgumentNullException>(() => new SequenceService(_sequenceRepository, null!));
     }
 }

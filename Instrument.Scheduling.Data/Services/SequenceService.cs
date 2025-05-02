@@ -50,6 +50,7 @@ public class SequenceService
         }
     }
 
+    // Original update method - kept for backward compatibility
     public async Task UpdateSequenceAsync(Sequence sequence)
     {
         if (sequence == null)
@@ -75,6 +76,38 @@ public class SequenceService
         {
             _logger.LogError(ex, "Error updating sequence with ID: {Id}", sequence.Id);
             throw new StorageProviderException("UpdateSequence", ex);
+        }
+    }
+    
+    // New property-based update method
+    public async Task<Sequence> UpdateSequencePropertiesAsync(
+        string id, 
+        string? name = null, 
+        TimeSpan? worstCaseTime = null, 
+        string? description = null,
+        bool? canBeParallel = null)
+    {
+        _logger.LogInformation("Updating properties for sequence with ID: {Id}", id);
+        
+        try
+        {
+            // Use the repository's new method
+            var updatedSequence = await _sequenceRepository.UpdateSequencePropertiesAsync(
+                id, name, worstCaseTime, description, canBeParallel);
+                
+            _logger.LogInformation("Successfully updated properties for sequence with ID: {Id}", id);
+            return updatedSequence;
+        }
+        catch (EntityNotFoundException)
+        {
+            // Re-throw entity not found exceptions
+            _logger.LogWarning("Sequence with ID {Id} does not exist", id);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating properties for sequence with ID: {Id}", id);
+            throw new StorageProviderException("UpdateSequenceProperties", ex);
         }
     }
 

@@ -88,6 +88,52 @@ public class ParameterService
             throw new StorageProviderException("UpdateParameter", ex);
         }
     }
+    
+    // New property-based update method
+    public async Task<Parameter> UpdateParameterPropertiesAsync(
+        string id,
+        string? name = null,
+        ParameterType? type = null,
+        string? min = null,
+        string? max = null,
+        string? defaultValue = null,
+        string? format = null,
+        string? rangeId = null,
+        string? resourceId = null)
+    {
+        _logger.LogInformation("Updating properties for parameter with ID: {Id}", id);
+        
+        try
+        {
+            // Get the current entity
+            var parameter = await _parameterRepository.GetByIdAsync(id);
+            if (parameter == null)
+            {
+                _logger.LogWarning("Parameter with ID {Id} does not exist", id);
+                throw new EntityNotFoundException("Parameter", id);
+            }
+            
+            // Use the entity's Update method to create a modified copy
+            var updatedParameter = parameter.Update(name, type, min, max, defaultValue, format, rangeId, resourceId);
+            
+            // Use the existing UpdateAsync method
+            await _parameterRepository.UpdateAsync(updatedParameter);
+            await _parameterRepository.SaveChangesAsync();
+            
+            _logger.LogInformation("Successfully updated properties for parameter with ID: {Id}", id);
+            return updatedParameter;
+        }
+        catch (EntityNotFoundException)
+        {
+            // Re-throw entity not found exceptions
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating properties for parameter with ID: {Id}", id);
+            throw new StorageProviderException("UpdateParameterProperties", ex);
+        }
+    }
 
     public async Task DeleteParameterAsync(string id)
     {
