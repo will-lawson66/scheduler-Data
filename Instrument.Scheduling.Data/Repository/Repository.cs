@@ -68,12 +68,32 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    public virtual Task UpdateAsync(T entity)
+    public virtual async Task UpdateAsync(T entity)
     {
         try
         {
-            DbSet.Update(entity);
-            return Task.CompletedTask;
+            // Assume that entities have an Id property based on your repository design
+            // You'll need to extract the id from the entity
+            var id = entity.GetType().GetProperty("Id")?.GetValue(entity)?.ToString();
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Entity must have an Id property with a non-null value");
+            }
+
+            // Find the entity that's already being tracked
+            var existingEntity = await DbSet.FindAsync(id);
+            if (existingEntity == null)
+            {
+                throw new EntityNotFoundException(typeof(T).Name, id);
+            }
+
+            // Update the existing entity's values with the new entity's values
+            DbContext.Entry(existingEntity).CurrentValues.SetValues(entity);
+        }
+        catch (EntityNotFoundException)
+        {
+            // Re-throw entity not found exceptions
+            throw;
         }
         catch (Exception ex)
         {

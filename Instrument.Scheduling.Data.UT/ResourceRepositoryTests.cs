@@ -4,211 +4,190 @@ using Instrument.Scheduling.Data.Entities.Enums;
 using Instrument.Scheduling.Data.Exceptions;
 using Instrument.Scheduling.Data.Repository;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 
 namespace Instrument.Scheduling.Data.UT;
-public class ResourceRepositoryTests
+
+public class ResourceRepositoryTests : IDisposable
 {
-    private readonly Mock<SchedulerDbContext> _mockDbContext;
-    private readonly Mock<DbSet<Resource>> _mockResourceDbSet;
-    private readonly Mock<DbSet<Parameter>> _mockParameterDbSet;
+    private readonly SchedulerDbContext _dbContext;
     private readonly ResourceRepository _repository;
-    
+    private readonly string _dbName;
+
     public ResourceRepositoryTests()
     {
-        // Create mock DbSets
-        _mockResourceDbSet = MockDbSetSetup();
-        _mockParameterDbSet = MockDbSetSetup<Parameter>();
+        // Create a unique database name for each test run to ensure isolation
+        _dbName = $"TestDB_{Guid.NewGuid()}";
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: _dbName)
+            .Options;
         
-        // Create mock DbContext
-        _mockDbContext = new Mock<SchedulerDbContext>(new DbContextOptionsBuilder<SchedulerDbContext>().Options);
-        _mockDbContext.Setup(db => db.Resources).Returns(_mockResourceDbSet.Object);
-        _mockDbContext.Setup(db => db.Parameters).Returns(_mockParameterDbSet.Object);
-        
-        // Create repository
-        _repository = new ResourceRepository(_mockDbContext.Object);
+        _dbContext = new SchedulerDbContext(options);
+        _repository = new ResourceRepository(_dbContext);
     }
-    
-    private Mock<DbSet<T>> MockDbSetSetup<T>() where T : class
+
+    public void Dispose()
     {
-        var mockSet = new Mock<DbSet<T>>();
-        var data = new List<T>().AsQueryable();
-        
-        mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
-        mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
-        mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-        
-        return mockSet;
-    }
-    
-    private Mock<DbSet<Resource>> MockDbSetSetup()
-    {
-        var resources = new List<Resource>
-        {
-            new Resource { Id = "res1", Name = "Resource 1", Code = "R1"},
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2"}
-        }.AsQueryable();
-        
-        var mockSet = new Mock<DbSet<Resource>>();
-        mockSet.As<IQueryable<Resource>>().Setup(m => m.Provider).Returns(resources.Provider);
-        mockSet.As<IQueryable<Resource>>().Setup(m => m.Expression).Returns(resources.Expression);
-        mockSet.As<IQueryable<Resource>>().Setup(m => m.ElementType).Returns(resources.ElementType);
-        mockSet.As<IQueryable<Resource>>().Setup(m => m.GetEnumerator()).Returns(resources.GetEnumerator());
-        
-        mockSet.Setup(m => m.Find(It.IsAny<object[]>())).Returns<object[]>(ids => 
-        {
-            var id = ids[0].ToString();
-            return resources.FirstOrDefault(r => r.Id == id);
-        });
-        
-        return mockSet;
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
     }
     
     [Fact]
-    public async Task GetAllAsync_CallsDbContext_AndReturnsResult()
+    public async Task GetAllAsync_ReturnsAllResources()
     {
         // Arrange
-        _mockResourceDbSet.Setup(m => m.ToListAsync(default))
-            .ReturnsAsync(new List<Resource>
-            {
-                new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
-                new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
-            });
-        
+        await _dbContext.Resources.AddRangeAsync(
+            new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
+            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
+        );
+        await _dbContext.SaveChangesAsync();
+
         // Act
         var result = await _repository.GetAllAsync();
-        
+
         // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, r => r.Id == "res1");
-        Assert.Contains(result, r => r.Id == "res2");
-        _mockResourceDbSet.Verify(m => m.ToListAsync(default), Times.Once);
+        var resources = result.ToList();
+        Assert.Equal(2, resources.Count);
+        Assert.Contains(resources, r => r.Id == "res1");
+        Assert.Contains(resources, r => r.Id == "res2");
     }
     
     [Fact]
-    public async Task GetByIdAsync_CallsDbContext_WithCorrectId()
+    public async Task GetByIdAsync_WithValidId_ReturnsResource()
     {
         // Arrange
-        var resource = new Resource { 
-            Id = "test-id", 
-            Name = "Test Resource",
-            Code = "TR",
+        var resource = new Resource
+        { 
+            Id = "res-id",
+            Name = "Test Resource", 
+            Code = "TR"
         };
         
-        _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "test-id" }))
-            .ReturnsAsync(resource);
-        
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.SaveChangesAsync();
+
         // Act
-        var result = await _repository.GetByIdAsync("test-id");
-        
+        var result = await _repository.GetByIdAsync("res-id");
+
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("test-id", result.Id);
+        Assert.Equal("res-id", result.Id);
         Assert.Equal("Test Resource", result.Name);
         Assert.Equal("TR", result.Code);
-        _mockResourceDbSet.Verify(m => m.FindAsync(new object[] { "test-id" }), Times.Once);
     }
     
     [Fact]
-    public async Task GetByIdAsync_ReturnsNull_WhenResourceNotFound()
+    public async Task GetByIdAsync_WithInvalidId_ReturnsNull()
     {
-        // Arrange
-        _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "non-existent" }))
-            .ReturnsAsync((Resource)null);
-        
         // Act
         var result = await _repository.GetByIdAsync("non-existent");
         
         // Assert
         Assert.Null(result);
-        _mockResourceDbSet.Verify(m => m.FindAsync(new object[] { "non-existent" }), Times.Once);
     }
     
     [Fact]
     public async Task GetQueryableAsync_ReturnsQueryable()
     {
+        // Arrange
+        await _dbContext.Resources.AddRangeAsync(
+            new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
+            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
+        );
+        await _dbContext.SaveChangesAsync();
+
         // Act
         var result = await _repository.GetQueryableAsync();
         
         // Assert
         Assert.NotNull(result);
         Assert.IsAssignableFrom<IQueryable<Resource>>(result);
+        Assert.Equal(2, result.Count());
     }
     
     [Fact]
-    public async Task AddAsync_CallsDbContext_WithCorrectEntity()
+    public async Task AddAsync_AddsResource()
     {
         // Arrange
-        var resource = new Resource { 
+        var resource = new Resource
+        { 
             Id = "new-id", 
             Name = "New Resource",
-            Code = "NR",
+            Code = "NR"
         };
         
         // Act
         await _repository.AddAsync(resource);
-        
+        await _repository.SaveChangesAsync();
+
         // Assert
-        _mockResourceDbSet.Verify(m => m.AddAsync(resource, default), Times.Once);
+        var result = await _dbContext.Resources.FindAsync("new-id");
+        Assert.NotNull(result);
+        Assert.Equal("New Resource", result.Name);
+        Assert.Equal("NR", result.Code);
     }
     
     [Fact]
-    public async Task UpdateAsync_CallsDbContext_WithCorrectEntity()
+    public async Task UpdateAsync_UpdatesResource()
     {
         // Arrange
-        var resource = new Resource { 
-            Id = "update-id", 
-            Name = "Updated Resource",
-            Code = "UR",
+        var original = new Resource
+        { 
+            Id = "res-id", 
+            Name = "Original Resource",
+            Code = "OR"
         };
         
-        // Act
-        await _repository.UpdateAsync(resource);
+        await _dbContext.Resources.AddAsync(original);
+        await _dbContext.SaveChangesAsync();
         
+        var updated = new Resource
+        { 
+            Id = "res-id", 
+            Name = "Updated Resource",
+            Code = "UR"
+        };
+
+        // Act
+        await _repository.UpdateAsync(updated);
+        await _repository.SaveChangesAsync();
+
         // Assert
-        _mockResourceDbSet.Verify(m => m.Update(resource), Times.Once);
+        var result = await _dbContext.Resources.FindAsync("res-id");
+        Assert.NotNull(result);
+        Assert.Equal("Updated Resource", result.Name);
+        Assert.Equal("UR", result.Code);
     }
     
     [Fact]
-    public async Task DeleteAsync_CallsDbContext_WithCorrectId()
+    public async Task DeleteAsync_DeletesResource()
     {
         // Arrange
-        var resource = new Resource { 
+        var resource = new Resource
+        { 
             Id = "delete-id", 
             Name = "Delete Resource",
-            Code = "DR",
+            Code = "DR"
         };
         
-        _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "delete-id" }))
-            .ReturnsAsync(resource);
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         await _repository.DeleteAsync("delete-id");
-        
-        // Assert
-        _mockResourceDbSet.Verify(m => m.Remove(resource), Times.Once);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_ThrowsException_WhenEntityNotFound()
-    {
-        // Arrange
-        _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { "non-existent" }))
-            .ReturnsAsync((Resource)null);
-        
-        // Act & Assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => _repository.DeleteAsync("non-existent"));
-    }
-    
-    [Fact]
-    public async Task SaveChangesAsync_CallsDbContext_SaveChanges()
-    {
-        // Act
         await _repository.SaveChangesAsync();
         
         // Assert
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        var result = await _dbContext.Resources.FindAsync("delete-id");
+        Assert.Null(result);
+    }
+    
+    [Fact]
+    public async Task DeleteAsync_WithInvalidId_ThrowsEntityNotFoundException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => 
+            _repository.DeleteAsync("non-existent"));
     }
     
     [Fact]
@@ -217,19 +196,11 @@ public class ResourceRepositoryTests
         // Arrange
         string code = "R1";
         
-        var resources = new List<Resource>
-        {
+        await _dbContext.Resources.AddRangeAsync(
             new Resource { Id = "res1", Name = "Resource 1", Code = code },
             new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
-        }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Resource>>();
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Provider).Returns(resources.Provider);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Expression).Returns(resources.Expression);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.ElementType).Returns(resources.ElementType);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.GetEnumerator()).Returns(resources.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Resources).Returns(mockDbSet.Object);
+        );
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetByCodeAsync(code);
@@ -238,33 +209,33 @@ public class ResourceRepositoryTests
         Assert.NotNull(result);
         Assert.Equal("res1", result.Id);
         Assert.Equal(code, result.Code);
+        Assert.Equal("Resource 1", result.Name);
     }
     
     [Fact]
     public async Task GetResourcesWithParametersAsync_ReturnsResourcesWithParameters()
     {
         // Arrange
-        var resources = new List<Resource>
-        {
-            new Resource 
-            { 
-                Id = "res1", 
-                Name = "Resource 1", 
-                Code = "R1", 
-                Parameters = new List<Parameter>
-                {
-                    new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType }
-                }
-            }
-        }.AsQueryable();
+        var resource = new Resource 
+        { 
+            Id = "res1", 
+            Name = "Resource 1", 
+            Code = "R1"
+        };
         
-        var mockDbSet = new Mock<DbSet<Resource>>();
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Provider).Returns(resources.Provider);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.Expression).Returns(resources.Expression);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.ElementType).Returns(resources.ElementType);
-        mockDbSet.As<IQueryable<Resource>>().Setup(m => m.GetEnumerator()).Returns(resources.GetEnumerator());
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.SaveChangesAsync();
         
-        _mockDbContext.Setup(db => db.Resources).Returns(mockDbSet.Object);
+        var parameter = new Parameter 
+        { 
+            Id = "param1", 
+            Name = "Parameter 1", 
+            Type = ParameterType.StringType,
+            ResourceId = "res1"
+        };
+        
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetResourcesWithParametersAsync();
@@ -272,9 +243,11 @@ public class ResourceRepositoryTests
         // Assert
         Assert.NotNull(result);
         Assert.Single(result);
-        var resource = result.First();
-        Assert.NotNull(resource.Parameters);
-        Assert.Single(resource.Parameters);
+        var fetchedResource = result.First();
+        Assert.Equal("res1", fetchedResource.Id);
+        Assert.NotNull(fetchedResource.Parameters);
+        Assert.Single(fetchedResource.Parameters);
+        Assert.Equal("param1", fetchedResource.Parameters.First().Id);
     }
     
     [Fact]
@@ -283,20 +256,25 @@ public class ResourceRepositoryTests
         // Arrange
         string resourceId = "res1";
         
+        var resource = new Resource 
+        { 
+            Id = resourceId, 
+            Name = "Resource 1", 
+            Code = "R1" 
+        };
+        
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.SaveChangesAsync();
+        
         var parameters = new List<Parameter>
         {
             new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType, ResourceId = resourceId },
             new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType, ResourceId = resourceId },
             new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType, ResourceId = "different-resource" }
-        }.AsQueryable();
+        };
         
-        var mockDbSet = new Mock<DbSet<Parameter>>();
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Provider).Returns(parameters.Provider);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Expression).Returns(parameters.Expression);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.ElementType).Returns(parameters.ElementType);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.GetEnumerator()).Returns(parameters.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Parameters).Returns(mockDbSet.Object);
+        await _dbContext.Parameters.AddRangeAsync(parameters);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         var result = await _repository.GetParametersForResourceAsync(resourceId);
@@ -318,19 +296,17 @@ public class ResourceRepositoryTests
         var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };
         
-        _mockResourceDbSet.Setup(m => m.FindAsync(new object[] { resourceId }))
-            .ReturnsAsync(resource);
-            
-        _mockParameterDbSet.Setup(m => m.FindAsync(new object[] { parameterId }))
-            .ReturnsAsync(parameter);
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         await _repository.AddParameterToResourceAsync(resourceId, parameterId);
         
         // Assert
-        Assert.Equal(resourceId, parameter.ResourceId);
-        _mockParameterDbSet.Verify(m => m.Update(parameter), Times.Once);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        var updatedParameter = await _dbContext.Parameters.FindAsync(parameterId);
+        Assert.NotNull(updatedParameter);
+        Assert.Equal(resourceId, updatedParameter.ResourceId);
     }
     
     [Fact]
@@ -340,6 +316,7 @@ public class ResourceRepositoryTests
         string resourceId = "res1";
         string parameterId = "param1";
         
+        var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter 
         { 
             Id = parameterId, 
@@ -348,22 +325,16 @@ public class ResourceRepositoryTests
             ResourceId = resourceId
         };
         
-        var parameters = new List<Parameter> { parameter }.AsQueryable();
-        
-        var mockDbSet = new Mock<DbSet<Parameter>>();
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Provider).Returns(parameters.Provider);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.Expression).Returns(parameters.Expression);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.ElementType).Returns(parameters.ElementType);
-        mockDbSet.As<IQueryable<Parameter>>().Setup(m => m.GetEnumerator()).Returns(parameters.GetEnumerator());
-        
-        _mockDbContext.Setup(db => db.Parameters).Returns(mockDbSet.Object);
+        await _dbContext.Resources.AddAsync(resource);
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.SaveChangesAsync();
         
         // Act
         await _repository.RemoveParameterFromResourceAsync(resourceId, parameterId);
         
         // Assert
-        Assert.Null(parameter.ResourceId);
-        mockDbSet.Verify(m => m.Update(parameter), Times.Once);
-        _mockDbContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+        var updatedParameter = await _dbContext.Parameters.FindAsync(parameterId);
+        Assert.NotNull(updatedParameter);
+        Assert.Null(updatedParameter.ResourceId);
     }
 }
