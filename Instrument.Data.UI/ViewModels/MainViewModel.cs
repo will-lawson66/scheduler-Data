@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Instrument.Data.UI.Services;
 using Instrument.Data.UI.Views;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Instrument.Data.UI.ViewModels
 {

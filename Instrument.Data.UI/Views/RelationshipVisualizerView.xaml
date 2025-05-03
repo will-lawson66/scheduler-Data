@@ -23,7 +23,9 @@
             <!-- Title -->
             <TextBlock Grid.Column="0"
                        Text="{Binding Title}" 
-                       Style="{DynamicResource MaterialDesignHeadline5TextBlock}"/>
+                       FontSize="24"
+                       FontWeight="Medium"
+                       Margin="0,0,0,8"/>
         </Grid>
         
         <!-- Main Content -->
@@ -52,20 +54,24 @@
                               SelectedItem="{Binding SelectedEntityType, Mode=TwoWay}"
                               DisplayMemberPath="Name"
                               materialDesign:HintAssist.Hint="Select entity type"
-                              Style="{StaticResource MaterialDesignFilledComboBox}"/>
+                              Padding="8,4"
+                              Margin="0,8"
+                              Height="36"/>
                     
                     <Button Grid.Column="2" 
                             Content="Visualize"
                             Command="{Binding VisualizeCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Background="#2196F3"
+                            Foreground="White"
+                            Padding="16,8"
                             Margin="16,0,0,0"/>
                 </Grid>
                 
                 <!-- Visualization Canvas -->
                 <Border Grid.Row="1" 
-                        BorderBrush="{DynamicResource MaterialDesignDivider}" 
+                        BorderBrush="#DDDDDD" 
                         BorderThickness="1"
-                        Background="{DynamicResource MaterialDesignCardBackground}">
+                        Background="White">
                     <Grid>
                         <Canvas x:Name="VisualizationCanvas" 
                                 IsEnabled="{Binding IsVisualizationReady}"
@@ -121,7 +127,7 @@
                                               Y1="{Binding Y1}" 
                                               X2="{Binding X2}" 
                                               Y2="{Binding Y2}" 
-                                              Stroke="{DynamicResource PrimaryHueMidBrush}" 
+                                              Stroke="#2196F3" 
                                               StrokeThickness="2" 
                                               StrokeDashArray="{Binding DashPattern}">
                                             <Line.ToolTip>
@@ -148,7 +154,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Text}" 
-                                                   Background="{DynamicResource MaterialDesignPaper}"
+                                                   Background="White"
                                                    Padding="4,2"
                                                    FontSize="11"/>
                                     </DataTemplate>
@@ -163,12 +169,12 @@
                             <TextBlock Text="Select an entity type and click Visualize to see the relationships" 
                                       TextAlignment="Center"
                                       FontSize="16"
-                                      Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                      Foreground="#757575"/>
                             <materialDesign:PackIcon Kind="GraphOutline" 
                                                      Width="64" 
                                                      Height="64" 
                                                      HorizontalAlignment="Center"
-                                                     Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                     Foreground="#757575"
                                                      Margin="0,24,0,0"/>
                         </StackPanel>
                         
@@ -181,7 +187,8 @@
                                         <TextBlock Text="Generating Visualization..." 
                                                    HorizontalAlignment="Center"
                                                    Margin="0,0,0,16"
-                                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                                                   FontSize="16"
+                                                   FontWeight="Medium"/>
                                         <ProgressBar IsIndeterminate="True" 
                                                      Width="200" 
                                                      Height="4"/>

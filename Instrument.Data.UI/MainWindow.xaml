@@ -45,10 +45,10 @@
                                    Foreground="{DynamicResource MaterialDesignBodyLight}" 
                                    FontSize="12"/>
                         
-                        <ListBox x:Name="NavigationItems" SelectedIndex="{Binding SelectedViewIndex, Mode=TwoWay}" Margin="0,8">
+                        <ListBox x:Name="NavigationItems" SelectedIndex="{Binding SelectedViewIndex, Mode=TwoWay}" SelectionChanged="NavigationItems_SelectionChanged" Margin="0,8">
                             <ListBoxItem>
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="Sequence" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <materialDesign:PackIcon Kind="ViewSequential" Width="24" Height="24" Margin="4,0,8,0" />
                                     <TextBlock Text="Sequences" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ListBoxItem>
@@ -60,7 +60,7 @@
                             </ListBoxItem>
                             <ListBoxItem>
                                 <StackPanel Orientation="Horizontal">
-                                    <materialDesign:PackIcon Kind="ListStatus" Width="24" Height="24" Margin="4,0,8,0" />
+                                    <materialDesign:PackIcon Kind="FormatListBulleted" Width="24" Height="24" Margin="4,0,8,0" />
                                     <TextBlock Text="Ranges" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ListBoxItem>
@@ -85,20 +85,20 @@
                                    Foreground="{DynamicResource MaterialDesignBodyLight}" 
                                    FontSize="12"/>
                         
-                        <ListBox Margin="0,8">
-                            <ListBoxItem Command="{Binding NavigateToVisualizerCommand}">
+                        <ListBox x:Name="ToolsItems" Margin="0,8" SelectionChanged="ToolsItems_SelectionChanged">
+                            <ListBoxItem x:Name="VisualizerItem">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="GraphOutline" Width="24" Height="24" Margin="4,0,8,0" />
                                     <TextBlock Text="Relationship Visualizer" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ListBoxItem>
-                            <ListBoxItem Command="{Binding ImportCommand}">
+                            <ListBoxItem x:Name="ImportItem">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Import" Width="24" Height="24" Margin="4,0,8,0" />
                                     <TextBlock Text="Import Data" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ListBoxItem>
-                            <ListBoxItem Command="{Binding ExportCommand}">
+                            <ListBoxItem x:Name="ExportItem">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="Export" Width="24" Height="24" Margin="4,0,8,0" />
                                     <TextBlock Text="Export Data" VerticalAlignment="Center" />

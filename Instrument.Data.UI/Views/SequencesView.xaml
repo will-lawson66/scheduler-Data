@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Instrument.Data.UI.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
     <Grid>
@@ -22,25 +23,27 @@
             <!-- Title -->
             <TextBlock Grid.Column="0"
                        Text="{Binding Title}" 
-                       Style="{StaticResource HeaderTextStyle}"/>
+                       FontSize="24"
+                       FontWeight="Medium"
+                       Margin="0,0,0,8"/>
             
             <!-- Actions -->
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="Refresh" 
                         Command="{Binding LoadSequencesCommand}"
-                        Style="{StaticResource SecondaryButtonStyle}"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
                         Margin="0,0,10,0"/>
                 
                 <Button Content="Create New"
                         Command="{Binding CreateSequenceCommand}"
-                        Style="{StaticResource PrimaryButtonStyle}"/>
+                        Style="{StaticResource MaterialDesignRaisedButton}"/>
             </StackPanel>
         </Grid>
         
         <!-- Sequences List -->
-        <Border Grid.Row="1" 
-                Style="{StaticResource CardStyle}"
-                Padding="0">
+        <materialDesign:Card Grid.Row="1" 
+                             Padding="0"
+                             materialDesign:ShadowAssist.ShadowDepth="Depth1">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -49,8 +52,7 @@
                 
                 <!-- Column Headers -->
                 <Grid Grid.Row="0" 
-                      Background="{StaticResource PrimaryLightBrush}"
-                   >
+                      Background="{DynamicResource PrimaryHueMidBrush}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -61,19 +63,20 @@
                     <TextBlock Grid.Column="0" 
                                Text="Sequence Name"
                                FontWeight="SemiBold"
-                               Foreground="White"/>
+                               Foreground="White"
+                               Margin="16,10"/>
                     
                     <TextBlock Grid.Column="1" 
                                Text="Time"
                                FontWeight="SemiBold"
                                Foreground="White"
-                               Margin="0,0,60,0"/>
+                               Margin="0,10,60,10"/>
                     
                     <TextBlock Grid.Column="2" 
                                Text="Parallel"
                                FontWeight="SemiBold"
                                Foreground="White"
-                               Margin="0,0,60,0"/>
+                               Margin="0,10,60,10"/>
                 </Grid>
                 
                 <!-- Sequences -->
@@ -82,7 +85,7 @@
                           SelectedItem="{Binding SelectedSequence}"
                           BorderThickness="0"
                           Background="Transparent"
-                          ItemContainerStyle="{StaticResource ListViewItemStyle}">
+                          materialDesign:ShadowAssist.ShadowDepth="Depth0">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
@@ -113,12 +116,14 @@
                                     <Button Content="View" 
                                             Command="{Binding DataContext.ViewSequenceCommand, 
                                                       RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
                                             Width="50" 
                                             Margin="0,0,10,0"/>
                                     
                                     <Button Content="Delete" 
                                             Command="{Binding DataContext.DeleteSequenceCommand, 
                                                       RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            Style="{StaticResource MaterialDesignFlatButton}"
                                             Width="50"/>
                                 </StackPanel>
                             </Grid>
@@ -133,10 +138,11 @@
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                         <TextBlock Text="Loading..." 
                                    FontSize="16"
+                                   FontWeight="Medium"
                                    HorizontalAlignment="Center"/>
                         <ProgressBar IsIndeterminate="True" 
-                                     Width="200" 
-                                     Height="5"
+                                     Width="24" 
+                                     Height="24"
                                      Margin="0,10,0,0"/>
                     </StackPanel>
                 </Grid>
@@ -146,10 +152,10 @@
                            Text="No sequences found. Click 'Create New' to add one."
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           Foreground="{StaticResource TextLightBrush}"
+                           Foreground="#757575"
                            FontSize="14"
                            Visibility="{Binding HasNoSequences, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
-        </Border>
+        </materialDesign:Card>
     </Grid>
 </UserControl>

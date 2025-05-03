@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Use Program.cs as entry point -->
+    <StartupObject>Instrument.Data.UI.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
