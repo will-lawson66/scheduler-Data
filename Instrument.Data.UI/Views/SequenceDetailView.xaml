@@ -25,19 +25,19 @@
             <Button Grid.Column="0"
                     Content="← Back"
                     Command="{Binding GoBackCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}"
+                    Style="{StaticResource SecondaryButton}"
                     Margin="0,0,20,0"/>
             
             <!-- Title -->
             <TextBlock Grid.Column="1"
                        Text="{Binding Title}" 
-                       Style="{StaticResource HeaderTextStyle}"/>
+                       Style="{StaticResource HeadingLarge}"/>
             
             <!-- Delete Button (only shown when editing) -->
             <Button Grid.Column="2"
                     Content="Delete"
                     Command="{Binding DeleteAsyncCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}"
+                    Style="{StaticResource SecondaryButton}"
                     Background="#FFEBEE"
                     BorderBrush="#E57373"
                     Foreground="#D32F2F"
@@ -54,7 +54,7 @@
                 
                 <!-- Basic Information -->
                 <Border Grid.Row="0" 
-                        Style="{StaticResource CardStyle}">
+                        Style="{StaticResource DataCard}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -66,7 +66,7 @@
                         
                         <TextBlock Grid.Row="0" 
                                 Text="Basic Information"
-                                Style="{StaticResource SubHeaderTextStyle}"
+                                Style="{StaticResource HeadingSmall}"
                                 Margin="0,0,0,15"/>
                         
                         <!-- Name -->
@@ -109,7 +109,7 @@
                 
                 <!-- Parameters -->
                 <Border Grid.Row="1" 
-                        Style="{StaticResource CardStyle}">
+                        Style="{StaticResource DataCard}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -118,7 +118,7 @@
                         
                         <TextBlock Grid.Row="0" 
                                 Text="Parameters"
-                                Style="{StaticResource SubHeaderTextStyle}"
+                                Style="{StaticResource HeadingSmall}"
                                 Margin="0,0,0,15"/>
                         
                         <!-- Parameters Grid -->
@@ -215,14 +215,14 @@
             <Button Grid.Column="1"
                     Content="Cancel"
                     Command="{Binding GoBackCommand}"
-                    Style="{StaticResource SecondaryButtonStyle}"
+                    Style="{StaticResource SecondaryButton}"
                     Width="100"
                     Margin="0,0,10,0"/>
             
             <Button Grid.Column="2"
                     Content="Save"
                     Command="{Binding SaveAsyncCommand}"
-                    Style="{StaticResource PrimaryButtonStyle}"
+                    Style="{StaticResource PrimaryButton}"
                     Width="100"/>
         </Grid>
         

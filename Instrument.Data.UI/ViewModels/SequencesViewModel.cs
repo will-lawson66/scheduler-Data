@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 
 namespace Instrument.Data.UI.ViewModels
 {
-    public partial class SequencesViewModel : ViewModelBase
+    public partial class SequencesViewModel : ViewModelBase, INavigationAware
     {
         private readonly SequenceService _sequenceService;
 
@@ -32,6 +32,12 @@ namespace Instrument.Data.UI.ViewModels
         {
             Title = "Sequences";
             _sequenceService = sequenceService;
+        }
+
+        public void OnNavigatedTo(object parameter)
+        {
+            // Load sequences when navigating to this view
+            LoadSequencesAsync().ConfigureAwait(false);
         }
 
         [RelayCommand]

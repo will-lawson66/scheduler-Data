@@ -1,4 +1,5 @@
 using Instrument.Data.Configuration;
+using Instrument.Data.UI.Helpers;
 using Instrument.Data.UI.Services;
 using Instrument.Data.UI.ViewModels;
 using Instrument.Data.UI.Views;
@@ -83,6 +84,9 @@ namespace Instrument.Data.UI
         protected override async void OnStartup(StartupEventArgs e)
         {
             await _host.StartAsync();
+
+            // Validate styles to ensure resources are properly loaded
+            StyleValidation.ValidateStyles();
 
             var navigationService = _host.Services.GetRequiredService<NavigationService>();
             var mainWindow = _host.Services.GetRequiredService<MainWindow>();

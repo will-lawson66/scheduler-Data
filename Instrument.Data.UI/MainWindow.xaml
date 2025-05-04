@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Instrument.Data.UI"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.Foreground="#212121"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
+        Background="White"
         FontFamily="{materialDesign:MaterialDesignFont}"
         mc:Ignorable="d"
         Title="Instrument Scheduler Manager" Height="750" Width="1200" 
@@ -111,7 +111,7 @@
             
             <!-- Content Area -->
             <Grid Grid.Column="1">
-                <materialDesign:Card Margin="16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1">
+                <materialDesign:Card Margin="16" Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth1" Background="White">
                     <ContentControl x:Name="MainContent"/>
                 </materialDesign:Card>
             </Grid>

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Instrument.Data.UI.Views"
+             xmlns:controls="clr-namespace:Instrument.Data.UI.Controls"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
@@ -23,9 +24,7 @@
             <!-- Title -->
             <TextBlock Grid.Column="0"
                        Text="{Binding Title}" 
-                       FontSize="24"
-                       FontWeight="Medium"
-                       Margin="0,0,0,8"/>
+                       Style="{StaticResource HeadingLarge}"/>
         </Grid>
         
         <!-- Main Content -->
@@ -46,6 +45,7 @@
                     
                     <TextBlock Grid.Column="0" 
                                Text="Select an entity to visualize: " 
+                               Style="{StaticResource BodyText}"
                                VerticalAlignment="Center" 
                                Margin="0,0,16,0"/>
                     
@@ -54,16 +54,12 @@
                               SelectedItem="{Binding SelectedEntityType, Mode=TwoWay}"
                               DisplayMemberPath="Name"
                               materialDesign:HintAssist.Hint="Select entity type"
-                              Padding="8,4"
-                              Margin="0,8"
-                              Height="36"/>
+                              Style="{StaticResource FormComboBox}"/>
                     
                     <Button Grid.Column="2" 
                             Content="Visualize"
                             Command="{Binding VisualizeCommand}"
-                            Background="#2196F3"
-                            Foreground="White"
-                            Padding="16,8"
+                            Style="{StaticResource PrimaryButton}"
                             Margin="16,0,0,0"/>
                 </Grid>
                 
@@ -95,6 +91,7 @@
                                                              Height="100"
                                                              materialDesign:ShadowAssist.ShadowDepth="Depth1"
                                                              Background="{Binding Background}">
+                                                
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Name}" 
                                                            FontWeight="Bold"
@@ -167,9 +164,8 @@
                                     VerticalAlignment="Center"
                                     Visibility="{Binding IsVisualizationReady, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                             <TextBlock Text="Select an entity type and click Visualize to see the relationships" 
-                                      TextAlignment="Center"
-                                      FontSize="16"
-                                      Foreground="#757575"/>
+                                      Style="{StaticResource EmptyStateText}"
+                                      TextAlignment="Center"/>
                             <materialDesign:PackIcon Kind="GraphOutline" 
                                                      Width="64" 
                                                      Height="64" 
@@ -187,8 +183,7 @@
                                         <TextBlock Text="Generating Visualization..." 
                                                    HorizontalAlignment="Center"
                                                    Margin="0,0,0,16"
-                                                   FontSize="16"
-                                                   FontWeight="Medium"/>
+                                                   Style="{StaticResource HeadingSmall}"/>
                                         <ProgressBar IsIndeterminate="True" 
                                                      Width="200" 
                                                      Height="4"/>

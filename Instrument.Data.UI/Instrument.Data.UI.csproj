@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Instrument.Data\Instrument.Data.csproj" />
   </ItemGroup>
 
