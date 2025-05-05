@@ -32,12 +32,12 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="Refresh" 
                         Command="{Binding LoadSequencesCommand}"
-                        Style="{StaticResource SecondaryButton}"
+                        Style="{DynamicResource SecondaryButton}"
                         Margin="0,0,10,0"/>
                 
                 <Button Content="Create New"
                         Command="{Binding CreateSequenceCommand}"
-                        Style="{StaticResource MaterialDesignRaisedButton}"/>
+                        Style="{DynamicResource MaterialDesignRaisedButton}"/>
             </StackPanel>
         </Grid>
         
@@ -117,14 +117,14 @@
                                     <Button Content="View" 
                                             Command="{Binding DataContext.ViewSequenceCommand, 
                                                       RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Style="{DynamicResource MaterialDesignFlatButton}"
                                             Width="50" 
                                             Margin="0,0,10,0"/>
                                     
                                     <Button Content="Delete" 
                                             Command="{Binding DataContext.DeleteSequenceCommand, 
                                                       RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Style="{DynamicResource MaterialDesignFlatButton}"
                                             Width="50"/>
                                 </StackPanel>
                             </Grid>

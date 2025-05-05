@@ -1,551 +1,270 @@
-# WPF Material Design Application Architecture Guide
-
-## Introduction
-
-This document provides a comprehensive overview of the Instrument.Data.UI project, exploring its architecture, design decisions, and implementation patterns. It's designed as an educational resource for developers with limited WPF and Material Design experience, providing insight into how modern desktop applications are structured using the MVVM pattern and Material Design principles.
+# Instrument.Data.UI WPF Material Design Guide
 
 ## Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
-2. [Project Structure](#project-structure)
-3. [MVVM Implementation](#mvvm-implementation)
-4. [UI Design and Material Design Integration](#ui-design-and-material-design-integration)
-5. [Data Management and Entity Framework](#data-management-and-entity-framework)
-6. [Navigation System](#navigation-system)
-7. [Common Controls and Patterns](#common-controls-and-patterns)
-8. [Resource Management](#resource-management)
-9. [Dependency Injection](#dependency-injection)
+1. [Introduction](#introduction)
+2. [Material Design Overview](#material-design-overview)
+3. [Project Setup](#project-setup)
+4. [Material Design Integration](#material-design-integration)
+5. [UI Components and Patterns](#ui-components-and-patterns)
+6. [Styling and Themes](#styling-and-themes)
+7. [Custom Controls](#custom-controls)
+8. [Responsive Design](#responsive-design)
+9. [Accessibility Considerations](#accessibility-considerations)
 10. [Common Pitfalls and Troubleshooting](#common-pitfalls-and-troubleshooting)
-11. [Testing Strategies](#testing-strategies)
 
-## Architecture Overview
+## Introduction
 
-The Instrument.Data.UI project implements a Model-View-ViewModel (MVVM) architecture, which is the standard pattern for WPF applications. This pattern separates concerns into three distinct layers:
+This guide provides comprehensive information about implementing Material Design in the Instrument.Data.UI WPF application. It covers the setup, integration, and customization of Material Design components, as well as best practices and common patterns used throughout the application.
 
-1. **Model**: Represents the business data and logic (defined primarily in the Instrument.Data project)
-2. **View**: The user interface components (.xaml files and their code-behind)
-3. **ViewModel**: The bridge between Model and View, handling UI logic and state
+Material Design provides a modern, consistent, and visually appealing user interface that enhances user experience and productivity. This guide will help developers understand how Material Design is integrated into the application and how to maintain consistency when adding new features.
 
-The application follows a modular approach, with distinct components for data access, business logic, and presentation. This separation enables better maintainability, testability, and flexibility.
+## Material Design Overview
 
-The key architectural components include:
+Material Design is a design system created by Google that helps teams build high-quality digital experiences. It provides guidelines for visual, motion, and interaction design across platforms and devices. Key principles include:
 
-- **Views**: XAML-based UI components
-- **ViewModels**: Classes that manage the state and behavior of Views
-- **Services**: Helper classes that provide functionality like dialog management and navigation
-- **Models**: Entity classes representing business data
-- **Resources**: Reusable styles, templates, and converters
+1. **Material as a metaphor**: Surfaces and edges provide visual cues based on reality
+2. **Bold, graphic, intentional**: Typography, grids, space, scale, color, and imagery guide visuals
+3. **Motion provides meaning**: Animation reinforces user actions and provides feedback
 
-## Project Structure
+In our WPF implementation, we use the MaterialDesignThemes.Wpf library, which provides Material Design-styled controls and themes for WPF applications.
 
-The project is organized into logical folders that reflect the architectural components:
+## Project Setup
+
+### Required NuGet Packages
+
+The following NuGet packages are required for Material Design integration:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+  <PackageReference Include="MaterialDesignColors" Version="2.1.4" />
+  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+</ItemGroup>
+```
+
+### Project Structure for Material Design
 
 ```
 Instrument.Data.UI/
-├── App.xaml                 # Application entry point and global resources
-├── MainWindow.xaml          # Main application window
-├── Program.cs               # .NET Core entry point with DI configuration
-├── Controls/                # Reusable UI controls
-├── Helpers/                 # Utility classes and converters
-│   └── Converters/          # Value converters for data binding
-├── Resources/               # Global style resources
+├── App.xaml                 # Global application resources
+├── Resources/               # Themed resources
 │   ├── Colors.xaml          # Color definitions
-│   └── Styles.xaml          # UI element styles
-├── Services/                # Application services
-│   ├── DialogService.cs     # Service for displaying dialogs
-│   └── NavigationService.cs # Service for navigating between views
-├── ViewModels/              # ViewModels that power the UI
-│   ├── ViewModelBase.cs     # Base class for all ViewModels
-│   └── [Feature]ViewModels  # Feature-specific ViewModels
-└── Views/                   # UI components
-    └── [Feature]Views       # Feature-specific Views
+│   └── Styles.xaml          # Custom styles
+└── Controls/                # Custom-styled controls
 ```
 
-This structure follows the principle of separation of concerns, making it easier to locate and modify specific components without affecting others. Each folder serves a specific purpose in the application architecture.
+## Material Design Integration
 
-## MVVM Implementation
+### App.xaml Configuration
 
-### ViewModelBase
-
-All ViewModels inherit from `ViewModelBase`, which implements the `INotifyPropertyChanged` interface required for WPF data binding. This class uses the CommunityToolkit.Mvvm library to simplify property change notifications:
-
-```csharp
-public abstract class ViewModelBase : ObservableObject
-{
-    private bool _isLoading;
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
-
-    // Common ViewModel functionality
-    protected async Task ExecuteWithLoadingAsync(Func<Task> action)
-    {
-        try
-        {
-            IsLoading = true;
-            await action();
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-}
-```
-
-This base class provides:
-- Property change notifications through `ObservableObject`
-- Loading state management
-- Error handling patterns
-- Common functionality used across ViewModels
-
-### Command Implementation
-
-Commands use the `RelayCommand` and `AsyncRelayCommand` classes from CommunityToolkit.Mvvm:
-
-```csharp
-// Synchronous command
-[RelayCommand]
-private void Refresh()
-{
-    // Command implementation
-}
-
-// Asynchronous command
-[RelayCommand]
-private async Task LoadDataAsync()
-{
-    await ExecuteWithLoadingAsync(async () =>
-    {
-        // Load data from service
-    });
-}
-```
-
-This approach eliminates boilerplate code for command implementations and provides features like automatic enabling/disabling based on can-execute conditions.
-
-### Example ViewModel
-
-The `SequencesViewModel` class demonstrates a typical ViewModel implementation:
-
-```csharp
-public class SequencesViewModel : ViewModelBase
-{
-    private readonly ISequenceService _sequenceService;
-    private readonly INavigationService _navigationService;
-    
-    private ObservableCollection<Sequence> _sequences;
-    private Sequence _selectedSequence;
-    
-    public string Title => "Sequences";
-    
-    public ObservableCollection<Sequence> Sequences
-    {
-        get => _sequences;
-        set => SetProperty(ref _sequences, value);
-    }
-    
-    public Sequence SelectedSequence
-    {
-        get => _selectedSequence;
-        set => SetProperty(ref _selectedSequence, value);
-    }
-    
-    public bool HasNoSequences => Sequences?.Count == 0;
-    
-    public SequencesViewModel(
-        ISequenceService sequenceService,
-        INavigationService navigationService)
-    {
-        _sequenceService = sequenceService;
-        _navigationService = navigationService;
-        
-        Sequences = new ObservableCollection<Sequence>();
-    }
-    
-    [RelayCommand]
-    private async Task LoadSequencesAsync()
-    {
-        await ExecuteWithLoadingAsync(async () =>
-        {
-            var sequences = await _sequenceService.GetAllAsync();
-            Sequences.Clear();
-            foreach (var sequence in sequences)
-            {
-                Sequences.Add(sequence);
-            }
-            OnPropertyChanged(nameof(HasNoSequences));
-        });
-    }
-    
-    [RelayCommand]
-    private void ViewSequence()
-    {
-        if (SelectedSequence == null) return;
-        _navigationService.NavigateTo<SequenceDetailViewModel>(SelectedSequence.Id);
-    }
-    
-    [RelayCommand]
-    private void CreateSequence()
-    {
-        _navigationService.NavigateTo<SequenceDetailViewModel>();
-    }
-    
-    [RelayCommand]
-    private async Task DeleteSequenceAsync()
-    {
-        if (SelectedSequence == null) return;
-        
-        // Confirmation could be handled by DialogService
-        await _sequenceService.DeleteAsync(SelectedSequence.Id);
-        await LoadSequencesAsync();
-    }
-}
-```
-
-Key points to note:
-- Services are injected through constructor
-- Properties use `SetProperty` for change notification
-- Commands encapsulate user actions
-- Navigation is handled through a service
-- Loading state is managed through `ExecuteWithLoadingAsync`
-
-## UI Design and Material Design Integration
-
-### Material Design Setup
-
-Material Design is integrated through the MaterialDesignThemes.Wpf NuGet package. The proper way to configure Material Design in App.xaml is:
+The Material Design theme is configured in App.xaml:
 
 ```xml
-<Application.Resources>
-    <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries>
-            <!-- Material Design Resources -->
-            <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
-            <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
-            <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Pink.xaml" />
-            <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+<Application x:Class="Instrument.Data.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Material Design Theme -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                
+                <!-- Primary and Accent Colors -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Indigo.xaml" />
+                
+                <!-- Component Themes -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                
+                <!-- Application-specific resources -->
+                <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Colors.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             
-            <!-- Application Resources -->
-            <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Colors.xaml" />
-            <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Styles.xaml" />
-        </ResourceDictionary.MergedDictionaries>
-        
-        <!-- Converters and other resources -->
-    </ResourceDictionary>
-</Application.Resources>
+            <!-- Global settings -->
+            <Style TargetType="{x:Type Control}" BasedOn="{StaticResource {x:Type Control}}">
+                <Setter Property="FontFamily" Value="{StaticResource MaterialDesignFont}" />
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
 ```
 
-This setup:
-1. Loads the base Material Design Light theme
-2. Applies Blue primary and Pink accent colors
-3. Loads default Material Design styles for common controls
-4. Incorporates application-specific colors and styles
+### Material Design Theme Configuration
 
-### Resource Organization
-
-Resources are organized into separate files for better maintainability:
-
-1. **Colors.xaml**: Defines color resources like `PrimaryBrush`, `AccentBrush`, `TextPrimaryBrush`, etc.
-2. **Styles.xaml**: Defines styles for common UI elements based on Material Design styles
-
-This organization makes it easier to:
-- Maintain a consistent color scheme
-- Apply theme changes globally
-- Create custom styles that extend Material Design
-
-### Custom Control Styles
-
-The application extends Material Design styles with custom styles for specific UI patterns:
-
-```xml
-<!-- Button Styles -->
-<Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
-    <Setter Property="Foreground" Value="White"/>
-    <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
-    <Setter Property="Padding" Value="16,8"/>
-    <Setter Property="Margin" Value="0,8"/>
-</Style>
-```
-
-These custom styles:
-- Maintain Material Design principles
-- Ensure consistency across the application
-- Simplify styling of common UI elements
-
-### View Layout Structure
-
-Views follow a consistent layout pattern:
-
-```xml
-<Grid>
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-    </Grid.RowDefinitions>
-    
-    <!-- Header Section -->
-    <Grid Grid.Row="0" Margin="0,0,0,20">
-        <!-- Title and Actions -->
-    </Grid>
-    
-    <!-- Content Section -->
-    <materialDesign:Card Grid.Row="1">
-        <!-- Main Content -->
-    </materialDesign:Card>
-</Grid>
-```
-
-This structure provides:
-- Consistent user experience across views
-- Clear separation between header and content
-- Material Design visual hierarchy
-
-## Data Management and Entity Framework
-
-### Entity Framework Integration
-
-The UI project connects to the data layer through services defined in the Instrument.Data project. Entity Framework Core is used for data access, with repositories abstracting the database operations.
-
-### Service Pattern
-
-Services provide a clean API for ViewModels to interact with data:
+The application uses a Light theme with Blue as the primary color and Indigo as the accent color. The theme can be configured in App.xaml or programmatically:
 
 ```csharp
-public interface ISequenceService
+// Programmatic theme configuration
+public static void ConfigureTheme(ITheme theme)
 {
-    Task<IEnumerable<Sequence>> GetAllAsync();
-    Task<Sequence> GetByIdAsync(string id);
-    Task<Sequence> CreateAsync(Sequence sequence);
-    Task UpdateAsync(Sequence sequence);
-    Task DeleteAsync(string id);
-}
-
-public class SequenceService : ISequenceService
-{
-    private readonly ISequenceRepository _repository;
+    // Primary colors
+    theme.PrimaryLight = Colors.LightBlue;
+    theme.PrimaryMid = Colors.Blue;
+    theme.PrimaryDark = Colors.DarkBlue;
     
-    public SequenceService(ISequenceRepository repository)
-    {
-        _repository = repository;
-    }
+    // Accent colors
+    theme.SecondaryLight = Colors.LightIndigo;
+    theme.SecondaryMid = Colors.Indigo;
+    theme.SecondaryDark = Colors.DarkIndigo;
     
-    public async Task<IEnumerable<Sequence>> GetAllAsync()
-    {
-        return await _repository.GetAllAsync();
-    }
-    
-    // Other methods implemented similarly
+    // Apply theme
+    var paletteHelper = new PaletteHelper();
+    paletteHelper.SetTheme(theme);
 }
 ```
 
-This pattern:
-- Decouples ViewModels from data access details
-- Enables mocking for unit tests
-- Centralizes business logic
-- Provides a clean API for UI operations
+### Window Configuration
 
-### Entity Structure
-
-The data model includes entities like:
-- Sequence
-- SequenceGroup
-- Parameter
-- Range
-- Resource
-
-These entities reflect the domain model of the application and follow proper Entity Framework conventions.
-
-## Navigation System
-
-### Navigation Service
-
-Navigation between views is handled by the `NavigationService` class:
-
-```csharp
-public interface INavigationService
-{
-    void NavigateTo<TViewModel>(object parameter = null) where TViewModel : ViewModelBase;
-    void GoBack();
-}
-
-public class NavigationService : INavigationService
-{
-    private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<Type, Type> _viewModelToViewMapping;
-    
-    public NavigationService(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-        
-        // Define mappings between ViewModels and Views
-        _viewModelToViewMapping = new Dictionary<Type, Type>
-        {
-            { typeof(SequencesViewModel), typeof(SequencesView) },
-            { typeof(SequenceDetailViewModel), typeof(SequenceDetailView) },
-            // Other mappings
-        };
-    }
-    
-    public void NavigateTo<TViewModel>(object parameter = null) where TViewModel : ViewModelBase
-    {
-        var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
-        
-        if (parameter != null && viewModel is IParameterizedNavigationAware paramViewModel)
-        {
-            paramViewModel.Initialize(parameter);
-        }
-        
-        var viewType = _viewModelToViewMapping[typeof(TViewModel)];
-        var view = (UserControl)Activator.CreateInstance(viewType);
-        view.DataContext = viewModel;
-        
-        // Update the content of the main window
-        // This depends on your specific navigation container approach
-    }
-    
-    public void GoBack()
-    {
-        // Navigation history management
-    }
-}
-```
-
-This service:
-- Resolves ViewModels from the dependency injection container
-- Maps ViewModels to their corresponding Views
-- Manages navigation parameters
-- Supports back navigation
-
-### Content Region
-
-The MainWindow contains a content region for displaying the current view:
+Material Design is applied to the main window:
 
 ```xml
-<Grid>
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-    </Grid.RowDefinitions>
-    
-    <!-- App Bar -->
-    <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Instrument Data Manager" FontSize="20" VerticalAlignment="Center"/>
-            <!-- Navigation menu items could go here -->
-        </StackPanel>
-    </materialDesign:ColorZone>
-    
-    <!-- Content Region -->
-    <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Margin="16"/>
-</Grid>
+<Window x:Class="Instrument.Data.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        Title="Instrument Data Manager" 
+        Height="750" 
+        Width="1200"
+        WindowStartupLocation="CenterScreen">
+    <!-- Window content -->
+</Window>
 ```
 
-This approach:
-- Provides a consistent frame for all views
-- Centralizes navigation control
-- Maintains the application's visual hierarchy
-
-## Common Controls and Patterns
+## UI Components and Patterns
 
 ### Card Pattern
 
-Material Design Cards are used extensively for content sections:
+Material Design Cards are used extensively to group related content:
 
 ```xml
 <materialDesign:Card Padding="16" Margin="0,0,0,16">
     <StackPanel>
-        <TextBlock Text="Section Title" Style="{StaticResource HeadingMedium}"/>
-        <!-- Content -->
+        <TextBlock Text="Section Title" 
+                  Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                  Margin="0,0,0,8"/>
+        
+        <!-- Card content -->
+        <Grid>
+            <!-- Grid content -->
+        </Grid>
     </StackPanel>
 </materialDesign:Card>
 ```
 
-Cards provide:
-- Visual separation of content
-- Elevation and shadow effects
-- Consistent padding and spacing
+### App Bar Pattern
+
+The application uses the ColorZone component for app bars:
+
+```xml
+<materialDesign:ColorZone Mode="PrimaryDark" 
+                         Padding="16" 
+                         materialDesign:ShadowAssist.ShadowDepth="Depth2">
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+            <materialDesign:PackIcon Kind="Database" 
+                                   VerticalAlignment="Center" 
+                                   Width="24" 
+                                   Height="24" 
+                                   Margin="0,0,8,0"/>
+            <TextBlock Text="Instrument Data Manager" 
+                      VerticalAlignment="Center" 
+                      FontSize="20"/>
+        </StackPanel>
+    </DockPanel>
+</materialDesign:ColorZone>
+```
 
 ### Form Layout Pattern
 
 Forms follow a consistent layout pattern:
 
 ```xml
-<StackPanel>
-    <TextBlock Text="Sequence Details" Style="{StaticResource HeadingMedium}"/>
+<StackPanel Margin="16">
+    <TextBlock Text="Sequence Details" 
+              Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+              Margin="0,0,0,16"/>
     
     <TextBox 
         Text="{Binding Name}" 
-        Style="{StaticResource FormTextBox}"
-        materialDesign:HintAssist.Hint="Sequence Name"/>
+        materialDesign:HintAssist.Hint="Sequence Name"
+        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+        Margin="0,0,0,8"/>
     
     <TextBox 
         Text="{Binding Description}"
-        Style="{StaticResource FormTextBox}"
         materialDesign:HintAssist.Hint="Description"
+        Style="{StaticResource MaterialDesignOutlinedTextBox}"
         TextWrapping="Wrap"
         AcceptsReturn="True"
-        Height="80"/>
+        Height="80"
+        Margin="0,0,0,8"/>
     
-    <CheckBox 
-        IsChecked="{Binding CanBeParallel}"
-        Content="Can Run in Parallel"
-        Style="{StaticResource FormCheckBox}"/>
-    
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
         <Button 
             Content="Cancel" 
             Command="{Binding CancelCommand}"
-            Style="{StaticResource SecondaryButton}"
+            Style="{StaticResource MaterialDesignOutlinedButton}"
             Margin="0,0,8,0"/>
         
         <Button 
             Content="Save" 
             Command="{Binding SaveCommand}"
-            Style="{StaticResource PrimaryButton}"/>
+            Style="{StaticResource MaterialDesignRaisedButton}"/>
     </StackPanel>
 </StackPanel>
 ```
-
-This pattern:
-- Aligns form elements consistently
-- Uses Material Design hints for labels
-- Provides consistent spacing
-- Places action buttons in a predictable location
 
 ### List View Pattern
 
 Lists of items follow a consistent pattern:
 
 ```xml
-<ListView 
-    ItemsSource="{Binding Items}"
-    SelectedItem="{Binding SelectedItem}"
-    Style="{StaticResource DataListViewStyle}">
+<ListView ItemsSource="{Binding Items}"
+          SelectedItem="{Binding SelectedItem}">
     <ListView.ItemTemplate>
         <DataTemplate>
-            <Grid>
+            <Grid Margin="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <TextBlock 
-                    Grid.Column="0"
-                    Text="{Binding Name}"
-                    FontWeight="Medium"/>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Name}"
+                              Style="{StaticResource MaterialDesignSubtitle1TextBlock}"/>
+                    <TextBlock Text="{Binding Description}"
+                              Style="{StaticResource MaterialDesignBody2TextBlock}"
+                              TextWrapping="Wrap"/>
+                </StackPanel>
                 
-                <StackPanel 
-                    Grid.Column="1" 
-                    Orientation="Horizontal">
+                <StackPanel Grid.Column="1" 
+                          Orientation="Horizontal" 
+                          VerticalAlignment="Center">
                     <Button 
-                        Content="View" 
                         Command="{Binding DataContext.ViewItemCommand, 
-                                  RelativeSource={RelativeSource AncestorType=ListView}}"
-                        Style="{StaticResource FlatButton}"/>
+                                 RelativeSource={RelativeSource AncestorType=ListView}}"
+                        CommandParameter="{Binding}"
+                        Style="{StaticResource MaterialDesignIconButton}">
+                        <materialDesign:PackIcon Kind="Eye" Width="22" Height="22"/>
+                    </Button>
+                    <Button 
+                        Command="{Binding DataContext.EditItemCommand, 
+                                 RelativeSource={RelativeSource AncestorType=ListView}}"
+                        CommandParameter="{Binding}"
+                        Style="{StaticResource MaterialDesignIconButton}">
+                        <materialDesign:PackIcon Kind="Edit" Width="22" Height="22"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </DataTemplate>
@@ -553,232 +272,504 @@ Lists of items follow a consistent pattern:
 </ListView>
 ```
 
-This pattern:
-- Provides consistent item display
-- Supports selection
-- Includes consistent action buttons
-- Uses Material Design styling
+### Dialog Pattern
 
-## Resource Management
-
-### Resource Dictionary Organization
-
-Resource dictionaries are organized hierarchically:
-
-1. **Material Design base themes** (in App.xaml)
-2. **Colors.xaml** for application-specific colors
-3. **Styles.xaml** for application-specific styles
-
-This organization provides:
-- Clear separation of concerns
-- Proper theme inheritance
-- Centralized control over visual elements
-
-### Resource Naming Conventions
-
-Resources follow consistent naming conventions:
-
-- Colors: `[Purpose]Brush` (e.g., `PrimaryBrush`, `TextPrimaryBrush`)
-- Styles: `[ElementType]` or `[Purpose][ElementType]` (e.g., `HeadingMedium`, `PrimaryButton`)
-
-These conventions make it easier to:
-- Find resources by purpose
-- Understand the intended use of resources
-- Maintain consistency in naming
-
-### Value Converters
-
-Value converters are defined in a centralized location and used for data binding transformations:
+Dialogs are implemented using MaterialDesignThemes.Wpf dialogs:
 
 ```csharp
-public class BooleanToVisibilityConverter : IValueConverter
+public class DialogService : IDialogService
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public async Task<bool> ShowConfirmationAsync(string title, string message)
     {
-        return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+        var view = new ConfirmationDialog
+        {
+            Title = title,
+            Message = message
+        };
+        
+        var result = await DialogHost.Show(view, "RootDialog");
+        return (bool)result;
     }
     
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public async Task ShowInformationAsync(string title, string message)
     {
-        return (Visibility)value == Visibility.Visible;
+        var view = new InformationDialog
+        {
+            Title = title,
+            Message = message
+        };
+        
+        await DialogHost.Show(view, "RootDialog");
+    }
+    
+    // Other dialog methods
+}
+```
+
+```xml
+<!-- Dialog host in MainWindow.xaml -->
+<materialDesign:DialogHost Identifier="RootDialog">
+    <materialDesign:DialogHost.DialogContent>
+        <!-- Default dialog content -->
+        <Grid Margin="16">
+            <TextBlock Text="Loading..." />
+        </Grid>
+    </materialDesign:DialogHost.DialogContent>
+    
+    <!-- Main content -->
+    <Grid>
+        <!-- Application content -->
+    </Grid>
+</materialDesign:DialogHost>
+```
+
+### Progress Indicators
+
+Material Design provides various progress indicators:
+
+```xml
+<!-- Circular progress -->
+<materialDesign:Card>
+    <Grid>
+        <!-- Content -->
+        
+        <!-- Loading overlay -->
+        <Grid Background="#80FFFFFF"
+              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                        IsIndeterminate="True"
+                        Value="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</materialDesign:Card>
+
+<!-- Linear progress -->
+<ProgressBar Value="{Binding Progress}"
+            Maximum="100"
+            Minimum="0"
+            Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+            Margin="0,8"/>
+```
+
+## Styling and Themes
+
+### Custom Color Scheme
+
+Custom colors are defined in `Colors.xaml`:
+
+```xml
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Primary colors -->
+    <Color x:Key="PrimaryColor">#1976D2</Color>
+    <Color x:Key="PrimaryLightColor">#42A5F5</Color>
+    <Color x:Key="PrimaryDarkColor">#0D47A1</Color>
+    
+    <!-- Accent colors -->
+    <Color x:Key="AccentColor">#5C6BC0</Color>
+    <Color x:Key="AccentLightColor">#8E99F3</Color>
+    <Color x:Key="AccentDarkColor">#3949AB</Color>
+    
+    <!-- Text colors -->
+    <Color x:Key="TextPrimaryColor">#212121</Color>
+    <Color x:Key="TextSecondaryColor">#757575</Color>
+    <Color x:Key="TextDisabledColor">#BDBDBD</Color>
+    
+    <!-- Background colors -->
+    <Color x:Key="BackgroundColor">#FAFAFA</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    <Color x:Key="ErrorColor">#F44336</Color>
+    <Color x:Key="WarningColor">#FF9800</Color>
+    <Color x:Key="SuccessColor">#4CAF50</Color>
+    
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}" />
+    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="{StaticResource PrimaryDarkColor}" />
+    
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentLightBrush" Color="{StaticResource AccentLightColor}" />
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="{StaticResource AccentDarkColor}" />
+    
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}" />
+    
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+</ResourceDictionary>
+```
+
+### Custom Styles
+
+Custom styles are defined in `Styles.xaml`:
+
+```xml
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <!-- Button styles -->
+    <Style x:Key="PrimaryButton" TargetType="Button" 
+           BasedOn="{StaticResource MaterialDesignRaisedButton}">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Margin" Value="0,8"/>
+    </Style>
+    
+    <Style x:Key="SecondaryButton" TargetType="Button" 
+           BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="Margin" Value="0,8"/>
+    </Style>
+    
+    <!-- TextBox styles -->
+    <Style x:Key="FormTextBox" TargetType="TextBox" 
+           BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+        <Setter Property="Margin" Value="0,8"/>
+        <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="4"/>
+    </Style>
+    
+    <!-- CheckBox styles -->
+    <Style x:Key="FormCheckBox" TargetType="CheckBox" 
+           BasedOn="{StaticResource MaterialDesignCheckBox}">
+        <Setter Property="Margin" Value="0,8"/>
+    </Style>
+    
+    <!-- ListView styles -->
+    <Style x:Key="DataListViewStyle" TargetType="ListView" 
+           BasedOn="{StaticResource MaterialDesignListView}">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+    </Style>
+    
+    <!-- Card styles -->
+    <Style x:Key="ContentCard" TargetType="materialDesign:Card">
+        <Setter Property="Padding" Value="16"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+        <Setter Property="materialDesign:ShadowAssist.ShadowDepth" Value="Depth1"/>
+    </Style>
+</ResourceDictionary>
+```
+
+### Theme Switching
+
+Implement theme switching functionality:
+
+```csharp
+public class ThemeService : IThemeService
+{
+    private readonly PaletteHelper _paletteHelper;
+    
+    public ThemeService()
+    {
+        _paletteHelper = new PaletteHelper();
+    }
+    
+    public bool IsDarkTheme()
+    {
+        var theme = _paletteHelper.GetTheme();
+        return theme.GetBaseTheme() == BaseTheme.Dark;
+    }
+    
+    public void SetLightTheme()
+    {
+        var theme = _paletteHelper.GetTheme();
+        theme.SetBaseTheme(BaseTheme.Light);
+        _paletteHelper.SetTheme(theme);
+    }
+    
+    public void SetDarkTheme()
+    {
+        var theme = _paletteHelper.GetTheme();
+        theme.SetBaseTheme(BaseTheme.Dark);
+        _paletteHelper.SetTheme(theme);
+    }
+    
+    public void ToggleTheme()
+    {
+        var theme = _paletteHelper.GetTheme();
+        var baseTheme = theme.GetBaseTheme();
+        
+        theme.SetBaseTheme(baseTheme == BaseTheme.Light ? BaseTheme.Dark : BaseTheme.Light);
+        _paletteHelper.SetTheme(theme);
     }
 }
 ```
 
-These converters:
-- Simplify XAML bindings
-- Centralize conversion logic
-- Enable reuse across the application
+## Custom Controls
 
-## Dependency Injection
+### FormFieldControl
 
-### DI Container Setup
-
-Dependency injection is configured in Program.cs:
+```xml
+<UserControl x:Class="Instrument.Data.UI.Controls.FormFieldControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" 
+                   Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                   Margin="0,0,0,4"
+                   Visibility="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}, 
+                                Converter={StaticResource NullValueToBooleanConverter}, 
+                                ConverterParameter=true}"/>
+        
+        <ContentPresenter Grid.Row="1" 
+                          Content="{Binding Content, 
+                                   RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        
+        <TextBlock Grid.Row="2" 
+                   Text="{Binding ErrorMessage, 
+                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                   Foreground="{StaticResource ErrorBrush}"
+                   Margin="0,4,0,0"
+                   Visibility="{Binding ErrorMessage, 
+                                RelativeSource={RelativeSource AncestorType=UserControl}, 
+                                Converter={StaticResource NullValueToBooleanConverter}, 
+                                ConverterParameter=true}"/>
+    </Grid>
+</UserControl>
+```
 
 ```csharp
-public static class Program
+public class FormFieldControl : UserControl
 {
-    [STAThread]
-    public static void Main(string[] args)
-    {
-        var host = Host.CreateDefaultBuilder(args)
-            .ConfigureServices((context, services) =>
-            {
-                ConfigureServices(services);
-            })
-            .Build();
+    public static readonly DependencyProperty LabelProperty =
+        DependencyProperty.Register(nameof(Label), typeof(string), typeof(FormFieldControl));
         
-        var app = new App();
-        app.InitializeComponent();
-        app.Run();
+    public static readonly DependencyProperty ContentProperty =
+        DependencyProperty.Register(nameof(Content), typeof(object), typeof(FormFieldControl));
+        
+    public static readonly DependencyProperty ErrorMessageProperty =
+        DependencyProperty.Register(nameof(ErrorMessage), typeof(string), typeof(FormFieldControl));
+    
+    public string Label
+    {
+        get => (string)GetValue(LabelProperty);
+        set => SetValue(LabelProperty, value);
     }
     
-    private static void ConfigureServices(IServiceCollection services)
+    public object Content
     {
-        // Register services
-        services.AddSingleton<INavigationService, NavigationService>();
-        services.AddSingleton<IDialogService, DialogService>();
-        
-        // Register ViewModels
-        services.AddTransient<MainViewModel>();
-        services.AddTransient<SequencesViewModel>();
-        services.AddTransient<SequenceDetailViewModel>();
-        // Other ViewModels
-        
-        // Register data services
-        services.AddScoped<ISequenceService, SequenceService>();
-        // Other services
+        get => GetValue(ContentProperty);
+        set => SetValue(ContentProperty, value);
+    }
+    
+    public string ErrorMessage
+    {
+        get => (string)GetValue(ErrorMessageProperty);
+        set => SetValue(ErrorMessageProperty, value);
     }
 }
 ```
 
-This setup:
-- Uses Microsoft.Extensions.DependencyInjection
-- Registers services with appropriate lifetimes
-- Configures ViewModels for injection
-- Integrates with the WPF application lifecycle
+### Usage
 
-### Service Lifetimes
+```xml
+<controls:FormFieldControl Label="Name">
+    <TextBox Text="{Binding Name}" 
+             Style="{StaticResource FormTextBox}"/>
+</controls:FormFieldControl>
+```
 
-Different service lifetimes are used appropriately:
+## Responsive Design
 
-- **Singleton**: Services that should have one instance for the application (NavigationService, DialogService)
-- **Transient**: ViewModels that should be created each time they're requested
-- **Scoped**: Services with a lifetime tied to a specific operation or context
+Implement responsive design using Grid and ColumnDefinitions:
+
+```xml
+<Grid>
+    <Grid.ColumnDefinitions>
+        <!-- Responsive columns -->
+        <ColumnDefinition Width="*" MinWidth="200" />
+        <ColumnDefinition Width="*" MinWidth="200" />
+    </Grid.ColumnDefinitions>
+    
+    <!-- First column content -->
+    <materialDesign:Card Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource ContentCard}">
+        <!-- Content -->
+    </materialDesign:Card>
+    
+    <!-- Second column content -->
+    <materialDesign:Card Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource ContentCard}">
+        <!-- Content -->
+    </materialDesign:Card>
+</Grid>
+```
+
+### Layout Considerations
+
+- Use Grid with proportional sizing (`*`) for flexible layouts
+- Set `MinWidth` and `MinHeight` to ensure minimum content visibility
+- Use `Margin` to create spacing between elements
+- Use `ScrollViewer` for content that might overflow
+- Implement UI virtualization for large collections
+
+## Accessibility Considerations
+
+### Keyboard Navigation
+
+Ensure proper keyboard navigation by setting tab order and keyboard shortcuts:
+
+```xml
+<Button Content="Save" 
+        Command="{Binding SaveCommand}"
+        TabIndex="3"
+        ToolTip="Save changes (Ctrl+S)">
+    <Button.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}" />
+    </Button.InputBindings>
+</Button>
+```
+
+### Screen Reader Support
+
+Provide accessibility information for screen readers:
+
+```xml
+<Button Content="Add"
+        Command="{Binding AddCommand}"
+        AutomationProperties.Name="Add new item"
+        AutomationProperties.HelpText="Adds a new item to the collection">
+    <materialDesign:PackIcon Kind="Plus" />
+</Button>
+```
+
+### High Contrast Support
+
+Ensure high contrast support by using system colors when appropriate:
+
+```csharp
+public class HighContrastHelper
+{
+    public static bool IsHighContrastEnabled()
+    {
+        return SystemParameters.HighContrast;
+    }
+    
+    public static void ApplyHighContrastTheme(ResourceDictionary resources)
+    {
+        if (IsHighContrastEnabled())
+        {
+            resources["PrimaryBrush"] = SystemColors.HighlightBrush;
+            resources["TextPrimaryBrush"] = SystemColors.WindowTextBrush;
+            resources["BackgroundBrush"] = SystemColors.WindowBrush;
+        }
+    }
+}
+```
 
 ## Common Pitfalls and Troubleshooting
 
-### Material Design Integration Issues
+### Resource Dictionary Issues
 
-One common issue is incorrectly configuring Material Design resources:
-
-**Problem**: Resources not found, such as `MaterialDesignOutlinedButton`
+**Problem**: Resource not found exceptions
 
 **Solution**: Ensure proper resource dictionary loading order:
-1. First load MaterialDesignTheme.Light.xaml
-2. Then load color themes (Primary and Accent)
+
+1. First load MaterialDesignTheme.Light.xaml or MaterialDesignTheme.Dark.xaml
+2. Then load primary and accent color resources
 3. Then load MaterialDesignTheme.Defaults.xaml
 4. Finally load application-specific resources
 
 **Incorrect**:
 ```xml
-<materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Pink" />
+<materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Indigo" />
 ```
 
 **Correct**:
 ```xml
 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
-<ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Pink.xaml" />
+<ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Indigo.xaml" />
 ```
 
-### Resource Dictionary Conflicts
+### Style Inheritance Issues
 
-Another common issue is loading the same resources multiple times:
+**Problem**: Custom styles not inheriting Material Design properties
 
-**Problem**: Resource dictionary conflicts causing unpredictable styling
+**Solution**: Base custom styles on Material Design styles:
 
-**Solution**: Only include each Material Design resource once, typically in App.xaml
+```xml
+<!-- Incorrect -->
+<Style x:Key="CustomButtonStyle" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+</Style>
 
-### Performance Considerations
+<!-- Correct -->
+<Style x:Key="CustomButtonStyle" TargetType="Button" 
+       BasedOn="{StaticResource MaterialDesignRaisedButton}">
+    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+</Style>
+```
 
-WPF applications can face performance issues due to:
+### Performance Issues
 
-1. **Excessive property change notifications**: Use throttling or debouncing for high-frequency updates
-2. **Heavy resource dictionaries**: Split resources into logical files and only load what's needed
-3. **Unoptimized data binding**: Use virtualization for large lists
-4. **UI thread blocking**: Move heavy operations to background threads
+**Problem**: UI performance issues with large collections
 
-### ObservableCollection Updates
+**Solution**: Implement UI virtualization:
 
-Updates to ObservableCollection should be handled carefully:
+```xml
+<ListView ItemsSource="{Binding LargeCollection}"
+          VirtualizingStackPanel.IsVirtualizing="True"
+          VirtualizingStackPanel.VirtualizationMode="Recycling"
+          ScrollViewer.IsDeferredScrollingEnabled="True">
+    <!-- ListView content -->
+</ListView>
+```
 
-**Problem**: Collection modified on background thread causing cross-thread access exceptions
+### Dialog Hosting Issues
 
-**Solution**: Use dispatcher to update collections:
+**Problem**: Dialogs not showing or incorrectly positioned
+
+**Solution**: Ensure proper DialogHost setup:
+
+1. Add a DialogHost at the root of your main window
+2. Set a unique identifier for the DialogHost
+3. Reference this identifier when showing dialogs
+
+```xml
+<materialDesign:DialogHost Identifier="RootDialog">
+    <!-- Main content -->
+</materialDesign:DialogHost>
+```
+
 ```csharp
-await Dispatcher.InvokeAsync(() => {
-    Sequences.Clear();
-    foreach (var sequence in sequencesFromService)
-    {
-        Sequences.Add(sequence);
-    }
-});
+await DialogHost.Show(dialogContent, "RootDialog");
 ```
 
-## Testing Strategies
+### Theme Switching Issues
 
-### ViewModel Testing
+**Problem**: Theme changes not applied consistently
 
-ViewModels can be tested using standard unit testing techniques:
+**Solution**: Update theme through the PaletteHelper:
 
 ```csharp
-[Fact]
-public async Task LoadSequencesCommand_ShouldPopulateSequencesCollection()
-{
-    // Arrange
-    var mockService = new Mock<ISequenceService>();
-    mockService.Setup(s => s.GetAllAsync())
-        .ReturnsAsync(new List<Sequence> 
-        { 
-            new Sequence { Id = "1", Name = "Test Sequence" } 
-        });
-    
-    var viewModel = new SequencesViewModel(mockService.Object, Mock.Of<INavigationService>());
-    
-    // Act
-    await viewModel.LoadSequencesCommand.ExecuteAsync(null);
-    
-    // Assert
-    Assert.Single(viewModel.Sequences);
-    Assert.Equal("Test Sequence", viewModel.Sequences.First().Name);
-}
+var paletteHelper = new PaletteHelper();
+var theme = paletteHelper.GetTheme();
+theme.SetBaseTheme(BaseTheme.Dark);
+paletteHelper.SetTheme(theme);
 ```
 
-Key testing strategies:
-- Mock dependencies using a mocking framework like Moq
-- Test command execution and property changes
-- Verify that ViewModels interact correctly with services
+## See Also
 
-### UI Testing
-
-UI testing can be performed using:
-1. **Manual testing** for visual verification
-2. **Automated UI tests** with tools like White or WPF UI Automation
-3. **Integration tests** that verify the interaction between components
-
-## Conclusion
-
-Building a WPF application with Material Design involves:
-1. Following the MVVM pattern for separation of concerns
-2. Properly configuring Material Design resources
-3. Organizing code into a maintainable structure
-4. Using dependency injection for loosely coupled components
-5. Creating consistent UI patterns
-6. Managing resources effectively
-7. Testing components at various levels
-
-By understanding these concepts and patterns, developers can create maintainable, testable, and visually appealing WPF applications with Material Design.
-
-The Instrument.Data.UI project demonstrates these principles in a real-world application, providing a solid foundation for similar projects.
+- [Material Design Guidelines](https://material.io/design)
+- [MaterialDesignInXAML Toolkit Documentation](http://materialdesigninxaml.net/)
+- [Core Data Layer](./core-data-layer.md)
+- [Integration Guide](./integration-guide.md)
+- [Presentation Layer Structure](./presentation-layer-structure.md)

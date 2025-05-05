@@ -28,4 +28,10 @@
     <ProjectReference Include="..\Instrument.Data\Instrument.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Update="Resources\Styles.xaml">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
 </Project>

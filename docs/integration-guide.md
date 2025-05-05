@@ -1,50 +1,72 @@
-# Integrating Presentation Layer with Service Layer: A Comprehensive Guide
-
-## Introduction
-
-Properly integrating the presentation layer (UI) with the service layer is critical for maintaining separation of concerns while ensuring efficient data flow in a WPF MVVM application. This document provides a detailed exploration of how to connect these architectural layers in the Instrument.Data.UI project, focusing on best practices, dependency injection patterns, and practical implementation strategies.
+# Instrument.Data Integration Guide
 
 ## Table of Contents
 
-1. [Architectural Overview](#architectural-overview)
-2. [Dependency Injection Framework](#dependency-injection-framework)
-3. [Service Layer Design](#service-layer-design)
-4. [ViewModel Integration Patterns](#viewmodel-integration-patterns)
-5. [Async Operations and Threading](#async-operations-and-threading)
-6. [Error Handling Across Layers](#error-handling-across-layers)
-7. [Unit Testing Integration Points](#unit-testing-integration-points)
-8. [Practical Implementation Examples](#practical-implementation-examples)
+1. [Introduction](#introduction)
+2. [Architectural Overview](#architectural-overview)
+3. [Integration Process](#integration-process)
+4. [Service Layer Integration](#service-layer-integration)
+5. [Presentation Layer Integration](#presentation-layer-integration)
+6. [Async Operations and Threading](#async-operations-and-threading)
+7. [Error Handling Across Layers](#error-handling-across-layers)
+8. [Advanced Integration](#advanced-integration)
 9. [Performance Considerations](#performance-considerations)
-10. [Integration Checklist and Best Practices](#integration-checklist-and-best-practices)
+10. [Integration Checklist](#integration-checklist)
+
+## Introduction
+
+Properly integrating the Instrument.Data library into your application requires understanding how the different architectural layers interact. This guide provides comprehensive instructions for integrating both the data access layer and the presentation layer, ensuring clean separation of concerns and efficient data flow.
 
 ## Architectural Overview
 
-In the Instrument.Data application, we have a clear separation between the presentation and data layers:
-
-1. **Presentation Layer** (Instrument.Data.UI)
-   - Views (XAML)
-   - ViewModels (C# classes)
-   - UI-specific services (DialogService, NavigationService)
-
-2. **Service Layer** (Instrument.Data)
-   - Domain services (SequenceService, ParameterService, etc.)
-   - Repository interfaces and implementations
-   - Entity Framework contexts and configurations
-   - Domain models and entities
-
-The separation between these layers follows a clean architecture approach, with dependencies flowing inward from presentation to data. The service layer should never depend on the presentation layer, ensuring proper decoupling.
+The Instrument.Data system follows a clean architecture approach with clear separation between layers:
 
 ```
-Presentation Layer (UI) → Service Layer → Repository Layer → Data Storage
+┌───────────────────┐      ┌──────────────────┐      ┌───────────────────┐
+│    Domain Layer   │      │  Application     │      │  Presentation     │
+│                   │      │  Services        │      │  Layer            │
+│  - Entities       │      │                  │      │                   │
+│  - Value Objects  │◄────►│  - Use Cases     │◄────►│  - ViewModels     │
+│  - Domain Services│      │  - Commands      │      │  - Views          │
+│  - Events         │      │  - Queries       │      │  - UI Services    │
+└───────────────────┘      └──────────────────┘      └───────────────────┘
 ```
 
-## Dependency Injection Framework
+The dependencies flow inward, with the presentation layer depending on services, and services depending on the domain model. This ensures that the inner layers remain independent of the outer layers, facilitating maintainability and testability.
 
-### Container Setup
+## Integration Process
 
-The Microsoft.Extensions.DependencyInjection framework provides the foundation for connecting the layers. Configure this in Program.cs:
+### Step 1: Add Package References
+
+Add the Instrument.Data library to your application:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="..\path\to\Instrument.Data\Instrument.Data.csproj" />
+  <!-- Add additional project references as needed -->
+</ItemGroup>
+```
+
+### Step 2: Configure Storage
+
+Create a storage configuration in your application settings (e.g., appsettings.json):
+
+```json
+{
+  "Storage": {
+    "Provider": "SQLite",
+    "ConnectionString": "Data Source=Instrument.db",
+    "JsonFilePath": "data/instrument.json"
+  }
+}
+```
+
+### Step 3: Register Services
+
+Configure the dependency injection container in your application startup:
 
 ```csharp
+// Program.cs or Startup.cs
 public static class Program
 {
     [STAThread]
@@ -53,198 +75,207 @@ public static class Program
         var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices((context, services) =>
             {
-                // 1. Register data context
-                services.AddDbContext<SchedulerDbContext>(options =>
-                    options.UseSqlite(context.Configuration.GetConnectionString("DefaultConnection")));
+                // 1. Configure storage
+                var storageConfig = new StorageConfiguration
+                {
+                    Provider = Enum.Parse<StorageProviderType>(
+                        context.Configuration["Storage:Provider"] ?? "SQLite"),
+                    ConnectionString = context.Configuration["Storage:ConnectionString"] 
+                        ?? "Data Source=Instrument.db",
+                    JsonFilePath = context.Configuration["Storage:JsonFilePath"] 
+                        ?? "data/instrument.json"
+                };
                 
-                // 2. Register repositories
-                services.AddScoped<ISequenceRepository, SequenceRepository>();
-                services.AddScoped<IParameterRepository, ParameterRepository>();
-                services.AddScoped<IRangeRepository, RangeRepository>();
-                services.AddScoped<IResourceRepository, ResourceRepository>();
+                // 2. Register data layer
+                services.AddInstrumentData(storageConfig);
                 
-                // 3. Register service layer
-                services.AddScoped<ISequenceService, SequenceService>();
-                services.AddScoped<IParameterService, ParameterService>();
-                services.AddScoped<IRangeService, RangeService>();
-                services.AddScoped<IResourceService, ResourceService>();
+                // 3. Register additional services
+                services.AddDataInitialization();
                 
-                // 4. Register UI services
+                // 4. Register UI services (if applicable)
                 services.AddSingleton<INavigationService, NavigationService>();
                 services.AddSingleton<IDialogService, DialogService>();
                 
-                // 5. Register ViewModels
+                // 5. Register ViewModels (if applicable)
                 services.AddTransient<MainViewModel>();
                 services.AddTransient<SequencesViewModel>();
                 services.AddTransient<SequenceDetailViewModel>();
-                services.AddTransient<ParametersViewModel>();
-                services.AddTransient<ParameterDetailViewModel>();
                 // ... other ViewModels
             })
             .Build();
-        
-        var app = new App();
-        app.InitializeComponent();
-        
-        // Set startup window with MainViewModel
-        var mainWindow = new MainWindow
-        {
-            DataContext = host.Services.GetRequiredService<MainViewModel>()
-        };
-        
-        app.MainWindow = mainWindow;
-        app.MainWindow.Show();
-        
-        app.Run();
-    }
-}
-```
-
-### Service Registration Order and Lifetimes
-
-The registration order is important for understanding the dependencies:
-
-1. **DbContext**: Registered first as it's needed by repositories
-2. **Repositories**: Depend on DbContext
-3. **Services**: Depend on repositories
-4. **UI Services**: Support the presentation layer
-5. **ViewModels**: Consume domain services
-
-Service lifetimes should be chosen based on their nature:
-
-- **Transient** (`AddTransient<T>`): Created each time they're requested
-  - Use for ViewModels to ensure fresh instances each time a view is opened
-  - Example: `services.AddTransient<SequenceDetailViewModel>();`
-
-- **Scoped** (`AddScoped<T>`): Created once per scope (typically per HTTP request in web apps, but in WPF this effectively means one instance during a logical operation)
-  - Use for services with database/stateful dependencies
-  - Example: `services.AddScoped<ISequenceService, SequenceService>();`
-
-- **Singleton** (`AddSingleton<T>`): Created once for the application lifetime
-  - Use for stateless services or those that must maintain state application-wide
-  - Example: `services.AddSingleton<INavigationService, NavigationService>();`
-
-## Service Layer Design
-
-### Service Interfaces
-
-Service interfaces should define clear contracts that ViewModels can depend on:
-
-```csharp
-public interface ISequenceService
-{
-    Task<IEnumerable<Sequence>> GetAllAsync();
-    Task<Sequence> GetByIdAsync(string id);
-    Task<Sequence> CreateAsync(Sequence sequence);
-    Task UpdateAsync(Sequence sequence);
-    Task DeleteAsync(string id);
-}
-```
-
-Key principles for service interfaces:
-- Focus on business operations, not technical details
-- Use async methods for database operations
-- Return domain entities, not data transfer objects
-- Handle validation and business rules
-
-### Service Implementation
-
-A typical service implementation connects to the repository layer while implementing business logic:
-
-```csharp
-public class SequenceService : ISequenceService
-{
-    private readonly ISequenceRepository _repository;
-    private readonly ISequenceParameterRepository _parameterRepository;
-    
-    public SequenceService(
-        ISequenceRepository repository,
-        ISequenceParameterRepository parameterRepository)
-    {
-        _repository = repository;
-        _parameterRepository = parameterRepository;
-    }
-    
-    public async Task<IEnumerable<Sequence>> GetAllAsync()
-    {
-        return await _repository.GetAllAsync();
-    }
-    
-    public async Task<Sequence> GetByIdAsync(string id)
-    {
-        var sequence = await _repository.GetByIdAsync(id);
-        if (sequence == null)
-        {
-            throw new NotFoundException($"Sequence with ID {id} not found");
-        }
-        
-        // Load related parameters
-        sequence.SequenceParameters = await _parameterRepository
-            .GetBySequenceIdAsync(id);
             
-        return sequence;
-    }
-    
-    public async Task<Sequence> CreateAsync(Sequence sequence)
-    {
-        // Validate
-        if (string.IsNullOrEmpty(sequence.Name))
+        // Initialize application
+        using (var scope = host.Services.CreateScope())
         {
-            throw new ValidationException("Sequence name is required");
+            var initializer = scope.ServiceProvider.GetRequiredService<IDataInitializer>();
+            initializer.InitializeAsync().Wait();
         }
         
-        // Generate new ID if not provided
-        if (string.IsNullOrEmpty(sequence.Id))
-        {
-            sequence.Id = Guid.NewGuid().ToString();
-        }
-        
-        return await _repository.AddAsync(sequence);
-    }
-    
-    public async Task UpdateAsync(Sequence sequence)
-    {
-        // Validate
-        if (string.IsNullOrEmpty(sequence.Name))
-        {
-            throw new ValidationException("Sequence name is required");
-        }
-        
-        // Check existence
-        var existing = await _repository.GetByIdAsync(sequence.Id);
-        if (existing == null)
-        {
-            throw new NotFoundException($"Sequence with ID {sequence.Id} not found");
-        }
-        
-        await _repository.UpdateAsync(sequence);
-    }
-    
-    public async Task DeleteAsync(string id)
-    {
-        var sequence = await _repository.GetByIdAsync(id);
-        if (sequence == null)
-        {
-            throw new NotFoundException($"Sequence with ID {id} not found");
-        }
-        
-        await _repository.DeleteAsync(id);
+        // Run application
+        // ...
     }
 }
 ```
 
-Service implementations should:
-- Validate input data before processing
-- Check for existence when updating or deleting
-- Maintain entity relationships when needed
-- Handle complex operations that span multiple repositories
-- Throw domain-specific exceptions for error conditions
+### Step 4: Initialize Data
 
-## ViewModel Integration Patterns
+Set up data initialization for first-time usage:
 
-### Constructor Injection
+```csharp
+public class ApplicationInitializer
+{
+    private readonly IDataInitializer _dataInitializer;
+    private readonly ILogger<ApplicationInitializer> _logger;
+    
+    public ApplicationInitializer(
+        IDataInitializer dataInitializer,
+        ILogger<ApplicationInitializer> logger)
+    {
+        _dataInitializer = dataInitializer;
+        _logger = logger;
+    }
+    
+    public async Task InitializeAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Initializing application data...");
+            
+            if (!await _dataInitializer.ExistsAsync())
+            {
+                _logger.LogInformation("Database does not exist. Creating...");
+                await _dataInitializer.InitializeAsync();
+            }
+            
+            bool migrationsApplied = await _dataInitializer.MigrateAsync();
+            if (migrationsApplied)
+            {
+                _logger.LogInformation("Database migrations applied successfully");
+            }
+            
+            bool dataSeeded = await _dataInitializer.SeedDefaultDataAsync();
+            if (dataSeeded)
+            {
+                _logger.LogInformation("Default data seeded successfully");
+            }
+            
+            var status = await _dataInitializer.GetStatusMessageAsync();
+            _logger.LogInformation("Database Status: {Status}", status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to initialize application data");
+            throw;
+        }
+    }
+}
+```
 
-The preferred pattern for connecting ViewModels to services is constructor injection:
+## Service Layer Integration
+
+The service layer provides the bridge between your application logic and the data layer. Here's how to integrate with the service layer:
+
+### Service Interface Consumption
+
+```csharp
+public class SequenceManager
+{
+    private readonly ISequenceService _sequenceService;
+    private readonly ILogger<SequenceManager> _logger;
+    
+    public SequenceManager(
+        ISequenceService sequenceService,
+        ILogger<SequenceManager> logger)
+    {
+        _sequenceService = sequenceService;
+        _logger = logger;
+    }
+    
+    public async Task<IEnumerable<Sequence>> GetSequencesAsync()
+    {
+        try
+        {
+            return await _sequenceService.GetAllSequencesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sequences");
+            throw;
+        }
+    }
+    
+    public async Task<Sequence?> GetSequenceByIdAsync(string id)
+    {
+        try
+        {
+            return await _sequenceService.GetSequenceByIdAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sequence {Id}", id);
+            throw;
+        }
+    }
+}
+```
+
+### Transaction Management
+
+For operations involving multiple entities, implement a transaction management strategy:
+
+```csharp
+public class SequenceGroupManager
+{
+    private readonly SequenceGroupService _sequenceGroupService;
+    private readonly ISequenceService _sequenceService;
+    private readonly ILogger<SequenceGroupManager> _logger;
+    
+    // Constructor with dependency injection
+    
+    public async Task<bool> CreateCompleteSequenceGroupAsync(
+        string name, string description, List<string> sequenceIds)
+    {
+        try
+        {
+            // Create the sequence group
+            var group = await _sequenceGroupService.CreateSequenceGroupAsync(name, description);
+            
+            // Add all sequences to the group
+            for (int i = 0; i < sequenceIds.Count; i++)
+            {
+                bool success = await _sequenceGroupService.AddSequenceToGroupAsync(
+                    group.Id, sequenceIds[i], i + 1);
+                
+                if (!success)
+                {
+                    _logger.LogWarning("Failed to add sequence {SequenceId} to group {GroupId}",
+                        sequenceIds[i], group.Id);
+                    
+                    // Rollback by removing the group
+                    await _sequenceGroupService.DeleteSequenceGroupAsync(group.Id);
+                    return false;
+                }
+            }
+            
+            // Validate the group
+            return await _sequenceGroupService.ValidateSequenceGroupAsync(group.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating sequence group with name {Name}", name);
+            throw;
+        }
+    }
+}
+```
+
+## Presentation Layer Integration
+
+When integrating the data layer with a presentation layer (e.g., WPF with MVVM), follow these patterns:
+
+### ViewModel Integration
+
+ViewModels should use constructor injection to access services:
 
 ```csharp
 public class SequencesViewModel : ViewModelBase
@@ -254,6 +285,7 @@ public class SequencesViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     
     private ObservableCollection<Sequence> _sequences;
+    private Sequence? _selectedSequence;
     private bool _isLoading;
     
     public ObservableCollection<Sequence> Sequences
@@ -262,11 +294,19 @@ public class SequencesViewModel : ViewModelBase
         set => SetProperty(ref _sequences, value);
     }
     
+    public Sequence? SelectedSequence
+    {
+        get => _selectedSequence;
+        set => SetProperty(ref _selectedSequence, value);
+    }
+    
     public bool IsLoading
     {
         get => _isLoading;
         set => SetProperty(ref _isLoading, value);
     }
+    
+    public bool HasNoSequences => !Sequences.Any();
     
     public SequencesViewModel(
         ISequenceService sequenceService,
@@ -280,39 +320,35 @@ public class SequencesViewModel : ViewModelBase
         Sequences = new ObservableCollection<Sequence>();
     }
     
-    // Commands and methods that use the injected services
+    // Commands and methods to interact with services
 }
 ```
 
-Benefits of constructor injection:
-- Makes dependencies explicit
-- Facilitates unit testing
-- Works seamlessly with DI containers
-- Enforces proper initialization
+### Command Implementation
 
-### ViewModel Service Consumption Pattern
-
-ViewModels should follow a consistent pattern for consuming services:
+Implement commands to invoke service methods:
 
 ```csharp
 [RelayCommand]
-private async Task LoadDataAsync()
+private async Task LoadSequencesAsync()
 {
     try
     {
         IsLoading = true;
         
-        var sequences = await _sequenceService.GetAllAsync();
+        var sequences = await _sequenceService.GetAllSequencesAsync();
         
         Sequences.Clear();
         foreach (var sequence in sequences)
         {
             Sequences.Add(sequence);
         }
+        
+        OnPropertyChanged(nameof(HasNoSequences));
     }
     catch (Exception ex)
     {
-        await _dialogService.ShowErrorAsync("Error loading sequences", ex.Message);
+        await _dialogService.ShowErrorAsync("Error", $"Failed to load sequences: {ex.Message}");
     }
     finally
     {
@@ -321,25 +357,19 @@ private async Task LoadDataAsync()
 }
 
 [RelayCommand]
-private async Task SaveAsync()
+private async Task SaveSequenceAsync()
 {
     try
     {
         IsLoading = true;
         
-        if (IsNewSequence)
-        {
-            await _sequenceService.CreateAsync(CurrentSequence);
-            await _dialogService.ShowInformationAsync("Success", "Sequence created successfully");
-        }
-        else
-        {
-            await _sequenceService.UpdateAsync(CurrentSequence);
-            await _dialogService.ShowInformationAsync("Success", "Sequence updated successfully");
-        }
+        if (SelectedSequence == null)
+            return;
         
-        // Navigate back to list
-        _navigationService.NavigateTo<SequencesViewModel>();
+        await _sequenceService.UpdateSequenceAsync(SelectedSequence);
+        
+        await _dialogService.ShowInformationAsync("Success", "Sequence updated successfully");
+        _navigationService.GoBack();
     }
     catch (ValidationException ex)
     {
@@ -347,7 +377,7 @@ private async Task SaveAsync()
     }
     catch (Exception ex)
     {
-        await _dialogService.ShowErrorAsync("Error", ex.Message);
+        await _dialogService.ShowErrorAsync("Error", $"Failed to save sequence: {ex.Message}");
     }
     finally
     {
@@ -356,66 +386,73 @@ private async Task SaveAsync()
 }
 ```
 
-This pattern:
-- Uses try/catch/finally blocks for robust error handling
-- Sets loading indicators during service operations
-- Displays appropriate messages for different error types
-- Updates UI collections safely
-- Handles navigation after successful operations
+### Navigation Integration
 
-### Data Loading Strategy
-
-Consider these two approaches for loading data in ViewModels:
-
-1. **Eager Loading**: Load all data when ViewModel is constructed
+Implement navigation between views using a navigation service:
 
 ```csharp
-public SequencesViewModel(ISequenceService sequenceService)
+public interface INavigationService
 {
-    _sequenceService = sequenceService;
-    Sequences = new ObservableCollection<Sequence>();
-    
-    // Load data immediately
-    _ = LoadDataAsync();
+    void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : ViewModelBase;
+    void GoBack();
 }
 
-private async Task LoadDataAsync()
+public class NavigationService : INavigationService
 {
-    // Implementation
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Dictionary<Type, Type> _viewModelToViewMap;
+    private readonly ContentControl _contentRegion;
+    
+    public NavigationService(
+        IServiceProvider serviceProvider, 
+        ContentControl contentRegion)
+    {
+        _serviceProvider = serviceProvider;
+        _contentRegion = contentRegion;
+        
+        // Define mappings between ViewModels and Views
+        _viewModelToViewMap = new Dictionary<Type, Type>
+        {
+            { typeof(SequencesViewModel), typeof(SequencesView) },
+            { typeof(SequenceDetailViewModel), typeof(SequenceDetailView) },
+            // Other mappings
+        };
+    }
+    
+    public void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : ViewModelBase
+    {
+        // Resolve the ViewModel from DI
+        var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
+        
+        // If ViewModel needs initialization with a parameter
+        if (parameter != null && viewModel is IInitializable initializable)
+        {
+            initializable.Initialize(parameter);
+        }
+        
+        // Create the View
+        var viewType = _viewModelToViewMap[typeof(TViewModel)];
+        var view = (UserControl)Activator.CreateInstance(viewType);
+        
+        // Set DataContext
+        view.DataContext = viewModel;
+        
+        // Update the content region
+        _contentRegion.Content = view;
+    }
+    
+    public void GoBack()
+    {
+        // Navigation history management
+    }
 }
 ```
-
-2. **Lazy Loading**: Load data only when explicitly requested
-
-```csharp
-public SequencesViewModel(ISequenceService sequenceService)
-{
-    _sequenceService = sequenceService;
-    Sequences = new ObservableCollection<Sequence>();
-    
-    // Define command but don't execute
-    LoadDataCommand = new AsyncRelayCommand(LoadDataAsync);
-}
-
-// Execute this command when the View is loaded
-public IAsyncRelayCommand LoadDataCommand { get; }
-
-private async Task LoadDataAsync()
-{
-    // Implementation
-}
-```
-
-The choice depends on:
-- Performance requirements (lazy loading is better for heavy data)
-- User experience (eager loading shows data faster)
-- Navigation patterns (eager loading works well with cache-first approaches)
 
 ## Async Operations and Threading
 
-### Dispatcher Integration
+When working with async operations across layers, manage threading properly, especially for UI updates:
 
-Since service operations run asynchronously but UI updates must occur on the UI thread, use the dispatcher when updating ObservableCollections:
+### Dispatcher Integration
 
 ```csharp
 private async Task LoadDataAsync()
@@ -424,9 +461,9 @@ private async Task LoadDataAsync()
     {
         IsLoading = true;
         
-        var sequences = await _sequenceService.GetAllAsync();
+        var sequences = await _sequenceService.GetAllSequencesAsync();
         
-        // Use dispatcher to update UI collection
+        // Use dispatcher to update UI collection from a background thread
         Application.Current.Dispatcher.Invoke(() =>
         {
             Sequences.Clear();
@@ -493,9 +530,11 @@ private async Task ImportDataAsync()
 
 ## Error Handling Across Layers
 
+Implement a consistent error handling strategy across layers:
+
 ### Domain-Specific Exceptions
 
-Define a set of domain-specific exceptions in the service layer:
+Define domain-specific exceptions for common error cases:
 
 ```csharp
 public class NotFoundException : Exception
@@ -512,20 +551,19 @@ public class ConcurrencyException : Exception
 {
     public ConcurrencyException(string message) : base(message) { }
 }
+
+public class StorageProviderException : Exception
+{
+    public StorageProviderException(string message) : base(message) { }
+    public StorageProviderException(string message, Exception innerException) 
+        : base(message, innerException) { }
+}
 ```
 
-### Exception Handling Strategy
-
-Implement a consistent exception handling strategy across layers:
-
-1. **Repository Layer**: Catch data access exceptions, translate to domain exceptions
-2. **Service Layer**: Validate input, handle business rules, throw domain exceptions
-3. **ViewModel Layer**: Catch domain exceptions, translate to user-friendly messages
-
-Example service method with proper exception handling:
+### Service Layer Error Handling
 
 ```csharp
-public async Task<Sequence> GetByIdAsync(string id)
+public async Task<Sequence> GetSequenceByIdAsync(string id)
 {
     try
     {
@@ -542,12 +580,12 @@ public async Task<Sequence> GetByIdAsync(string id)
         _logger.LogError(ex, "Database error retrieving sequence {Id}", id);
         
         // Translate to domain exception
-        throw new DataAccessException("A database error occurred", ex);
+        throw new StorageProviderException("A database error occurred", ex);
     }
 }
 ```
 
-Example ViewModel method with error handling:
+### Presentation Layer Error Handling
 
 ```csharp
 private async Task LoadSequenceAsync(string id)
@@ -556,14 +594,23 @@ private async Task LoadSequenceAsync(string id)
     {
         IsLoading = true;
         
-        CurrentSequence = await _sequenceService.GetByIdAsync(id);
+        CurrentSequence = await _sequenceService.GetSequenceByIdAsync(id);
+        
+        if (CurrentSequence == null)
+        {
+            await _dialogService.ShowWarningAsync("Not Found", 
+                $"Sequence with ID {id} could not be found");
+            _navigationService.GoBack();
+            return;
+        }
     }
     catch (NotFoundException)
     {
-        await _dialogService.ShowWarningAsync("Not Found", $"Sequence with ID {id} could not be found");
+        await _dialogService.ShowWarningAsync("Not Found", 
+            $"Sequence with ID {id} could not be found");
         _navigationService.GoBack();
     }
-    catch (DataAccessException ex)
+    catch (StorageProviderException ex)
     {
         await _dialogService.ShowErrorAsync("Data Error", ex.Message);
         _navigationService.GoBack();
@@ -580,458 +627,117 @@ private async Task LoadSequenceAsync(string id)
 }
 ```
 
-## Unit Testing Integration Points
+## Advanced Integration
 
-### Testing Service Consumption in ViewModels
+### Event-Driven Architecture
 
-Unit tests for ViewModels should verify proper service integration:
-
-```csharp
-[Fact]
-public async Task LoadDataCommand_ShouldPopulateSequencesCollection()
-{
-    // Arrange
-    var mockSequenceService = new Mock<ISequenceService>();
-    mockSequenceService.Setup(s => s.GetAllAsync())
-        .ReturnsAsync(new List<Sequence>
-        {
-            new Sequence { Id = "1", Name = "Sequence 1" },
-            new Sequence { Id = "2", Name = "Sequence 2" }
-        });
-    
-    var mockNavigationService = new Mock<INavigationService>();
-    var mockDialogService = new Mock<IDialogService>();
-    
-    var viewModel = new SequencesViewModel(
-        mockSequenceService.Object,
-        mockNavigationService.Object,
-        mockDialogService.Object);
-    
-    // Act
-    await viewModel.LoadDataCommand.ExecuteAsync(null);
-    
-    // Assert
-    Assert.Equal(2, viewModel.Sequences.Count);
-    Assert.Equal("Sequence 1", viewModel.Sequences[0].Name);
-    Assert.Equal("Sequence 2", viewModel.Sequences[1].Name);
-    Assert.False(viewModel.IsLoading);
-}
-
-[Fact]
-public async Task SaveCommand_WhenValidationFails_ShouldShowWarningDialog()
-{
-    // Arrange
-    var mockSequenceService = new Mock<ISequenceService>();
-    mockSequenceService.Setup(s => s.UpdateAsync(It.IsAny<Sequence>()))
-        .ThrowsAsync(new ValidationException("Name is required"));
-    
-    var mockNavigationService = new Mock<INavigationService>();
-    var mockDialogService = new Mock<IDialogService>();
-    
-    var viewModel = new SequenceDetailViewModel(
-        mockSequenceService.Object,
-        mockNavigationService.Object,
-        mockDialogService.Object);
-    
-    viewModel.CurrentSequence = new Sequence { Id = "1" };
-    viewModel.IsNewSequence = false;
-    
-    // Act
-    await viewModel.SaveCommand.ExecuteAsync(null);
-    
-    // Assert
-    mockDialogService.Verify(d => d.ShowWarningAsync(
-        It.Is<string>(s => s.Contains("Validation")),
-        It.Is<string>(s => s.Contains("Name is required"))),
-        Times.Once);
-    
-    mockNavigationService.Verify(n => n.NavigateTo<SequencesViewModel>(),
-        Times.Never);
-}
-```
-
-## Practical Implementation Examples
-
-### Sequence Management
-
-Here's a complete integration example for Sequence management:
-
-**1. Service Interface (Instrument.Data)**
+Implement an event-driven architecture for loose coupling between components:
 
 ```csharp
-public interface ISequenceService
+// Define domain events
+public record SequenceCreatedEvent(Sequence Sequence);
+public record SequenceUpdatedEvent(Sequence Sequence);
+public record SequenceDeletedEvent(string SequenceId);
+
+// Event publisher
+public interface IEventPublisher
 {
-    Task<IEnumerable<Sequence>> GetAllAsync();
-    Task<Sequence> GetByIdAsync(string id);
-    Task<Sequence> CreateAsync(Sequence sequence);
-    Task UpdateAsync(Sequence sequence);
-    Task DeleteAsync(string id);
-    Task<IEnumerable<Parameter>> GetAvailableParametersAsync();
-    Task AddParameterToSequenceAsync(string sequenceId, string parameterId);
-    Task RemoveParameterFromSequenceAsync(string sequenceId, string parameterId);
+    void Publish<TEvent>(TEvent @event);
 }
-```
 
-**2. Service Implementation (Instrument.Data)**
-
-```csharp
-public class SequenceService : ISequenceService
+// Event subscriber
+public interface IEventSubscriber<TEvent>
 {
-    private readonly ISequenceRepository _sequenceRepository;
-    private readonly IParameterRepository _parameterRepository;
-    private readonly ISequenceParameterRepository _sequenceParameterRepository;
-    
-    public SequenceService(
-        ISequenceRepository sequenceRepository,
-        IParameterRepository parameterRepository,
-        ISequenceParameterRepository sequenceParameterRepository)
-    {
-        _sequenceRepository = sequenceRepository;
-        _parameterRepository = parameterRepository;
-        _sequenceParameterRepository = sequenceParameterRepository;
-    }
-    
-    // Implementation of all methods with proper validation and error handling
-    
-    public async Task<IEnumerable<Parameter>> GetAvailableParametersAsync()
-    {
-        return await _parameterRepository.GetAllAsync();
-    }
-    
-    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId)
-    {
-        var sequence = await _sequenceRepository.GetByIdAsync(sequenceId);
-        if (sequence == null)
-        {
-            throw new NotFoundException($"Sequence with ID {sequenceId} not found");
-        }
-        
-        var parameter = await _parameterRepository.GetByIdAsync(parameterId);
-        if (parameter == null)
-        {
-            throw new NotFoundException($"Parameter with ID {parameterId} not found");
-        }
-        
-        var sequenceParameter = new SequenceParameter
-        {
-            SequenceId = sequenceId,
-            ParameterId = parameterId
-        };
-        
-        await _sequenceParameterRepository.AddAsync(sequenceParameter);
-    }
-    
-    public async Task RemoveParameterFromSequenceAsync(string sequenceId, string parameterId)
-    {
-        var sequenceParameter = await _sequenceParameterRepository
-            .GetBySequenceAndParameterIdAsync(sequenceId, parameterId);
-            
-        if (sequenceParameter == null)
-        {
-            throw new NotFoundException(
-                $"Parameter {parameterId} not found in sequence {sequenceId}");
-        }
-        
-        await _sequenceParameterRepository.DeleteAsync(
-            sequenceParameter.SequenceId, sequenceParameter.ParameterId);
-    }
+    void Handle(TEvent @event);
 }
-```
 
-**3. ViewModel Integration (Instrument.Data.UI)**
-
-```csharp
-public class SequenceDetailViewModel : ViewModelBase
-{
-    private readonly ISequenceService _sequenceService;
-    private readonly INavigationService _navigationService;
-    private readonly IDialogService _dialogService;
-    
-    private Sequence _currentSequence;
-    private ObservableCollection<Parameter> _availableParameters;
-    private ObservableCollection<Parameter> _sequenceParameters;
-    private Parameter _selectedAvailableParameter;
-    private Parameter _selectedSequenceParameter;
-    private bool _isNewSequence;
-    
-    public Sequence CurrentSequence
-    {
-        get => _currentSequence;
-        set => SetProperty(ref _currentSequence, value);
-    }
-    
-    public ObservableCollection<Parameter> AvailableParameters
-    {
-        get => _availableParameters;
-        set => SetProperty(ref _availableParameters, value);
-    }
-    
-    public ObservableCollection<Parameter> SequenceParameters
-    {
-        get => _sequenceParameters;
-        set => SetProperty(ref _sequenceParameters, value);
-    }
-    
-    public Parameter SelectedAvailableParameter
-    {
-        get => _selectedAvailableParameter;
-        set => SetProperty(ref _selectedAvailableParameter, value);
-    }
-    
-    public Parameter SelectedSequenceParameter
-    {
-        get => _selectedSequenceParameter;
-        set => SetProperty(ref _selectedSequenceParameter, value);
-    }
-    
-    public bool IsNewSequence
-    {
-        get => _isNewSequence;
-        set => SetProperty(ref _isNewSequence, value);
-    }
-    
-    public IAsyncRelayCommand SaveCommand { get; }
-    public IAsyncRelayCommand CancelCommand { get; }
-    public IAsyncRelayCommand AddParameterCommand { get; }
-    public IAsyncRelayCommand RemoveParameterCommand { get; }
-    
-    public SequenceDetailViewModel(
-        ISequenceService sequenceService,
-        INavigationService navigationService,
-        IDialogService dialogService)
-    {
-        _sequenceService = sequenceService;
-        _navigationService = navigationService;
-        _dialogService = dialogService;
-        
-        AvailableParameters = new ObservableCollection<Parameter>();
-        SequenceParameters = new ObservableCollection<Parameter>();
-        
-        SaveCommand = new AsyncRelayCommand(SaveAsync);
-        CancelCommand = new AsyncRelayCommand(CancelAsync);
-        AddParameterCommand = new AsyncRelayCommand(AddParameterAsync, CanAddParameter);
-        RemoveParameterCommand = new AsyncRelayCommand(RemoveParameterAsync, CanRemoveParameter);
-    }
-    
-    public async Task InitializeAsync(string sequenceId = null)
-    {
-        try
-        {
-            IsLoading = true;
-            
-            if (string.IsNullOrEmpty(sequenceId))
-            {
-                // New sequence
-                IsNewSequence = true;
-                CurrentSequence = new Sequence
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    WorstCaseTime = TimeSpan.FromMinutes(1)
-                };
-            }
-            else
-            {
-                // Existing sequence
-                IsNewSequence = false;
-                CurrentSequence = await _sequenceService.GetByIdAsync(sequenceId);
-                
-                // Load sequence parameters
-                if (CurrentSequence.SequenceParameters != null)
-                {
-                    foreach (var sp in CurrentSequence.SequenceParameters)
-                    {
-                        SequenceParameters.Add(sp.Parameter);
-                    }
-                }
-            }
-            
-            // Load available parameters
-            var allParameters = await _sequenceService.GetAvailableParametersAsync();
-            foreach (var parameter in allParameters)
-            {
-                // Only add parameters not already in the sequence
-                if (!SequenceParameters.Any(p => p.Id == parameter.Id))
-                {
-                    AvailableParameters.Add(parameter);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Error", ex.Message);
-            _navigationService.GoBack();
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-    
-    private async Task SaveAsync()
-    {
-        try
-        {
-            IsLoading = true;
-            
-            if (IsNewSequence)
-            {
-                await _sequenceService.CreateAsync(CurrentSequence);
-            }
-            else
-            {
-                await _sequenceService.UpdateAsync(CurrentSequence);
-            }
-            
-            _navigationService.NavigateTo<SequencesViewModel>();
-        }
-        catch (ValidationException ex)
-        {
-            await _dialogService.ShowWarningAsync("Validation Error", ex.Message);
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Error", ex.Message);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-    
-    private async Task CancelAsync()
-    {
-        _navigationService.GoBack();
-    }
-    
-    private async Task AddParameterAsync()
-    {
-        if (SelectedAvailableParameter == null) return;
-        
-        try
-        {
-            IsLoading = true;
-            
-            await _sequenceService.AddParameterToSequenceAsync(
-                CurrentSequence.Id, SelectedAvailableParameter.Id);
-            
-            // Update collections
-            SequenceParameters.Add(SelectedAvailableParameter);
-            AvailableParameters.Remove(SelectedAvailableParameter);
-            SelectedAvailableParameter = null;
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Error", ex.Message);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-    
-    private bool CanAddParameter() => SelectedAvailableParameter != null;
-    
-    private async Task RemoveParameterAsync()
-    {
-        if (SelectedSequenceParameter == null) return;
-        
-        try
-        {
-            IsLoading = true;
-            
-            await _sequenceService.RemoveParameterFromSequenceAsync(
-                CurrentSequence.Id, SelectedSequenceParameter.Id);
-            
-            // Update collections
-            AvailableParameters.Add(SelectedSequenceParameter);
-            SequenceParameters.Remove(SelectedSequenceParameter);
-            SelectedSequenceParameter = null;
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Error", ex.Message);
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-    
-    private bool CanRemoveParameter() => SelectedSequenceParameter != null;
-}
-```
-
-**4. Navigation Integration**
-
-```csharp
-public class NavigationService : INavigationService
+// In-memory implementation
+public class InMemoryEventBus : IEventPublisher
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<Type, Type> _viewModelToViewMap;
-    private readonly ContentControl _contentRegion;
     
-    public NavigationService(
-        IServiceProvider serviceProvider,
-        ContentControl contentRegion)
+    public InMemoryEventBus(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _contentRegion = contentRegion;
-        
-        // Define the mapping between ViewModels and Views
-        _viewModelToViewMap = new Dictionary<Type, Type>
-        {
-            { typeof(SequencesViewModel), typeof(SequencesView) },
-            { typeof(SequenceDetailViewModel), typeof(SequenceDetailView) },
-            // Other mappings
-        };
     }
     
-    public void NavigateTo<TViewModel>(object parameter = null) where TViewModel : ViewModelBase
+    public void Publish<TEvent>(TEvent @event)
     {
-        // Resolve the ViewModel from DI
-        var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
-        
-        // If ViewModel needs initialization with a parameter
-        if (parameter != null && viewModel is IInitializable initializable)
+        var subscribers = _serviceProvider.GetServices<IEventSubscriber<TEvent>>();
+        foreach (var subscriber in subscribers)
         {
-            initializable.Initialize(parameter);
+            subscriber.Handle(@event);
         }
-        
-        // Create the View
-        var viewType = _viewModelToViewMap[typeof(TViewModel)];
-        var view = (UserControl)Activator.CreateInstance(viewType);
-        
-        // Set DataContext
-        view.DataContext = viewModel;
-        
-        // Update the content region
-        _contentRegion.Content = view;
     }
 }
 
-// Interface for ViewModel initialization
-public interface IInitializable
+// Integration in service
+public class EventPublishingSequenceService : ISequenceService
 {
-    void Initialize(object parameter);
-}
-
-// Implementation in SequenceDetailViewModel
-public class SequenceDetailViewModel : ViewModelBase, IInitializable
-{
-    // Other members
+    private readonly ISequenceService _innerService;
+    private readonly IEventPublisher _eventPublisher;
     
-    public void Initialize(object parameter)
+    public EventPublishingSequenceService(
+        ISequenceService innerService,
+        IEventPublisher eventPublisher)
     {
-        if (parameter is string sequenceId)
+        _innerService = innerService;
+        _eventPublisher = eventPublisher;
+    }
+    
+    public async Task<Sequence> CreateSequenceAsync(Sequence sequence)
+    {
+        var result = await _innerService.CreateSequenceAsync(sequence);
+        _eventPublisher.Publish(new SequenceCreatedEvent(result));
+        return result;
+    }
+    
+    // Other methods with event publishing
+}
+```
+
+### Caching Strategy
+
+Implement caching for frequently accessed data:
+
+```csharp
+public class CachingSequenceService : ISequenceService
+{
+    private readonly ISequenceService _innerService;
+    private readonly IMemoryCache _cache;
+    
+    public CachingSequenceService(
+        ISequenceService innerService,
+        IMemoryCache cache)
+    {
+        _innerService = innerService;
+        _cache = cache;
+    }
+    
+    public async Task<IEnumerable<Sequence>> GetAllSequencesAsync()
+    {
+        return await _cache.GetOrCreateAsync("AllSequences", async entry =>
         {
-            // Start asynchronous initialization
-            _ = InitializeAsync(sequenceId);
-        }
-        else
+            entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
+            return await _innerService.GetAllSequencesAsync();
+        });
+    }
+    
+    public async Task<Sequence?> GetSequenceByIdAsync(string id)
+    {
+        return await _cache.GetOrCreateAsync($"Sequence_{id}", async entry =>
         {
-            // Initialize as new sequence
-            _ = InitializeAsync();
-        }
+            entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
+            return await _innerService.GetSequenceByIdAsync(id);
+        });
+    }
+    
+    // Implement other methods with cache invalidation
+    public async Task<Sequence> CreateSequenceAsync(Sequence sequence)
+    {
+        var result = await _innerService.CreateSequenceAsync(sequence);
+        _cache.Remove("AllSequences");
+        return result;
     }
 }
 ```
@@ -1042,12 +748,14 @@ public class SequenceDetailViewModel : ViewModelBase, IInitializable
 
 Consider these strategies to optimize performance when loading data:
 
-1. **Paging**: Load data in chunks rather than all at once
+#### 1. Paging
+
+Load data in chunks rather than all at once:
 
 ```csharp
 public interface ISequenceService
 {
-    Task<PagedResult<Sequence>> GetPagedAsync(int page, int pageSize);
+    Task<PagedResult<Sequence>> GetPagedSequencesAsync(int page, int pageSize);
 }
 
 public class PagedResult<T>
@@ -1058,10 +766,6 @@ public class PagedResult<T>
 }
 
 // In ViewModel:
-public int CurrentPage { get; set; } = 1;
-public int PageSize { get; set; } = 20;
-public int TotalPages { get; set; }
-
 [RelayCommand]
 private async Task LoadPageAsync(int page)
 {
@@ -1069,7 +773,7 @@ private async Task LoadPageAsync(int page)
     {
         IsLoading = true;
         
-        var result = await _sequenceService.GetPagedAsync(page, PageSize);
+        var result = await _sequenceService.GetPagedSequencesAsync(page, PageSize);
         
         Sequences.Clear();
         foreach (var sequence in result.Items)
@@ -1091,68 +795,54 @@ private async Task LoadPageAsync(int page)
 }
 ```
 
-2. **Caching**: Cache frequently accessed data
+#### 2. Lazy Loading
+
+Only load details when needed:
 
 ```csharp
-public class CachingSequenceService : ISequenceService
+public class LazyLoadingViewModel : ViewModelBase
 {
-    private readonly ISequenceService _innerService;
-    private readonly IMemoryCache _cache;
-    
-    public CachingSequenceService(
-        ISequenceService innerService,
-        IMemoryCache cache)
-    {
-        _innerService = innerService;
-        _cache = cache;
-    }
-    
-    public async Task<IEnumerable<Sequence>> GetAllAsync()
-    {
-        return await _cache.GetOrCreateAsync("AllSequences", async entry =>
-        {
-            entry.SlidingExpiration = TimeSpan.FromMinutes(5);
-            return await _innerService.GetAllAsync();
-        });
-    }
-    
-    public async Task<Sequence> GetByIdAsync(string id)
-    {
-        return await _cache.GetOrCreateAsync($"Sequence_{id}", async entry =>
-        {
-            entry.SlidingExpiration = TimeSpan.FromMinutes(5);
-            return await _innerService.GetByIdAsync(id);
-        });
-    }
-    
-    // Other methods with cache invalidation on writes
-    public async Task<Sequence> CreateAsync(Sequence sequence)
-    {
-        var result = await _innerService.CreateAsync(sequence);
-        _cache.Remove("AllSequences");
-        return result;
-    }
-}
-```
-
-3. **Lazy Loading Properties**: Only load related entities when needed
-
-```csharp
-public class SequenceWithLazyProperties
-{
+    private readonly ISequenceService _sequenceService;
     private readonly IParameterService _parameterService;
-    private IEnumerable<Parameter> _parameters;
     
-    public string Id { get; set; }
-    public string Name { get; set; }
+    private ObservableCollection<Sequence> _sequences;
+    private ObservableCollection<Parameter> _parameters;
+    private bool _parametersLoaded;
     
-    public async Task<IEnumerable<Parameter>> GetParametersAsync()
+    // Properties and commands
+    
+    [RelayCommand]
+    private async Task LoadParametersAsync()
     {
-        if (_parameters == null)
+        if (_parametersLoaded)
+            return;
+            
+        try
         {
-            _parameters = await _parameterService.GetBySequenceIdAsync(Id);
+            IsLoading = true;
+            
+            if (SelectedSequence == null)
+                return;
+                
+            var parameters = await _parameterService.GetParametersBySequenceIdAsync(
+                SelectedSequence.Id);
+                
+            Parameters.Clear();
+            foreach (var parameter in parameters)
+            {
+                Parameters.Add(parameter);
+            }
+            
+            _parametersLoaded = true;
         }
-        return _parameters;
+        catch (Exception ex)
+        {
+            // Error handling
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }
 ```
@@ -1160,8 +850,6 @@ public class SequenceWithLazyProperties
 ### Memory Management
 
 To avoid memory leaks when integrating presentation and service layers:
-
-1. **Dispose Service Resources**: Implement IDisposable for services with disposable resources
 
 ```csharp
 public class DataService : IDataService, IDisposable
@@ -1195,73 +883,9 @@ public class DataService : IDataService, IDisposable
 }
 ```
 
-2. **Unsubscribe from Events**: Ensure ViewModels unsubscribe from service events
+## Integration Checklist
 
-```csharp
-public class MessageService : IMessageService
-{
-    public event EventHandler<string> MessageReceived;
-    
-    public void StartListening()
-    {
-        // Start background thread
-    }
-    
-    public void StopListening()
-    {
-        // Stop background thread
-    }
-    
-    protected virtual void OnMessageReceived(string message)
-    {
-        MessageReceived?.Invoke(this, message);
-    }
-}
-
-public class ChatViewModel : ViewModelBase, IDisposable
-{
-    private readonly IMessageService _messageService;
-    private bool _disposed;
-    
-    public ChatViewModel(IMessageService messageService)
-    {
-        _messageService = messageService;
-        _messageService.MessageReceived += OnMessageReceived;
-        _messageService.StartListening();
-    }
-    
-    private void OnMessageReceived(object sender, string message)
-    {
-        // Update UI
-    }
-    
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-    
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _messageService.MessageReceived -= OnMessageReceived;
-                _messageService.StopListening();
-            }
-            
-            _disposed = true;
-        }
-    }
-}
-```
-
-## Integration Checklist and Best Practices
-
-### Integration Checklist
-
-When integrating the presentation and service layers, follow this checklist:
+### Core Integration Checklist
 
 ✅ **Dependency Injection Setup**
 - [ ] Services registered with appropriate lifetimes
@@ -1269,13 +893,13 @@ When integrating the presentation and service layers, follow this checklist:
 - [ ] Navigation and dialog services registered as singletons
 - [ ] Configuration values injected properly
 
-✅ **Service Layer Design**
+✅ **Service Layer Integration**
 - [ ] Services defined with clear interfaces
 - [ ] Services handle validation and business logic
 - [ ] Services throw domain-specific exceptions
 - [ ] Services manage entity relationships appropriately
 
-✅ **ViewModel Integration**
+✅ **Presentation Layer Integration**
 - [ ] ViewModels use constructor injection
 - [ ] Commands properly call service methods
 - [ ] Error handling consistent across ViewModels
@@ -1294,44 +918,21 @@ When integrating the presentation and service layers, follow this checklist:
 - [ ] User-friendly error messages
 - [ ] Error logging
 
-✅ **Testing**
-- [ ] Services tested independently
-- [ ] ViewModels tested with mocked services
-- [ ] Integration tests verify layer communication
-- [ ] Error paths tested
-
 ### Best Practices
 
 1. **Keep Services Focused**: Each service should address a specific domain concern
-
 2. **Use Interfaces**: Always depend on interfaces, not concrete implementations
-
 3. **Validate Early**: Validate data as early as possible, preferably in the service layer
-
 4. **Handle Errors Gracefully**: Present user-friendly error messages, never raw exceptions
-
 5. **Design for Testability**: Use DI and interfaces to make components testable in isolation
-
 6. **Watch Threading**: Be mindful of thread context when updating UI from service calls
-
 7. **Document Contracts**: Document service interfaces thoroughly for other developers
-
 8. **Consider API Evolution**: Design services to be backward compatible as they evolve
-
 9. **Maintain Separation of Concerns**: Don't let presentation logic leak into services
+10. **Performance Monitoring**: Include performance monitoring in service implementations
 
-10. **Performance Monitoring**: Include performance monitoring in service implementations for critical operations
+## See Also
 
-## Conclusion
-
-Properly integrating the presentation layer with the service layer is critical for creating maintainable, testable, and robust WPF applications. By following the patterns and practices outlined in this guide, you can create a clean separation between UI concerns and business logic while ensuring efficient data flow and error handling.
-
-The key principles to remember are:
-- Maintain proper separation of concerns
-- Use dependency injection for loose coupling
-- Design clear service interfaces
-- Implement consistent error handling
-- Manage UI updates carefully with respect to threading
-- Test integration points thoroughly
-
-By adhering to these principles, your application will be more maintainable, easier to test, and better suited to accommodate changing requirements.
+- [Core Data Layer](./core-data-layer.md) - Detailed documentation of the data layer architecture
+- [Presentation Layer Structure](./presentation-layer-structure.md) - Guidelines for UI layer structure
+- [WPF Material Design Guide](./wpf-material-design-guide.md) - Implementation details for UI with Material Design

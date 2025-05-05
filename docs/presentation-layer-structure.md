@@ -1,8 +1,21 @@
-# C# Presentation Layer Structure: A Comprehensive Guide
+# Instrument.Data.UI Presentation Layer Structure
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Core Architectural Pattern: MVVM](#core-architectural-pattern-mvvm)
+3. [Directory Structure](#directory-structure)
+4. [Component Details](#component-details)
+5. [Navigation Strategies](#navigation-strategies)
+6. [State Management](#state-management)
+7. [Testing Strategies](#testing-strategies)
+8. [Best Practices](#best-practices)
+9. [Implementation Steps](#implementation-steps)
+10. [Common Patterns and Examples](#common-patterns-and-examples)
 
 ## Introduction
 
-The presentation layer is a crucial component of any modern application, serving as the bridge between users and the underlying business logic. This document outlines a robust, maintainable structure for C# presentation layers that can be implemented across WPF, Avalonia, and .NET MAUI. By following these guidelines, developers can create UI applications that are testable, maintainable, and extensible regardless of the specific UI framework.
+The presentation layer is a crucial component of the Instrument.Data application, serving as the bridge between users and the underlying business logic. This document outlines a robust, maintainable structure for the C# presentation layer, focusing specifically on the WPF implementation in the Instrument.Data.UI project, but with principles that can be applied to other UI frameworks.
 
 ## Core Architectural Pattern: MVVM
 
@@ -10,400 +23,698 @@ The Model-View-ViewModel (MVVM) pattern is the foundation of our presentation la
 
 ### Key Components
 
-- **Model**: Represents the data and business logic from your domain/application layer
-- **View**: The UI elements users interact with
+- **Model**: Represents the data and business logic from the domain layer (Instrument.Data)
+- **View**: The UI elements users interact with (XAML files)
 - **ViewModel**: Mediates between View and Model, exposing data and commands to the View
 
-## Presentation Layer Directory Structure
+## Directory Structure
 
 ```
-PresentationLayer/
+Instrument.Data.UI/
 ├── App.xaml / App.xaml.cs           # Application entry point
-├── Assets/                          # Static resources
-│   ├── Fonts/
-│   ├── Images/
-│   └── Styles/                      # Global styles and themes
 ├── Controls/                        # Custom controls
-│   └── Specialized/                 # Domain-specific controls
-├── Behaviors/                       # Reusable UI behaviors
+│   └── FormFieldControl.xaml        # Example control
 ├── Converters/                      # Value converters
-├── Extensions/                      # UI-specific extension methods
+│   ├── BooleanToVisibilityConverter.cs
+│   └── NullValueToBooleanConverter.cs
+├── DependencyInjection/             # DI container setup
+│   └── ServiceCollectionExtensions.cs
 ├── Helpers/                         # UI utility classes
-├── Models/                          # UI-specific models (DTOs)
+│   ├── Converters/                  # Additional converters
+│   └── StyleHelper.cs               # Style utilities
+├── MainWindow.xaml                  # Main application window
+├── Program.cs                       # .NET Core entry point
 ├── Resources/                       # Resource dictionaries
-│   ├── Colors.xaml
-│   ├── Icons.xaml
-│   └── Styles.xaml
+│   ├── Colors.xaml                  # Color definitions
+│   └── Styles.xaml                  # UI element styles
 ├── Services/                        # UI-specific services
 │   ├── Interfaces/                  # Service interfaces
-│   ├── Navigation/                  # Navigation service
+│   │   ├── IDialogService.cs
+│   │   └── INavigationService.cs
 │   ├── Dialog/                      # Dialog service
-│   └── Implementations/             # Service implementations
-├── Validation/                      # Input validation logic
+│   │   └── DialogService.cs
+│   └── Navigation/                  # Navigation service
+│       └── NavigationService.cs
 ├── ViewModels/                      # ViewModels
 │   ├── Base/                        # Base ViewModel classes
-│   └── Dialogs/                     # Dialog ViewModels
-├── Views/                           # UI Views
-│   ├── Pages/                       # Main page views
-│   ├── Dialogs/                     # Dialog views
-│   └── Controls/                    # View-specific controls
-└── DependencyInjection/             # DI container setup for UI
+│   │   └── ViewModelBase.cs
+│   ├── MainViewModel.cs
+│   ├── SequencesViewModel.cs
+│   └── SequenceDetailViewModel.cs
+└── Views/                           # UI Views
+    ├── SequencesView.xaml
+    └── SequenceDetailView.xaml
 ```
 
-## Detailed Component Breakdown
+## Component Details
 
-### 1. Assets
-
-**Purpose**: Centralize static resources used throughout the application.
-
-```
-Assets/
-├── Fonts/                # Custom fonts
-├── Images/               # Images and icons 
-│   ├── Icons/
-│   └── Backgrounds/
-└── Styles/               # Global style definitions
-    ├── Dark/
-    └── Light/
-```
-
-**Reasoning**: 
-- Separates resources from code
-- Makes resources easier to manage and update
-- Facilitates theming and branding changes
-- Enables resource optimization
-
-### 2. Controls
+### 1. Controls
 
 **Purpose**: House custom UI controls that are reusable across multiple views.
 
 ```
 Controls/
-├── Base/                     # Base control classes
-├── Common/                   # General-purpose controls
-│   ├── EnhancedButton.xaml
-│   ├── SearchBox.xaml
-│   └── ...
-└── Specialized/              # Domain-specific controls
-    ├── DataVisualizers/
-    └── DomainSpecific/
+├── FormFieldControl.xaml            # Reusable form field
+└── DataGridExtensions.xaml          # Enhanced DataGrid
 ```
 
-**Reasoning**:
-- Promotes UI consistency
-- Reduces code duplication
-- Makes maintenance easier
-- Allows specialized controls to evolve independently
+**Example**:
 
-### 3. Behaviors
-
-**Purpose**: Encapsulate reusable UI interactions and behaviors.
-
+```xml
+<!-- FormFieldControl.xaml -->
+<UserControl x:Class="Instrument.Data.UI.Controls.FormFieldControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" 
+                   Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   Margin="0,0,0,4"/>
+        
+        <ContentPresenter Grid.Row="1" 
+                          Content="{Binding Content, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+    </Grid>
+</UserControl>
 ```
-Behaviors/
-├── DragDropBehavior.cs
-├── FocusBehavior.cs
-├── ValidationBehavior.cs
-└── ...
-```
 
-**Reasoning**:
-- Separates interaction logic from visual elements
-- Enables reuse of complex behaviors
-- Makes UI interaction patterns consistent
-- Improves testability of UI interactions
-
-### 4. Converters
+### 2. Converters
 
 **Purpose**: Transform data between the format used in the ViewModel and what's needed for display.
 
-```
-Converters/
-├── BooleanToVisibilityConverter.cs
-├── DateTimeFormatConverter.cs
-├── EnumToStringConverter.cs
-└── ...
-```
-
-**Reasoning**:
-- Keeps View and ViewModel cleanly separated
-- Centralizes data transformation logic
-- Makes UI bindings more powerful
-- Improves readability of XAML
-
-### 5. Extensions
-
-**Purpose**: Contain UI-specific extension methods that enhance the framework.
-
-```
-Extensions/
-├── ControlExtensions.cs
-├── BindingExtensions.cs
-├── ElementExtensions.cs
-└── ...
+```csharp
+public class BooleanToVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+    }
+    
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return (Visibility)value == Visibility.Visible;
+    }
+}
 ```
 
-**Reasoning**:
-- Makes common UI operations more concise
-- Improves code readability
-- Encapsulates framework-specific workarounds
-- Provides consistent solutions to common problems
-
-### 6. Helpers
+### 3. Helpers
 
 **Purpose**: Provide utility functions specific to UI operations.
 
-```
-Helpers/
-├── ThemeHelper.cs
-├── ScreenHelper.cs
-├── UIDispatcherHelper.cs
-└── ...
-```
-
-**Reasoning**:
-- Centralizes common UI utility functions
-- Abstracts platform-specific implementations
-- Simplifies complex UI operations
-- Improves code reuse across views
-
-### 7. Models
-
-**Purpose**: Define UI-specific data structures distinct from domain models.
-
-```
-Models/
-├── UI/
-│   ├── MenuItem.cs
-│   ├── NotificationItem.cs
-│   └── ...
-└── DTOs/
-    ├── UserProfileDto.cs
-    └── ...
+```csharp
+public static class StyleHelper
+{
+    public static Style GetNamedStyle(string styleName)
+    {
+        if (Application.Current.Resources.Contains(styleName))
+        {
+            return (Style)Application.Current.Resources[styleName];
+        }
+        
+        return null;
+    }
+    
+    public static bool ApplyNamedStyle(FrameworkElement element, string styleName)
+    {
+        var style = GetNamedStyle(styleName);
+        if (style != null)
+        {
+            element.Style = style;
+            return true;
+        }
+        
+        return false;
+    }
+}
 ```
 
-**Reasoning**:
-- Separates UI-specific data structures from domain models
-- Prevents UI concerns from leaking into domain layer
-- Optimizes data structures for UI consumption
-- Facilitates transformation between domain and UI models
-
-### 8. Resources
+### 4. Resources
 
 **Purpose**: Centralize reusable resource dictionaries.
 
-```
-Resources/
-├── Colors.xaml
-├── Icons.xaml
-├── Brushes.xaml
-├── TextStyles.xaml
-└── ControlStyles.xaml
+```xml
+<!-- Colors.xaml -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="PrimaryColor">#1976D2</Color>
+    <Color x:Key="AccentColor">#FF4081</Color>
+    <Color x:Key="BackgroundColor">#FAFAFA</Color>
+    <Color x:Key="TextPrimaryColor">#212121</Color>
+    <Color x:Key="TextSecondaryColor">#757575</Color>
+    
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+</ResourceDictionary>
 ```
 
-**Reasoning**:
-- Promotes consistent visual design
-- Makes theming and branding easier to manage
-- Improves application maintainability
-- Reduces duplication of styling code
-
-### 9. Services
+### 5. Services
 
 **Purpose**: Provide UI-specific functionality isolated from business logic.
 
-```
-Services/
-├── Interfaces/
-│   ├── INavigationService.cs
-│   ├── IDialogService.cs
-│   ├── IThemeService.cs
-│   └── ...
-└── Implementations/
-    ├── NavigationService.cs
-    ├── DialogService.cs
-    ├── ThemeService.cs
-    └── ...
-```
+```csharp
+public interface IDialogService
+{
+    bool ShowConfirmation(string title, string message);
+    void ShowInformation(string title, string message);
+    void ShowWarning(string title, string message);
+    void ShowError(string title, string message);
+    string ShowOpenFileDialog(string title, string filter);
+    string ShowSaveFileDialog(string title, string filter, string defaultFileName);
+}
 
-**Reasoning**:
-- Abstracts platform-specific functionality
-- Enables unit testing through interface-based design
-- Facilitates clean separation of concerns
-- Makes the UI layer more modular and testable
-
-### 10. Validation
-
-**Purpose**: Handle UI input validation separate from domain validation.
-
-```
-Validation/
-├── Rules/
-│   ├── RequiredFieldRule.cs
-│   ├── EmailValidationRule.cs
-│   └── ...
-├── Validators/
-│   ├── UserInputValidator.cs
-│   └── ...
-└── Behaviors/
-    ├── ValidationBehavior.cs
-    └── ...
+public class DialogService : IDialogService
+{
+    public bool ShowConfirmation(string title, string message)
+    {
+        return MessageBox.Show(
+            message, 
+            title, 
+            MessageBoxButton.YesNo, 
+            MessageBoxImage.Question) == MessageBoxResult.Yes;
+    }
+    
+    // Other implementations
+}
 ```
 
-**Reasoning**:
-- Separates UI validation from domain validation
-- Provides immediate user feedback
-- Improves user experience
-- Makes validation rules reusable across the application
-
-### 11. ViewModels
+### 6. ViewModels
 
 **Purpose**: Contain the presentation logic and state for views.
 
-```
-ViewModels/
-├── Base/
-│   ├── ViewModelBase.cs
-│   └── ...
-├── Pages/
-│   ├── HomeViewModel.cs
-│   ├── ProfileViewModel.cs
-│   └── ...
-└── Dialogs/
-    ├── ConfirmationDialogViewModel.cs
-    └── ...
+```csharp
+public abstract class ViewModelBase : ObservableObject
+{
+    private bool _isLoading;
+    private string _title = string.Empty;
+    
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
+    
+    public string Title
+    {
+        get => _title;
+        set => SetProperty(ref _title, value);
+    }
+    
+    // Common ViewModel functionality
+    protected async Task ExecuteWithLoadingAsync(Func<Task> action)
+    {
+        try
+        {
+            IsLoading = true;
+            await action();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+public class SequencesViewModel : ViewModelBase
+{
+    private readonly ISequenceService _sequenceService;
+    private readonly INavigationService _navigationService;
+    private readonly IDialogService _dialogService;
+    private readonly ILogger<SequencesViewModel> _logger;
+    
+    private ObservableCollection<Sequence> _sequences = new();
+    private Sequence? _selectedSequence;
+    
+    public ObservableCollection<Sequence> Sequences
+    {
+        get => _sequences;
+        set => SetProperty(ref _sequences, value);
+    }
+    
+    public Sequence? SelectedSequence
+    {
+        get => _selectedSequence;
+        set => SetProperty(ref _selectedSequence, value);
+    }
+    
+    public bool HasNoSequences => !Sequences.Any();
+    
+    public SequencesViewModel(
+        ISequenceService sequenceService,
+        INavigationService navigationService,
+        IDialogService dialogService,
+        ILogger<SequencesViewModel> logger)
+    {
+        _sequenceService = sequenceService;
+        _navigationService = navigationService;
+        _dialogService = dialogService;
+        _logger = logger;
+        
+        Title = "Sequences";
+    }
+    
+    [RelayCommand]
+    private async Task LoadSequencesAsync()
+    {
+        await ExecuteWithLoadingAsync(async () =>
+        {
+            try
+            {
+                var sequences = await _sequenceService.GetAllSequencesAsync();
+                
+                Sequences.Clear();
+                foreach (var sequence in sequences)
+                {
+                    Sequences.Add(sequence);
+                }
+                
+                OnPropertyChanged(nameof(HasNoSequences));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load sequences");
+                _dialogService.ShowError("Error", $"Failed to load sequences: {ex.Message}");
+            }
+        });
+    }
+    
+    // Other commands and methods
+}
 ```
 
-**Reasoning**:
-- Encapsulates UI logic separate from views
-- Makes UI testable through unit tests
-- Provides clean data binding surface for views
-- Follows MVVM pattern for maintainability
-
-### 12. Views
+### 7. Views
 
 **Purpose**: Define the visual elements and user interface.
 
+```xml
+<!-- SequencesView.xaml -->
+<UserControl x:Class="Instrument.Data.UI.Views.SequencesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="{Binding Title}" 
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       VerticalAlignment="Center"/>
+            
+            <Button Grid.Column="1"
+                    Content="Add Sequence"
+                    Command="{Binding CreateSequenceCommand}"
+                    Style="{StaticResource PrimaryButton}"/>
+        </Grid>
+        
+        <!-- Content -->
+        <materialDesign:Card Grid.Row="1" Margin="0">
+            <Grid>
+                <!-- Loading indicator -->
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                             IsIndeterminate="True"
+                             Value="0"
+                             Visibility="{Binding IsLoading, 
+                                Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                
+                <!-- No data message -->
+                <TextBlock Text="No sequences found. Click 'Add Sequence' to create one."
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="{Binding HasNoSequences, 
+                                Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                
+                <!-- Data list -->
+                <ListView ItemsSource="{Binding Sequences}"
+                          SelectedItem="{Binding SelectedSequence}"
+                          Visibility="{Binding HasNoSequences, 
+                                Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                    <!-- ListView content -->
+                </ListView>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl>
 ```
-Views/
-├── Pages/
-│   ├── HomePage.xaml
-│   ├── ProfilePage.xaml
-│   └── ...
-├── Dialogs/
-│   ├── ConfirmationDialog.xaml
-│   └── ...
-└── Controls/
-    ├── PageHeader.xaml
-    └── ...
-```
-
-**Reasoning**:
-- Organizes UI by functional area
-- Separates different types of views (pages vs. dialogs)
-- Makes navigation structure clear
-- Follows MVVM pattern for clean separation from logic
-
-### 13. DependencyInjection
-
-**Purpose**: Configure dependency injection specific to the UI layer.
-
-```
-DependencyInjection/
-├── ViewModelLocator.cs
-├── ServiceCollectionExtensions.cs
-└── ...
-```
-
-**Reasoning**:
-- Centralizes UI dependency registration
-- Makes service composition explicit
-- Simplifies testing by allowing service substitution
-- Improves maintainability by decoupling dependencies
-
-## Cross-Technology Considerations
-
-### WPF-Specific Considerations
-
-- Use `App.xaml` for application-wide resources
-- Take advantage of WPF's rich binding system
-- Utilize `DataTemplates` for view selection
-- Consider using the XAML Hot Reload feature for development
-
-### Avalonia-Specific Considerations
-
-- Use `App.axaml` for application resources
-- Remember platform-specific style differences
-- Utilize Avalonia's cross-platform capabilities
-- Consider ReactiveUI integration for reactive programming
-
-### .NET MAUI-Specific Considerations
-
-- Organize platform-specific code in platform folders
-- Use MAUI's resource system for cross-platform resources
-- Consider Shell navigation for mobile-centric applications
-- Utilize Handlers for custom rendering on each platform
 
 ## Navigation Strategies
 
 ### Centralized Navigation Service
 
-Regardless of the technology, implement a navigation service:
+The application uses a centralized navigation service to manage navigation between views:
 
 ```csharp
 public interface INavigationService
 {
-    Task NavigateToAsync<TViewModel>(object parameter = null);
-    Task GoBackAsync();
-    Task ShowDialogAsync<TDialogViewModel>(object parameter = null);
+    void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : ViewModelBase;
+    void GoBack();
+}
+
+public class NavigationService : INavigationService
+{
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Dictionary<Type, Type> _viewModelToViewMap;
+    private readonly ContentControl _contentRegion;
+    
+    public NavigationService(
+        IServiceProvider serviceProvider, 
+        ContentControl contentRegion)
+    {
+        _serviceProvider = serviceProvider;
+        _contentRegion = contentRegion;
+        
+        // Define mappings between ViewModels and Views
+        _viewModelToViewMap = new Dictionary<Type, Type>
+        {
+            { typeof(SequencesViewModel), typeof(SequencesView) },
+            { typeof(SequenceDetailViewModel), typeof(SequenceDetailView) },
+            // Other mappings
+        };
+    }
+    
+    public void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : ViewModelBase
+    {
+        // Resolve the ViewModel from DI
+        var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
+        
+        // If ViewModel needs initialization with a parameter
+        if (parameter != null && viewModel is IInitializable initializable)
+        {
+            initializable.Initialize(parameter);
+        }
+        
+        // Create the View
+        var viewType = _viewModelToViewMap[typeof(TViewModel)];
+        var view = (UserControl)Activator.CreateInstance(viewType);
+        
+        // Set DataContext
+        view.DataContext = viewModel;
+        
+        // Update the content region
+        _contentRegion.Content = view;
+    }
+    
+    public void GoBack()
+    {
+        // Navigation history management
+    }
 }
 ```
 
-Implementation will differ slightly between platforms:
-- WPF: Uses `Frame` or custom region management
-- Avalonia: Uses `IViewLocator` and window management
-- MAUI: Uses `Shell` navigation or `NavigationPage`
+### View Initialization
 
-### Benefits:
+ViewModels that need initialization implement the `IInitializable` interface:
 
-- Decouples navigation logic from ViewModels
-- Makes navigation testable
-- Centralizes navigation state
-- Simplifies deep linking
+```csharp
+public interface IInitializable
+{
+    void Initialize(object parameter);
+}
+
+public class SequenceDetailViewModel : ViewModelBase, IInitializable
+{
+    // Properties and services
+    
+    public void Initialize(object parameter)
+    {
+        if (parameter is string id)
+        {
+            LoadSequenceAsync(id).ConfigureAwait(false);
+        }
+        else
+        {
+            // Create new sequence mode
+            IsNewSequence = true;
+            CurrentSequence = new Sequence
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "New Sequence",
+                WorstCaseTime = TimeSpan.FromMinutes(1)
+            };
+        }
+    }
+    
+    private async Task LoadSequenceAsync(string id)
+    {
+        // Load sequence by ID
+    }
+}
+```
 
 ## State Management
 
 ### ViewModel State
 
-ViewModels should manage UI state using:
+ViewModels manage UI state using several techniques:
 
-- Properties with `INotifyPropertyChanged`
-- Commands for user actions
-- Observable collections for lists
-- State properties (IsLoading, HasErrors, etc.)
+1. **Observable Properties**: Properties that notify the UI when they change
+
+```csharp
+private Sequence? _currentSequence;
+
+public Sequence? CurrentSequence
+{
+    get => _currentSequence;
+    set => SetProperty(ref _currentSequence, value);
+}
+```
+
+2. **Computed Properties**: Properties derived from other properties
+
+```csharp
+public bool CanSave => !string.IsNullOrEmpty(CurrentSequence?.Name);
+```
+
+3. **Commands**: Encapsulate user actions
+
+```csharp
+[RelayCommand(CanExecute = nameof(CanSave))]
+private async Task SaveAsync()
+{
+    // Save implementation
+}
+```
+
+4. **State Indicators**: Properties that indicate UI state
+
+```csharp
+private bool _isLoading;
+private bool _hasErrors;
+private string _errorMessage = string.Empty;
+
+public bool IsLoading
+{
+    get => _isLoading;
+    set => SetProperty(ref _isLoading, value);
+}
+
+public bool HasErrors
+{
+    get => _hasErrors;
+    set => SetProperty(ref _hasErrors, value);
+}
+
+public string ErrorMessage
+{
+    get => _errorMessage;
+    set
+    {
+        SetProperty(ref _errorMessage, value);
+        HasErrors = !string.IsNullOrEmpty(value);
+    }
+}
+```
 
 ### Application State
 
-For broader application state:
+For broader application state, consider:
 
-- Consider a state service for cross-ViewModel state
-- Use messenger patterns for ViewModel-to-ViewModel communication
-- Implement state persistence for app lifecycle events
+1. **Singleton Services**: Application-wide state
+
+```csharp
+public class ApplicationStateService
+{
+    public event EventHandler<string> ThemeChanged;
+    
+    private string _currentTheme = "Light";
+    
+    public string CurrentTheme
+    {
+        get => _currentTheme;
+        set
+        {
+            if (_currentTheme != value)
+            {
+                _currentTheme = value;
+                ThemeChanged?.Invoke(this, value);
+            }
+        }
+    }
+}
+```
+
+2. **Messenger Patterns**: Communication between ViewModels
+
+```csharp
+public interface IMessenger
+{
+    void Subscribe<TMessage>(object subscriber, Action<TMessage> action);
+    void Unsubscribe<TMessage>(object subscriber);
+    void Send<TMessage>(TMessage message);
+}
+
+// Usage in ViewModels
+public class SequenceDetailViewModel : ViewModelBase
+{
+    private readonly IMessenger _messenger;
+    
+    public SequenceDetailViewModel(IMessenger messenger)
+    {
+        _messenger = messenger;
+        _messenger.Subscribe<SequenceUpdatedMessage>(this, OnSequenceUpdated);
+    }
+    
+    private void OnSequenceUpdated(SequenceUpdatedMessage message)
+    {
+        // Handle the message
+    }
+    
+    public override void Dispose()
+    {
+        _messenger.Unsubscribe<SequenceUpdatedMessage>(this);
+        base.Dispose();
+    }
+}
+```
 
 ## Testing Strategies
 
 ### Unit Testing ViewModels
 
-- Test ViewModel logic independently of UI
-- Mock dependencies using interfaces
-- Verify property changes and command behavior
-- Test navigation requests via the navigation service
+```csharp
+[Fact]
+public async Task LoadSequencesCommand_ShouldPopulateSequencesCollection()
+{
+    // Arrange
+    var mockSequenceService = new Mock<ISequenceService>();
+    mockSequenceService.Setup(s => s.GetAllSequencesAsync())
+        .ReturnsAsync(new List<Sequence>
+        {
+            new Sequence { Id = "1", Name = "Sequence 1" },
+            new Sequence { Id = "2", Name = "Sequence 2" }
+        });
+    
+    var mockNavigationService = new Mock<INavigationService>();
+    var mockDialogService = new Mock<IDialogService>();
+    var mockLogger = new Mock<ILogger<SequencesViewModel>>();
+    
+    var viewModel = new SequencesViewModel(
+        mockSequenceService.Object,
+        mockNavigationService.Object,
+        mockDialogService.Object,
+        mockLogger.Object);
+    
+    // Act
+    await viewModel.LoadSequencesCommand.ExecuteAsync(null);
+    
+    // Assert
+    Assert.Equal(2, viewModel.Sequences.Count);
+    Assert.Equal("Sequence 1", viewModel.Sequences[0].Name);
+    Assert.Equal("Sequence 2", viewModel.Sequences[1].Name);
+    Assert.False(viewModel.IsLoading);
+}
+
+[Fact]
+public async Task SaveCommand_WhenValidationFails_ShouldShowError()
+{
+    // Arrange
+    var mockSequenceService = new Mock<ISequenceService>();
+    mockSequenceService.Setup(s => s.UpdateSequenceAsync(It.IsAny<Sequence>()))
+        .ThrowsAsync(new ValidationException("Name is required"));
+    
+    var mockNavigationService = new Mock<INavigationService>();
+    var mockDialogService = new Mock<IDialogService>();
+    var mockLogger = new Mock<ILogger<SequenceDetailViewModel>>();
+    
+    var viewModel = new SequenceDetailViewModel(
+        mockSequenceService.Object,
+        mockNavigationService.Object,
+        mockDialogService.Object,
+        mockLogger.Object);
+    
+    viewModel.CurrentSequence = new Sequence { Id = "1" };
+    viewModel.IsNewSequence = false;
+    
+    // Act
+    await viewModel.SaveCommand.ExecuteAsync(null);
+    
+    // Assert
+    mockDialogService.Verify(d => d.ShowWarning(
+        It.Is<string>(s => s.Contains("Validation Error")),
+        It.Is<string>(s => s.Contains("Name is required"))),
+        Times.Once);
+    
+    mockNavigationService.Verify(n => n.GoBack(),
+        Times.Never);
+}
+```
 
 ### UI Automation Testing
 
-- Structure Views to enable UI automation
-- Use `AutomationId` or equivalent for test hooks
-- Consider MVVM-friendly UI testing frameworks
-- Implement test helpers for common UI operations
+1. **UI Automation Hooks**: Add automation IDs to elements
+
+```xml
+<Button Content="Save"
+        Command="{Binding SaveCommand}"
+        AutomationProperties.AutomationId="SaveButton"/>
+```
+
+2. **Test Helpers**: Create helpers for UI testing
+
+```csharp
+public static class UITestHelper
+{
+    public static async Task<TElement> WaitForElementAsync<TElement>(
+        AutomationElement root, 
+        string automationId, 
+        TimeSpan timeout) where TElement : AutomationElement
+    {
+        var stopwatch = Stopwatch.StartNew();
+        
+        while (stopwatch.Elapsed < timeout)
+        {
+            var element = root.FindFirst(
+                TreeScope.Descendants,
+                new PropertyCondition(
+                    AutomationElement.AutomationIdProperty, 
+                    automationId));
+            
+            if (element != null)
+            {
+                return (TElement)element;
+            }
+            
+            await Task.Delay(100);
+        }
+        
+        throw new TimeoutException($"Element with automation ID '{automationId}' not found within timeout");
+    }
+}
+```
 
 ## Best Practices
 
@@ -430,121 +741,92 @@ For broader application state:
 8. Implement validation and error handling
 9. Connect to application/domain layer via services
 
-## Conclusion
-
-A well-structured presentation layer is essential for creating maintainable, testable, and extensible UI applications. The architecture described in this document provides a solid foundation that works across WPF, Avalonia, and .NET MAUI, while allowing for framework-specific optimizations. By following these guidelines, developers can create applications with a clean separation of concerns, enabling easier maintenance and evolution over time.
-
-## Appendix: Common Patterns and Examples
+## Common Patterns and Examples
 
 ### Command Pattern Implementation
 
 ```csharp
-public class RelayCommand : ICommand
+// Using CommunityToolkit.Mvvm
+[RelayCommand]
+private void Execute()
 {
-    private readonly Action<object> _execute;
-    private readonly Func<object, bool> _canExecute;
-
-    public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
-    {
-        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-        _canExecute = canExecute;
-    }
-
-    public bool CanExecute(object parameter)
-    {
-        return _canExecute == null || _canExecute(parameter);
-    }
-
-    public void Execute(object parameter)
-    {
-        _execute(parameter);
-    }
-
-    public event EventHandler CanExecuteChanged
-    {
-        add { CommandManager.RequerySuggested += value; }
-        remove { CommandManager.RequerySuggested -= value; }
-    }
-
-    public void RaiseCanExecuteChanged()
-    {
-        CommandManager.InvalidateRequerySuggested();
-    }
+    // Command implementation
 }
+
+[RelayCommand(CanExecute = nameof(CanExecute))]
+private void ExecuteWithCanExecute()
+{
+    // Command implementation
+}
+
+private bool CanExecute() => SomeCondition;
 ```
 
-### Base ViewModel Implementation
+### Event to Command Binding
 
-```csharp
-public abstract class ViewModelBase : INotifyPropertyChanged
-{
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(storage, value))
-            return false;
-
-        storage = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
-}
+```xml
+<ListView ItemsSource="{Binding Items}">
+    <ListView.ItemContainerStyle>
+        <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Type ListViewItem}}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+    </ListView.ItemContainerStyle>
+    <ListView.ItemTemplate>
+        <DataTemplate>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding Name}" 
+                           VerticalAlignment="Center" />
+                
+                <Button Grid.Column="1"
+                        Content="View"
+                        Command="{Binding DataContext.ViewItemCommand, 
+                                  RelativeSource={RelativeSource AncestorType=ListView}}"
+                        CommandParameter="{Binding}" />
+            </Grid>
+        </DataTemplate>
+    </ListView.ItemTemplate>
+</ListView>
 ```
 
-### Navigation Service Example
+### Property Change Notification
 
 ```csharp
-public class NavigationService : INavigationService
+// Using CommunityToolkit.Mvvm
+public partial class MyViewModel : ObservableObject
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly Dictionary<Type, Type> _viewModelToViewMapping;
-
-    public NavigationService(IServiceProvider serviceProvider)
+    // Auto-generated property with notification
+    [ObservableProperty]
+    private string _name = string.Empty;
+    
+    // Manual property with notification
+    private bool _isValid;
+    
+    public bool IsValid
     {
-        _serviceProvider = serviceProvider;
-        _viewModelToViewMapping = new Dictionary<Type, Type>();
-        
-        // Register view mappings
-        RegisterViewMapping<HomeViewModel, HomePage>();
-        RegisterViewMapping<ProfileViewModel, ProfilePage>();
-    }
-
-    public void RegisterViewMapping<TViewModel, TView>()
-        where TViewModel : class
-        where TView : class
-    {
-        _viewModelToViewMapping[typeof(TViewModel)] = typeof(TView);
-    }
-
-    public async Task NavigateToAsync<TViewModel>(object parameter = null)
-    {
-        // Implementation differs based on UI framework
-        // This is a conceptual example
-        
-        var viewModelType = typeof(TViewModel);
-        if (!_viewModelToViewMapping.TryGetValue(viewModelType, out var viewType))
-            throw new Exception($"No view mapping found for {viewModelType.Name}");
-            
-        var viewModel = _serviceProvider.GetService(viewModelType) as TViewModel;
-        var view = Activator.CreateInstance(viewType) as Page;
-        
-        view.BindingContext = viewModel;
-        
-        // Initialize ViewModel if needed
-        if (viewModel is IInitializable initializable)
-            await initializable.InitializeAsync(parameter);
-            
-        // Actual navigation depends on framework
-        // For example in MAUI:
-        await Shell.Current.Navigation.PushAsync(view);
+        get => _isValid;
+        set 
+        {
+            if (SetProperty(ref _isValid, value))
+            {
+                // Property changed additional logic
+                OnPropertyChanged(nameof(CanSave));
+            }
+        }
     }
     
-    // Other implementation details...
+    // Calculated property
+    public bool CanSave => !string.IsNullOrEmpty(Name) && IsValid;
 }
 ```
+
+## See Also
+
+- [Core Data Layer](./core-data-layer.md) - Details of the data layer architecture
+- [Integration Guide](./integration-guide.md) - How to integrate the presentation layer with services
+- [WPF Material Design Guide](./wpf-material-design-guide.md) - Material Design implementation details
