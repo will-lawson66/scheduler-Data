@@ -11,7 +11,7 @@
             <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
             <converters:NullValueToBooleanConverter x:Key="NullValueToBooleanConverter"/>
             <converters:InverseNullValueToBooleanConverter x:Key="InverseNullValueToBooleanConverter"/>
-            
+
             <!-- Global Styles -->
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="#212121"/>
@@ -19,19 +19,19 @@
             <Style TargetType="Label">
                 <Setter Property="Foreground" Value="#212121"/>
             </Style>
-            
+
             <ResourceDictionary.MergedDictionaries>
-                <!-- Material Design Resources - Load these FIRST -->
+                <!-- Material Design Resources -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Pink.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                
-                <!-- Application Resources - Load these AFTER Material Design -->
+
+                <!-- Application Resources -->
                 <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Colors.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Instrument.Data.UI;component/Resources/Styles.xaml" />
-                
-                <!-- Load specific Material Design controls we use -->
+
+                <!-- Material Design Controls -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Card.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBox.xaml" />
