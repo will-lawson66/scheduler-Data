@@ -5,57 +5,79 @@ using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 
 namespace Instrument.Data.Avalonia.ViewModels
 {
+    /// <summary>
+    /// Main window view model that handles navigation and global application state
+    /// </summary>
     public class MainWindowViewModel : ViewModelBase
     {
-        private readonly INavigationService _navigationService;
-        private readonly IDialogService _dialogService;
+        private readonly IThemeService _themeService;
         private readonly ILogger<MainWindowViewModel> _logger;
         
         private int _selectedViewIndex;
-        private object _currentView;
         
+        /// <summary>
+        /// Navigation service for the application
+        /// </summary>
+        public INavigationService NavigationService { get; }
+        
+        /// <summary>
+        /// Dialog service for the application
+        /// </summary>
+        public IDialogService DialogService { get; }
+        
+        /// <summary>
+        /// Selected view index in the navigation menu
+        /// </summary>
         public int SelectedViewIndex
         {
             get => _selectedViewIndex;
             set => this.RaiseAndSetIfChanged(ref _selectedViewIndex, value);
         }
         
-        public object CurrentView
-        {
-            get => _currentView;
-            set => this.RaiseAndSetIfChanged(ref _currentView, value);
-        }
+        // Commands
+        public ReactiveCommand<Unit, Unit> ToggleThemeCommand { get; }
         
         public MainWindowViewModel(
             INavigationService navigationService,
             IDialogService dialogService,
+            IThemeService themeService,
             ILogger<MainWindowViewModel> logger)
         {
-            _navigationService = navigationService;
-            _dialogService = dialogService;
+            NavigationService = navigationService;
+            DialogService = dialogService;
+            _themeService = themeService;
             _logger = logger;
             
             Title = "Instrument Data Manager";
             
-            // Initialize navigation with the ContentControl that will host views
-            this.WhenActivated(disposables =>
-            {
-                _navigationService.Initialize(this, view => CurrentView = view);
-                
-                // Navigate to default view when SelectedViewIndex changes
-                this.WhenAnyValue(x => x.SelectedViewIndex)
-                    .Subscribe(index => NavigateBasedOnIndex(index))
-                    .DisposeWith(disposables);
-                
-                // Default navigation to Sequences
-                SelectedViewIndex = 0;
-            });
+            // Create the theme toggle command
+            ToggleThemeCommand = ReactiveCommand.Create(() => _themeService.ToggleTheme());
         }
         
+        protected override void HandleActivation()
+        {
+            // Default navigation to Sequences
+            SelectedViewIndex = 0;
+        }
+        
+        protected override void SetupActivationHandlers(CompositeDisposable disposables)
+        {
+            // Navigate to default view when SelectedViewIndex changes
+            this.WhenAnyValue(x => x.SelectedViewIndex)
+                .Subscribe(index => NavigateBasedOnIndex(index))
+                .DisposeWith(disposables);
+        }
+        
+        /// <summary>
+        /// Navigate to a view based on the selected index
+        /// </summary>
+        /// <param name="index">Index of the view to navigate to</param>
         private void NavigateBasedOnIndex(int index)
         {
             try
@@ -63,32 +85,32 @@ namespace Instrument.Data.Avalonia.ViewModels
                 switch (index)
                 {
                     case 0:
-                        _navigationService.NavigateTo<SequencesViewModel>();
+                        NavigationService.NavigateTo<SequencesViewModel>();
                         break;
                     case 1:
-                        _navigationService.NavigateTo<SequenceGroupsViewModel>();
+                        NavigationService.NavigateTo<SequenceGroupsViewModel>();
                         break;
                     case 2:
-                        _navigationService.NavigateTo<ParametersViewModel>();
+                        NavigationService.NavigateTo<ParametersViewModel>();
                         break;
                     case 3:
-                        _navigationService.NavigateTo<RangesViewModel>();
+                        NavigationService.NavigateTo<RangesViewModel>();
                         break;
                     case 4:
-                        _navigationService.NavigateTo<ResourcesViewModel>();
+                        NavigationService.NavigateTo<ResourcesViewModel>();
                         break;
                     case 5:
-                        _navigationService.NavigateTo<RelationshipVisualizerViewModel>();
+                        NavigationService.NavigateTo<RelationshipVisualizerViewModel>();
                         break;
                     default:
-                        _navigationService.NavigateTo<SequencesViewModel>();
+                        NavigationService.NavigateTo<SequencesViewModel>();
                         break;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error navigating to view with index {Index}", index);
-                _dialogService.ShowError("Navigation Error", $"Failed to navigate to the selected view: {ex.Message}");
+                DialogService.ShowErrorAsync("Navigation Error", $"Failed to navigate to the selected view: {ex.Message}").ConfigureAwait(false);
             }
         }
     }

@@ -2,12 +2,16 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.ReactiveUI;
 using Instrument.Data.Avalonia.Services;
+using Instrument.Data.Avalonia.Services.Dialog;
+using Instrument.Data.Avalonia.Services.Navigation;
 using Instrument.Data.Avalonia.ViewModels;
 using Instrument.Data.Configuration;
 using Instrument.Data.Initialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
+using Splat;
 using System;
 using System.Threading.Tasks;
 
@@ -40,7 +44,7 @@ class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
-            .UseReactiveUI()
+            .UseReactiveUI() // Important for ReactiveUI integration
             .With(new AvaloniaAppBuilderSettings { ServiceProvider = host.Services });
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -70,18 +74,26 @@ class Program
                 
                 // 4. Register ViewModels
                 RegisterViewModels(services);
+                
+                // 5. Register Views for dependency injection
+                RegisterViews(services);
             });
 
     private static void RegisterServices(IServiceCollection services)
     {
+        // Register navigation and dialog services
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IThemeService, ThemeService>();
-        // Other services
+        
+        // Register ReactiveUI router and Screen interfaces
+        services.AddSingleton<IScreen, NavigationService>();
+        services.AddSingleton<RoutingState>();
     }
 
     private static void RegisterViewModels(IServiceCollection services)
     {
+        // Register all ViewModels
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<SequencesViewModel>();
         services.AddTransient<SequenceDetailViewModel>();
@@ -94,7 +106,14 @@ class Program
         services.AddTransient<SequenceGroupsViewModel>();
         services.AddTransient<SequenceGroupDetailViewModel>();
         services.AddTransient<RelationshipVisualizerViewModel>();
-        // Other ViewModels
+    }
+    
+    private static void RegisterViews(IServiceCollection services)
+    {
+        // Register views for dependency injection
+        services.AddTransient<Views.SequencesView>();
+        
+        // Other views will be registered as they are implemented
     }
 }
 

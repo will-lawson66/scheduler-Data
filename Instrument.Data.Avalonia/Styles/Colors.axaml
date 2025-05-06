@@ -22,6 +22,15 @@
     <Color x:Key="WarningColor">#FF9800</Color>
     <Color x:Key="SuccessColor">#4CAF50</Color>
     
+    <!-- Dark theme colors -->
+    <Color x:Key="DarkPrimaryColor">#1565C0</Color>
+    <Color x:Key="DarkPrimaryLightColor">#1E88E5</Color>
+    <Color x:Key="DarkPrimaryDarkColor">#0D47A1</Color>
+    <Color x:Key="DarkBackgroundColor">#121212</Color>
+    <Color x:Key="DarkSurfaceColor">#1E1E1E</Color>
+    <Color x:Key="DarkTextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="DarkTextSecondaryColor">#B3FFFFFF</Color> <!-- 70% white -->
+    
     <!-- Brushes -->
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
     <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}" />

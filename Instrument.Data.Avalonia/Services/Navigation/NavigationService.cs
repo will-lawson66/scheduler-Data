@@ -2,12 +2,20 @@ using Avalonia.Controls;
 using Instrument.Data.Avalonia.ViewModels.Base;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Linq;
 
 namespace Instrument.Data.Avalonia.Services.Navigation
 {
-    public class NavigationService : INavigationService
+    /// <summary>
+    /// Implementation of a navigation service that combines direct content setting
+    /// with ReactiveUI routing capabilities
+    /// </summary>
+    public class NavigationService : ReactiveObject, INavigationService, IScreen
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<NavigationService> _logger;
@@ -16,12 +24,21 @@ namespace Instrument.Data.Avalonia.Services.Navigation
         private object _navigationOwner;
         private Action<object> _contentSetter;
         
+        // ReactiveUI routing state
+        public RoutingState Router { get; }
+        
         public NavigationService(
             IServiceProvider serviceProvider,
             ILogger<NavigationService> logger)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            
+            // Initialize the ReactiveUI router
+            Router = new RoutingState();
+            
+            // Register with Splat for ReactiveUI services
+            Locator.CurrentMutable.RegisterConstant(this, typeof(IScreen));
         }
         
         public void Initialize(object owner, Action<object> contentSetter)
@@ -30,6 +47,9 @@ namespace Instrument.Data.Avalonia.Services.Navigation
             _contentSetter = contentSetter;
         }
         
+        /// <summary>
+        /// Navigates to a view model by replacing the content in the content host
+        /// </summary>
         public void NavigateTo<TViewModel>(object parameter = null) where TViewModel : ViewModelBase
         {
             try
@@ -58,6 +78,12 @@ namespace Instrument.Data.Avalonia.Services.Navigation
                 
                 // Update the content
                 _contentSetter?.Invoke(viewModel);
+                
+                // If view model is routable, also update the routing state
+                if (viewModel is IRoutableViewModel routableViewModel)
+                {
+                    Router.Navigate.Execute(routableViewModel);
+                }
             }
             catch (Exception ex)
             {
@@ -66,8 +92,46 @@ namespace Instrument.Data.Avalonia.Services.Navigation
             }
         }
         
+        /// <summary>
+        /// Navigate to a routable view model using ReactiveUI routing
+        /// </summary>
+        public void NavigateToRoute<TViewModel>(object parameter = null) 
+            where TViewModel : class, IRoutableViewModel
+        {
+            try
+            {
+                // Resolve the ViewModel from DI
+                var viewModel = _serviceProvider.GetRequiredService<TViewModel>();
+                
+                // Initialize ViewModel with parameter if it implements IInitializable
+                if (parameter != null && viewModel is IInitializable initializable)
+                {
+                    initializable.Initialize(parameter);
+                }
+                
+                // Navigate using ReactiveUI router
+                Router.Navigate.Execute(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Navigation to route {ViewModelType} failed", typeof(TViewModel).Name);
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// Navigate back to the previous view model
+        /// </summary>
         public void GoBack()
         {
+            // Check if we can navigate back using ReactiveUI routing first
+            if (Router.NavigateBack.CanExecute.FirstAsync().Wait())
+            {
+                Router.NavigateBack.Execute().Subscribe();
+                return;
+            }
+            
+            // Otherwise use our custom navigation stack
             if (_navigationStack.Count > 0)
             {
                 var (viewModelType, parameter) = _navigationStack.Pop();
@@ -79,6 +143,22 @@ namespace Instrument.Data.Avalonia.Services.Navigation
                 
                 navigateToMethod.Invoke(this, new[] { parameter });
             }
+        }
+        
+        /// <summary>
+        /// Resets the navigation stack and navigates to the specified view model
+        /// </summary>
+        public void NavigateAndReset<TViewModel>(object parameter = null) 
+            where TViewModel : ViewModelBase
+        {
+            // Clear the navigation stack
+            _navigationStack.Clear();
+            
+            // Reset the ReactiveUI router
+            Router.NavigationStack.Clear();
+            
+            // Navigate to the specified view model
+            NavigateTo<TViewModel>(parameter);
         }
     }
 }

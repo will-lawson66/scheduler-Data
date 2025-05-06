@@ -1,22 +1,37 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:material="using:Material.Styles">
-    <!-- Button Styles -->
+    <!-- Button Styles with proper Avalonia selectors -->
     <Style Selector="Button.primary">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Padding" Value="16,8"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="material:ElevationEffect.Elevation" Value="Dp2"/>
     </Style>
     
+    <Style Selector="Button.primary:pointerover">
+        <Setter Property="Background" Value="{DynamicResource PrimaryDarkBrush}"/>
+    </Style>
+    
+    <Style Selector="Button.primary:pressed">
+        <Setter Property="Background" Value="{DynamicResource PrimaryDarkBrush}"/>
+        <Setter Property="Opacity" Value="0.8"/>
+    </Style>
+    
     <Style Selector="Button.secondary">
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="Padding" Value="16,8"/>
         <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    
+    <Style Selector="Button.secondary:pointerover">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Opacity" Value="0.9"/>
     </Style>
     
     <Style Selector="Button.icon">
@@ -28,12 +43,34 @@
         <Setter Property="CornerRadius" Value="20"/>
     </Style>
     
+    <Style Selector="Button.icon:pointerover">
+        <Setter Property="Background" Value="#10000000"/>
+    </Style>
+    
+    <Style Selector="Button.icon:pressed">
+        <Setter Property="Background" Value="#20000000"/>
+    </Style>
+    
+    <Style Selector="Button:disabled">
+        <Setter Property="Opacity" Value="0.6"/>
+        <Setter Property="Cursor" Value="No"/>
+    </Style>
+    
     <!-- TextBox Styles -->
     <Style Selector="TextBox.form">
         <Setter Property="Margin" Value="0,8"/>
         <Setter Property="Padding" Value="8,6"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+    </Style>
+    
+    <Style Selector="TextBox.form:focus">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+    
+    <Style Selector="TextBox.error">
+        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}"/>
     </Style>
     
     <!-- ListBox Styles -->
@@ -41,5 +78,29 @@
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+    
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Margin" Value="2"/>
+    </Style>
+    
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#10000000"/>
+    </Style>
+    
+    <!-- ProgressBar Styles -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Background" Value="#1F000000"/>
+        <Setter Property="MinHeight" Value="4"/>
+        <Setter Property="CornerRadius" Value="2"/>
     </Style>
 </Styles>

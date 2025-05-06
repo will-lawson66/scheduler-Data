@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:material="using:Material.Styles"
+             xmlns:converters="using:Instrument.Data.Avalonia.Converters"
              x:Class="Instrument.Data.Avalonia.App">
     <Application.Styles>
         <!-- Material Theme -->
@@ -13,5 +14,7 @@
     
     <Application.Resources>
         <!-- Global resources -->
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
     </Application.Resources>
 </Application>

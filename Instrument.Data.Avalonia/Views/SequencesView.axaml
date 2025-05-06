@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Instrument.Data.Avalonia.ViewModels"
              xmlns:material="using:Material.Styles"
+             xmlns:rxui="using:Avalonia.ReactiveUI"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Instrument.Data.Avalonia.Views.SequencesView"
              x:DataType="vm:SequencesViewModel">
@@ -47,9 +48,10 @@
                          VerticalAlignment="Center"
                          IsVisible="{Binding HasNoSequences}"/>
                 
-                <!-- Data list -->
-                <ListBox ItemsSource="{Binding Sequences}"
-                       Selection="{Binding SelectedSequence}"
+                <!-- Data list with ReactiveUI binding -->
+                <ListBox Name="SequencesList"
+                       ItemsSource="{Binding Sequences}"
+                       SelectedItem="{Binding SelectedSequence}"
                        IsVisible="{Binding !HasNoSequences}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
@@ -71,11 +73,14 @@
                                           Orientation="Horizontal"
                                           Spacing="8"
                                           VerticalAlignment="Center">
-                                    <Button Command="{Binding $parent[UserControl].DataContext.ViewSequenceCommand}"
+                                    <!-- Buttons use ViewHost context accessor -->
+                                    <Button Command="{Binding $parent[rxui:ReactiveViewBase].ViewModel.ViewSequenceCommand}"
+                                           CommandParameter="{Binding}"
                                            Classes="icon">
                                         <material:PackIcon Kind="Eye"/>
                                     </Button>
-                                    <Button Command="{Binding $parent[UserControl].DataContext.DeleteSequenceCommand}"
+                                    <Button Command="{Binding $parent[rxui:ReactiveViewBase].ViewModel.DeleteSequenceCommand}"
+                                           CommandParameter="{Binding}"
                                            Classes="icon">
                                         <material:PackIcon Kind="Delete"/>
                                     </Button>
