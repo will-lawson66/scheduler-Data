@@ -1,0 +1,102 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Instrument.Data.Avalonia.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:material="using:Material.Styles"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="750"
+        Width="1200" Height="750"
+        x:Class="Instrument.Data.Avalonia.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/Icons/app-icon.ico"
+        Title="Instrument Data Manager"
+        WindowStartupLocation="CenterScreen">
+        
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- App Bar -->
+        <material:ColorZone Grid.Row="0" Mode="PrimaryDark" Padding="16" Elevation="2">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <material:PackIcon Kind="Database" Width="24" Height="24" VerticalAlignment="Center"/>
+                    <TextBlock Text="Instrument Data Manager" 
+                              FontSize="20"
+                              FontWeight="Medium"
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </material:ColorZone>
+        
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Navigation Menu -->
+            <material:Card Grid.Column="0" Margin="8" Elevation="1">
+                <ScrollViewer>
+                    <StackPanel Margin="0,20,0,0">
+                        <TextBlock Text="ENTITIES" 
+                                  Margin="16,0,0,8" 
+                                  Foreground="{DynamicResource MaterialBodyTextLightBrush}" 
+                                  FontSize="12"/>
+                        
+                        <ListBox Name="NavigationItems" 
+                                SelectedIndex="{Binding SelectedViewIndex}"
+                                Margin="0,8">
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="ViewSequential" Width="24" Height="24"/>
+                                    <TextBlock Text="Sequences" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="FormatListBulleted" Width="24" Height="24"/>
+                                    <TextBlock Text="Sequence Groups" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="Function" Width="24" Height="24"/>
+                                    <TextBlock Text="Parameters" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="ListStatus" Width="24" Height="24"/>
+                                    <TextBlock Text="Ranges" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="Toolbox" Width="24" Height="24"/>
+                                    <TextBlock Text="Resources" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <material:PackIcon Kind="GraphOutline" Width="24" Height="24"/>
+                                    <TextBlock Text="Relationships" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ListBoxItem>
+                        </ListBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </material:Card>
+            
+            <!-- Content Area -->
+            <Grid Grid.Column="1">
+                <material:Card Margin="16" Padding="16" Elevation="1">
+                    <ContentControl Content="{Binding CurrentView}"/>
+                </material:Card>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

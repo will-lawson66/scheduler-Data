@@ -1,0 +1,17 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:material="using:Material.Styles"
+             x:Class="Instrument.Data.Avalonia.App">
+    <Application.Styles>
+        <!-- Material Theme -->
+        <material:MaterialTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Indigo"/>
+        
+        <!-- Application-specific styles -->
+        <StyleInclude Source="/Styles/Colors.axaml"/>
+        <StyleInclude Source="/Styles/Themes.axaml"/>
+    </Application.Styles>
+    
+    <Application.Resources>
+        <!-- Global resources -->
+    </Application.Resources>
+</Application>
