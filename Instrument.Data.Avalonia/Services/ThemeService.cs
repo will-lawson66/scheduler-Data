@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Styling;
-using Material.Styles;
-using System.Linq;
+using Material.Styles.Themes;
 
 namespace Instrument.Data.Avalonia.Services
 {
@@ -18,7 +17,7 @@ namespace Instrument.Data.Avalonia.Services
                 var materialTheme = Application.Current.Styles.OfType<MaterialTheme>().FirstOrDefault();
                 if (materialTheme != null)
                 {
-                    materialTheme.BaseTheme = BaseThemeMode.Light;
+                    materialTheme.BaseTheme = Material.Styles.Themes.Base.BaseThemeMode.Light;
                     _isDarkTheme = false;
                 }
             }
@@ -28,10 +27,10 @@ namespace Instrument.Data.Avalonia.Services
         {
             if (!_isDarkTheme)
             {
-                var materialTheme = Application.Current.Styles.OfType<MaterialTheme>().FirstOrDefault();
+                var materialTheme = Application.Current.Styles.OfType<Material.Styles.Themes.MaterialTheme>().FirstOrDefault();
                 if (materialTheme != null)
                 {
-                    materialTheme.BaseTheme = BaseThemeMode.Dark;
+                    materialTheme.BaseTheme = Material.Styles.Themes.Base.BaseThemeMode.Dark;
                     _isDarkTheme = true;
                 }
             }
