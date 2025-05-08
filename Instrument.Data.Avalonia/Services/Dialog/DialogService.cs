@@ -1,17 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using Avalonia.ReactiveUI;
-using Material.Styles.Controls;
-using Material.Styles.Dialogs;
-using Material.Styles.Dialogs.ViewModels;
+using Material.Dialog;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 
 namespace Instrument.Data.Avalonia.Services.Dialog
 {
@@ -69,8 +62,8 @@ namespace Instrument.Data.Avalonia.Services.Dialog
                         SupportingText = message,
                         StartupLocation = WindowStartupLocation.CenterOwner,
                         Width = 400,
-                        NegativeButton = "Cancel",
-                        PositiveButton = "OK",
+                        //NegativeButton = "Cancel",
+                        //PositiveButton = "OK",
                     });
                     
                     var result = await dialog.ShowDialog(mainWindow);

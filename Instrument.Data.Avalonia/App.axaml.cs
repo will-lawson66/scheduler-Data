@@ -23,7 +23,7 @@ namespace Instrument.Data.Avalonia
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Get the host's service provider
-                var serviceProvider = (IServiceProvider)AvaloniaLocator.Current.GetService(typeof(IServiceProvider));
+                var serviceProvider = (IServiceProvider)Locator.Current.GetService(typeof(IServiceProvider));
                 
                 // Register the ViewLocator
                 AvaloniaLocator.CurrentMutable.Bind<IDataTemplate>().ToConstant(new ViewLocator(serviceProvider));
