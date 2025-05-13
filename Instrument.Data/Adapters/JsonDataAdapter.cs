@@ -91,6 +91,7 @@ public class JsonDataAdapter : IJsonDataAdapter
 
         // Import each entity type from JSON files in a specific order to respect dependencies
         await ImportEntityAsync<Sequence>(Path.Combine(directoryPath, "sequences.json"), _dbContext.Sequences);
+        await ImportEntityAsync<SequenceGroupCollectionBase>(Path.Combine(directoryPath, "sequence_group_collections.json"), _dbContext.SequenceGroupCollections);
         await ImportEntityAsync<Entities.Range>(Path.Combine(directoryPath, "ranges.json"), _dbContext.Ranges);
         await ImportEntityAsync<Resource>(Path.Combine(directoryPath, "resources.json"), _dbContext.Resources);
         await ImportEntityAsync<Parameter>(Path.Combine(directoryPath, "parameters.json"), _dbContext.Parameters);
@@ -98,6 +99,7 @@ public class JsonDataAdapter : IJsonDataAdapter
         await ImportEntityAsync<SequenceParameter>(Path.Combine(directoryPath, "sequence_parameters.json"), _dbContext.SequenceParameters);
         await ImportEntityAsync<SequenceGroup>(Path.Combine(directoryPath, "sequence_groups.json"), _dbContext.SequenceGroups);
         await ImportEntityAsync<SequenceGroupSequence>(Path.Combine(directoryPath, "sequence_group_sequences.json"), _dbContext.SequenceGroupSequences);
+        await ImportEntityAsync<SequenceGroupCollectionSequenceGroup>(Path.Combine(directoryPath, "sequence_group_sequences.json"), _dbContext.SequenceGroupCollectionSequenceGroups);
 
         // Save all changes to database
         await _dbContext.SaveChangesAsync();
@@ -150,6 +152,7 @@ public class JsonDataAdapter : IJsonDataAdapter
         try
         {
             // Clear data in reverse order of dependencies
+            _dbContext.SequenceGroupCollectionSequenceGroups.RemoveRange(_dbContext.SequenceGroupCollectionSequenceGroups);
             _dbContext.SequenceGroupSequences.RemoveRange(_dbContext.SequenceGroupSequences);
             _dbContext.SequenceParameters.RemoveRange(_dbContext.SequenceParameters);
             _dbContext.RangeValues.RemoveRange(_dbContext.RangeValues);
@@ -157,8 +160,9 @@ public class JsonDataAdapter : IJsonDataAdapter
             _dbContext.Ranges.RemoveRange(_dbContext.Ranges);
             _dbContext.Resources.RemoveRange(_dbContext.Resources);
             _dbContext.Sequences.RemoveRange(_dbContext.Sequences);
+            _dbContext.SequenceGroupCollections.RemoveRange(_dbContext.SequenceGroupCollections);
             _dbContext.SequenceGroups.RemoveRange(_dbContext.SequenceGroups);
-            
+
             await _dbContext.SaveChangesAsync();
             _logger.LogInformation("Database cleared successfully");
         }
