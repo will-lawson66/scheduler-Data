@@ -1,7 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Instrument.Data.Repository;
@@ -19,32 +18,23 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
         : base(dbContext)
     {
     }
-    
-    /// <summary>
-    /// Gets a resource by code
-    /// </summary>
-    /// <param name="code">Resource code</param>
+
+    /// <inheritdoc />
     public async Task<Resource?> GetByCodeAsync(string code)
     {
         return await DbContext.Resources
             .FirstOrDefaultAsync(r => r.Code == code);
     }
-    
-    /// <summary>
-    /// Gets resources with their parameters
-    /// </summary>
+
+    /// <inheritdoc />
     public async Task<IEnumerable<Resource>> GetResourcesWithParametersAsync()
     {
         return await DbContext.Resources
             .Include(r => r.Parameters)
             .ToListAsync();
     }
-    
-    /// <summary>
-    /// Adds a parameter to a resource
-    /// </summary>
-    /// <param name="resourceId">Resource ID</param>
-    /// <param name="parameterId">Parameter ID</param>
+
+    /// <inheritdoc />
     public async Task AddParameterToResourceAsync(string resourceId, string parameterId)
     {
         // Check if the resource exists
@@ -67,12 +57,8 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
         DbContext.Parameters.Update(parameter);
         await DbContext.SaveChangesAsync();
     }
-    
-    /// <summary>
-    /// Removes a parameter from a resource
-    /// </summary>
-    /// <param name="resourceId">Resource ID</param>
-    /// <param name="parameterId">Parameter ID</param>
+
+    /// <inheritdoc />
     public async Task RemoveParameterFromResourceAsync(string resourceId, string parameterId)
     {
         // Find the parameter
@@ -90,11 +76,8 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
         DbContext.Parameters.Update(parameter);
         await DbContext.SaveChangesAsync();
     }
-    
-    /// <summary>
-    /// Gets parameters for a resource
-    /// </summary>
-    /// <param name="resourceId">Resource ID</param>
+
+    /// <inheritdoc />
     public async Task<IEnumerable<Parameter>> GetParametersForResourceAsync(string resourceId)
     {
         return await DbContext.Parameters

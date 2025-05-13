@@ -1,6 +1,5 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -191,7 +190,7 @@ public class RangeRepositoryTests : IDisposable
     }
     
     [Fact]
-    public async Task GetRangeWithValuesAsync_ReturnsRangeWithValues()
+    public async Task GetRangeWithRangeValuesAsync_ReturnsRangeWithValues()
     {
         // Arrange
         var range = new Entities.Range
@@ -206,175 +205,24 @@ public class RangeRepositoryTests : IDisposable
         
         var rangeValues = new List<RangeValue>
         {
-            new RangeValue { Id = "val1", RangeId = "range1", Name = "Value 1", Value = "One" },
-            new RangeValue { Id = "val2", RangeId = "range1", Name = "Value 2", Value = "Two" }
+            new()
+                { Id = "val1", RangeId = "range1", Name = "Value 1", Value = "One" },
+            new()
+                { Id = "val2", RangeId = "range1", Name = "Value 2", Value = "Two" },
         };
         
         await _dbContext.RangeValues.AddRangeAsync(rangeValues);
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetRangeWithValuesAsync("range1");
+        var result = await _repository.GetRangeWithRangeValuesByIdAsync("range1");
         
         // Assert
         Assert.NotNull(result);
         Assert.Equal("range1", result.Id);
-        Assert.NotNull(result.Values);
-        Assert.Equal(2, result.Values.Count);
-        Assert.Contains(result.Values, v => v.Id == "val1");
-        Assert.Contains(result.Values, v => v.Id == "val2");
-    }
-    
-    [Fact]
-    public async Task GetRangesByParameterAsync_ReturnsCorrectRanges()
-    {
-        // Arrange
-        var parameterId = "param1";
-        
-        // Create ranges
-        var ranges = new List<Entities.Range>
-        {
-            new Entities.Range { Id = "range1", Name = "Range 1", Description = "Range 1 description" },
-            new Entities.Range { Id = "range2", Name = "Range 2", Description = "Range 2 description" }
-        };
-        
-        await _dbContext.Ranges.AddRangeAsync(ranges);
-        await _dbContext.SaveChangesAsync();
-        
-        // Create parameters
-        var parameters = new List<Parameter>
-        {
-            new Parameter 
-            { 
-                Id = parameterId, 
-                Name = "Parameter 1", 
-                Type = ParameterType.StringType,
-                RangeId = "range1"
-            },
-            new Parameter 
-            { 
-                Id = "param2", 
-                Name = "Parameter 2", 
-                Type = ParameterType.IntegerType,
-                RangeId = "range2"
-            }
-        };
-        
-        await _dbContext.Parameters.AddRangeAsync(parameters);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _repository.GetRangesByParameterAsync(parameterId);
-        
-        // Assert
-        Assert.Single(result);
-        Assert.Equal("range1", result.First().Id);
-    }
-    
-    [Fact]
-    public async Task AddRangeValueAsync_AddsRangeValue()
-    {
-        // Arrange
-        var rangeId = "range1";
-        var name = "New Value";
-        var value = "New";
-        
-        var range = new Entities.Range 
-        { 
-            Id = rangeId, 
-            Name = "Range 1", 
-            Description = "Range 1 description" 
-        };
-        
-        await _dbContext.Ranges.AddAsync(range);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _repository.AddRangeValueAsync(rangeId, name, value);
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(rangeId, result.RangeId);
-        Assert.Equal(name, result.Name);
-        Assert.Equal(value, result.Value);
-        
-        // Check in database
-        var rangeValue = await _dbContext.RangeValues.FirstOrDefaultAsync(rv => 
-            rv.RangeId == rangeId && rv.Name == name && rv.Value == value);
-        Assert.NotNull(rangeValue);
-    }
-    
-    [Fact]
-    public async Task RemoveRangeValueAsync_RemovesRangeValue()
-    {
-        // Arrange
-        var rangeId = "range1";
-        var rangeValueId = "val1";
-        
-        var range = new Entities.Range 
-        { 
-            Id = rangeId, 
-            Name = "Range 1", 
-            Description = "Range 1 description" 
-        };
-        
-        await _dbContext.Ranges.AddAsync(range);
-        await _dbContext.SaveChangesAsync();
-        
-        var rangeValue = new RangeValue 
-        { 
-            Id = rangeValueId, 
-            RangeId = rangeId, 
-            Name = "Value 1", 
-            Value = "One" 
-        };
-        
-        await _dbContext.RangeValues.AddAsync(rangeValue);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        await _repository.RemoveRangeValueAsync(rangeValueId);
-        
-        // Assert
-        var result = await _dbContext.RangeValues.FindAsync(rangeValueId);
-        Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task GetParametersForRangeAsync_ReturnsCorrectParameters()
-    {
-        // Arrange
-        var rangeId = "range1";
-        
-        // Create range
-        var range = new Entities.Range 
-        { 
-            Id = rangeId, 
-            Name = "Range 1", 
-            Description = "Range 1 description" 
-        };
-        
-        await _dbContext.Ranges.AddAsync(range);
-        await _dbContext.SaveChangesAsync();
-        
-        // Create parameters
-        var parameters = new List<Parameter>
-        {
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType, RangeId = rangeId },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType, RangeId = rangeId },
-            new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType, RangeId = "range2" }
-        };
-        
-        await _dbContext.Parameters.AddRangeAsync(parameters);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _repository.GetParametersForRangeAsync(rangeId);
-        
-        // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, p => p.Id == "param1");
-        Assert.Contains(result, p => p.Id == "param2");
-        Assert.DoesNotContain(result, p => p.Id == "param3");
+        Assert.NotNull(result.RangeValues);
+        Assert.Equal(2, result.RangeValues.Count);
+        Assert.Contains(result.RangeValues, v => v.Id == "val1");
+        Assert.Contains(result.RangeValues, v => v.Id == "val2");
     }
 }

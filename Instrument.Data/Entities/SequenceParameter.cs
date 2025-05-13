@@ -8,6 +8,6 @@ public record SequenceParameter
     public int OrderNumber { get; set; }
 
     // Navigation properties
-    public Sequence? Sequence { get; init; }
-    public Parameter? Parameter { get; init; } = null!;
+    public Sequence? Sequence { get; set; }
+    public Parameter? Parameter { get; set; } = null!;
 }

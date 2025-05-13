@@ -7,7 +7,7 @@ public class ExceptionTests
     public void SchedulerDataException_ConstructsCorrectly_WithMessage()
     {
         // Arrange
-        string message = "Test data exception message";
+        var message = "Test data exception message";
         
         // Act
         var exception = new SchedulerDataException(message);
@@ -21,7 +21,7 @@ public class ExceptionTests
     public void SchedulerDataException_ConstructsCorrectly_WithMessageAndInnerException()
     {
         // Arrange
-        string message = "Test data exception message";
+        var message = "Test data exception message";
         var innerException = new InvalidOperationException("Inner exception");
         
         // Act
@@ -36,9 +36,9 @@ public class ExceptionTests
     public void ValidationException_ConstructsCorrectly_WithParameterIdValueAndReason()
     {
         // Arrange
-        string parameterId = "param-123";
-        string value = "invalid-value";
-        string reason = "Value must be a number";
+        var parameterId = "param-123";
+        var value = "invalid-value";
+        var reason = "Value must be a number";
         
         // Act
         var exception = new ValidationException(parameterId, value, reason);
@@ -56,7 +56,7 @@ public class ExceptionTests
     public void StorageProviderException_ConstructsCorrectly_WithOperationAndInnerException()
     {
         // Arrange
-        string operation = "GetAll()";
+        var operation = "GetAll()";
         var innerException = new IOException("Inner exception");
         
         // Act
@@ -72,8 +72,8 @@ public class ExceptionTests
     public void EntityNotFoundException_ConstructsCorrectly_WithEntityTypeAndId()
     {
         // Arrange
-        string entityType = "Sequence";
-        string entityId = "seq-123";
+        var entityType = "Sequence";
+        var entityId = "seq-123";
         
         // Act
         var exception = new EntityNotFoundException(entityType, entityId);

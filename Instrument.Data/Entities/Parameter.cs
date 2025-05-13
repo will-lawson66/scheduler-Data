@@ -18,7 +18,7 @@ public record Parameter
     // Navigation properties
     public Range? Range { get; init; }
     public Resource? Resource { get; init; }
-    public List<SequenceParameter> SequenceParameters { get; init; } = [];
+    public List<SequenceParameter> SequenceParameters { get; set; } = [];
     
     // Update method - returns a new instance with the specified changes
     public Parameter Update(
@@ -33,7 +33,9 @@ public record Parameter
     {
         // Validate updates if needed
         if (name != null && string.IsNullOrWhiteSpace(name))
+        {
             throw new ArgumentException("Name cannot be empty", nameof(name));
+        }
             
         // Use record's "with" expression for creating a modified copy
         return this with 

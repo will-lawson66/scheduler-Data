@@ -1,17 +1,15 @@
-using Instrument.Data.Entities;
-
-namespace Instrument.Data.Interfaces;
+namespace Instrument.Data;
 
 /// <summary>
 /// Repository interface for parameters
 /// </summary>
-public interface IParameterRepository : IRepository<Parameter>
+public interface IParameterRepository : IRepository<Instrument.Data.Entities.Parameter>
 {
     /// <summary>
     /// Gets parameters for a sequence
     /// </summary>
     /// <param name="sequenceId">Sequence ID</param>
-    Task<IEnumerable<Parameter>> GetParametersForSequenceAsync(string sequenceId);
+    Task<IEnumerable<Instrument.Data.Entities.Parameter?>> GetParametersForSequenceAsync(string sequenceId);
     
     /// <summary>
     /// Adds a parameter to a sequence

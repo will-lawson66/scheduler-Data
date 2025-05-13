@@ -1,6 +1,5 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Instrument.Data.Repository;
@@ -72,8 +71,6 @@ public class Repository<T> : IRepository<T> where T : class
     {
         try
         {
-            // Assume that entities have an Id property based on your repository design
-            // You'll need to extract the id from the entity
             var id = entity.GetType().GetProperty("Id")?.GetValue(entity)?.ToString();
             if (string.IsNullOrEmpty(id))
             {

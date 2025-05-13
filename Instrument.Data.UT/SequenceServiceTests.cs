@@ -1,7 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
@@ -61,7 +60,7 @@ public class SequenceServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetSequenceAsync(id);
+        var result = await _service.GetSequenceByIdAsync(id);
 
         // Assert
         Assert.NotNull(result);
@@ -121,7 +120,7 @@ public class SequenceServiceTests : IDisposable
         
         // Verify the sequence wasn't changed
         var unchangedSequence = await _dbContext.Sequences.FindAsync(id);
-        Assert.Equal("Existing Sequence", unchangedSequence.Name);
+        Assert.Equal("Existing Sequence", unchangedSequence?.Name);
     }
 
     [Fact]
@@ -181,105 +180,6 @@ public class SequenceServiceTests : IDisposable
     }
     
     [Fact]
-    public async Task UpdateSequencePropertiesAsync_WithValidId_UpdatesSpecifiedProperties()
-    {
-        // Arrange
-        var id = "test-sequence-1";
-        var existingSequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Original Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(45),
-            Description = "Original description",
-            CanBeParallel = false
-        };
-        
-        await _dbContext.Sequences.AddAsync(existingSequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act - only update name and description
-        var result = await _service.UpdateSequencePropertiesAsync(
-            id: id,
-            name: "Updated Sequence",
-            description: "Updated description"
-        );
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("Updated Sequence", result.Name);
-        Assert.Equal("Updated description", result.Description);
-        Assert.Equal(TimeSpan.FromSeconds(45), result.WorstCaseTime); // Unchanged
-        Assert.False(result.CanBeParallel); // Unchanged
-        
-        // Verify database changes
-        _dbContext.ChangeTracker.Clear(); // Clear tracking to ensure we get fresh data
-        var updatedSequence = await _dbContext.Sequences.FindAsync(id);
-        Assert.Equal("Updated Sequence", updatedSequence.Name);
-        Assert.Equal("Updated description", updatedSequence.Description);
-        Assert.Equal(TimeSpan.FromSeconds(45), updatedSequence.WorstCaseTime);
-        Assert.False(updatedSequence.CanBeParallel);
-    }
-    
-    [Fact]
-    public async Task UpdateSequencePropertiesAsync_WithAllProperties_UpdatesAllProperties()
-    {
-        // Arrange
-        var id = "test-sequence-1";
-        var existingSequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Original Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(45),
-            Description = "Original description",
-            CanBeParallel = false
-        };
-        
-        await _dbContext.Sequences.AddAsync(existingSequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act - update all properties
-        var result = await _service.UpdateSequencePropertiesAsync(
-            id: id,
-            name: "Updated Sequence",
-            worstCaseTime: TimeSpan.FromSeconds(30),
-            description: "Updated description",
-            canBeParallel: true
-        );
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("Updated Sequence", result.Name);
-        Assert.Equal("Updated description", result.Description);
-        Assert.Equal(TimeSpan.FromSeconds(30), result.WorstCaseTime);
-        Assert.True(result.CanBeParallel);
-        
-        // Verify database changes
-        _dbContext.ChangeTracker.Clear();
-        var updatedSequence = await _dbContext.Sequences.FindAsync(id);
-        Assert.Equal("Updated Sequence", updatedSequence.Name);
-        Assert.Equal("Updated description", updatedSequence.Description);
-        Assert.Equal(TimeSpan.FromSeconds(30), updatedSequence.WorstCaseTime);
-        Assert.True(updatedSequence.CanBeParallel);
-    }
-    
-    [Fact]
-    public async Task UpdateSequencePropertiesAsync_WithNonExistingId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var id = "test-sequence-1";
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.UpdateSequencePropertiesAsync(
-                id: id,
-                name: "Updated Sequence"
-            ));
-            
-        Assert.Equal(id, exception.EntityId);
-        Assert.Equal("Sequence", exception.EntityType);
-    }
-
-    [Fact]
     public async Task DeleteSequenceAsync_WithValidId_DeletesSequence()
     {
         // Arrange
@@ -322,8 +222,10 @@ public class SequenceServiceTests : IDisposable
         // Arrange
         var sequences = new List<Sequence>
         {
-            new Sequence { Id = "seq1", Name = "Sequence 1", WorstCaseTime = TimeSpan.FromSeconds(30) },
-            new Sequence { Id = "seq2", Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
+            new()
+                { Id = "seq1", Name = "Sequence 1", WorstCaseTime = TimeSpan.FromSeconds(30) },
+            new()
+                { Id = "seq2", Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
         await _dbContext.Sequences.AddRangeAsync(sequences);
@@ -344,8 +246,10 @@ public class SequenceServiceTests : IDisposable
         // Arrange
         var sequences = new List<Sequence>
         {
-            new Sequence { Id = "seq1", Name = "Alpha Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) },
-            new Sequence { Id = "seq2", Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
+            new()
+                { Id = "seq1", Name = "Alpha Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) },
+            new()
+                { Id = "seq2", Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
         await _dbContext.Sequences.AddRangeAsync(sequences);

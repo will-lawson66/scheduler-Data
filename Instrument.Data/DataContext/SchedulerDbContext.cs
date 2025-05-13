@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using Instrument.Data.Entities;
-using System.Text.Json;
+using Instrument.Data.Entities.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Instrument.Data.DataContext;
 public class SchedulerDbContext : DbContext
@@ -17,7 +17,9 @@ public class SchedulerDbContext : DbContext
     public virtual DbSet<RangeValue> RangeValues { get; set; }
     public virtual DbSet<Resource> Resources { get; set; }
     public virtual DbSet<SequenceGroup> SequenceGroups { get; set; }
-    public virtual DbSet<SequenceGroupSequences> SequenceGroupSequences { get; set; }
+    public virtual DbSet<SequenceGroupSequence> SequenceGroupSequences { get; set; }
+    public virtual DbSet<SequenceGroupCollectionBase> SequenceGroupCollections { get; set; }
+    public virtual DbSet<SequenceGroupCollectionSequenceGroup> SequenceGroupCollectionSequenceGroups { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -112,7 +114,7 @@ public class SchedulerDbContext : DbContext
                 
             // Configure relationship
             entity.HasOne(e => e.Range)
-                .WithMany(e => e.Values)
+                .WithMany(e => e.RangeValues)
                 .HasForeignKey(e => e.RangeId);
         });
 
@@ -141,7 +143,7 @@ public class SchedulerDbContext : DbContext
                 .HasMaxLength(1000);
         });
         
-        modelBuilder.Entity<SequenceGroupSequences>(entity =>
+        modelBuilder.Entity<SequenceGroupSequence>(entity =>
         {
             // Configure the composite key
             entity.HasKey(e => new { e.SequenceGroupId, e.SequenceId });
@@ -155,6 +157,52 @@ public class SchedulerDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.SequenceId);
                 
+            // Configure the Order property
+            entity.Property(e => e.Order)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<SequenceGroupCollectionBase>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(1000);
+
+            entity.Property(c => c.CategoryTypeName)
+                .IsRequired();
+
+            entity.Property(c => c.CategoryName)
+                .IsRequired();
+        });
+
+        // Add table-per-hierarchy mapping for SequenceGroupCollection<TEnum> 
+        modelBuilder.Entity<SequenceGroupCollectionBase>()
+            .HasDiscriminator<string>("CategoryTypeName")
+            .HasValue<SequenceGroupCollection<Technology>>(typeof(Technology).FullName ?? string.Empty); //Technology collections
+            // Add other enum types as needed 
+
+
+        modelBuilder.Entity<SequenceGroupCollectionSequenceGroup>(entity =>
+        {
+            // Configure the composite key
+            entity.HasKey(e => new { e.SequenceGroupCollectionId, e.SequenceGroupId });
+
+            // Configure the many-to-many relationship
+            entity.HasOne(e => e.SequenceGroupCollection)
+                .WithMany(e => e.SequenceGroupCollectionSequenceGroups)
+                .HasForeignKey(e => e.SequenceGroupCollectionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.SequenceGroup)
+                .WithMany()
+                .HasForeignKey(e => e.SequenceGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Configure the Order property
             entity.Property(e => e.Order)
                 .IsRequired();

@@ -1,12 +1,11 @@
 using Instrument.Data.Entities.Enums;
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Instrument.Data.Services;
 
-public class ParameterService
+public class ParameterService : IParameterService
 {
     private readonly ILogger<ParameterService> _logger;
     private readonly IParameterRepository _parameterRepository;
@@ -19,7 +18,7 @@ public class ParameterService
         _parameterRepository = parameterRepository ?? throw new ArgumentNullException(nameof(parameterRepository));
     }
 
-    public async Task<Parameter?> GetParameterAsync(string id)
+    public async Task<Parameter?> GetParameterByIdAsync(string id)
     {
         _logger.LogInformation("Retrieving parameter with ID: {Id}", id);
         try
@@ -36,7 +35,9 @@ public class ParameterService
     public async Task CreateParameterAsync(Parameter parameter)
     {
         if (parameter == null)
+        {
             throw new ArgumentNullException(nameof(parameter));
+        }
 
         _logger.LogInformation("Creating new parameter with ID: {Id}, Name: {Name}", parameter.Id, parameter.Name);
         
@@ -64,7 +65,9 @@ public class ParameterService
     public async Task UpdateParameterAsync(Parameter parameter)
     {
         if (parameter == null)
+        {
             throw new ArgumentNullException(nameof(parameter));
+        }
 
         _logger.LogInformation("Updating parameter with ID: {Id}, Name: {Name}", parameter.Id, parameter.Name);
         
@@ -89,52 +92,6 @@ public class ParameterService
         }
     }
     
-    // New property-based update method
-    public async Task<Parameter> UpdateParameterPropertiesAsync(
-        string id,
-        string? name = null,
-        ParameterType? type = null,
-        string? min = null,
-        string? max = null,
-        string? defaultValue = null,
-        string? format = null,
-        string? rangeId = null,
-        string? resourceId = null)
-    {
-        _logger.LogInformation("Updating properties for parameter with ID: {Id}", id);
-        
-        try
-        {
-            // Get the current entity
-            var parameter = await _parameterRepository.GetByIdAsync(id);
-            if (parameter == null)
-            {
-                _logger.LogWarning("Parameter with ID {Id} does not exist", id);
-                throw new EntityNotFoundException("Parameter", id);
-            }
-            
-            // Use the entity's Update method to create a modified copy
-            var updatedParameter = parameter.Update(name, type, min, max, defaultValue, format, rangeId, resourceId);
-            
-            // Use the existing UpdateAsync method
-            await _parameterRepository.UpdateAsync(updatedParameter);
-            await _parameterRepository.SaveChangesAsync();
-            
-            _logger.LogInformation("Successfully updated properties for parameter with ID: {Id}", id);
-            return updatedParameter;
-        }
-        catch (EntityNotFoundException)
-        {
-            // Re-throw entity not found exceptions
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating properties for parameter with ID: {Id}", id);
-            throw new StorageProviderException("UpdateParameterProperties", ex);
-        }
-    }
-
     public async Task DeleteParameterAsync(string id)
     {
         _logger.LogInformation("Deleting parameter with ID: {Id}", id);
@@ -173,9 +130,9 @@ public class ParameterService
             throw new StorageProviderException("GetAllParameters", ex);
         }
     }
-    
-    // Get parameters for a specific sequence
-    public async Task<IEnumerable<Parameter>> GetParametersForSequenceAsync(string sequenceId)
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId)
     {
         _logger.LogInformation("Retrieving parameters for sequence ID: {SequenceId}", sequenceId);
         try
@@ -188,9 +145,9 @@ public class ParameterService
             throw new StorageProviderException("GetParametersForSequence", ex);
         }
     }
-    
-    // Add a parameter to a sequence
-    public async Task AddParameterToSequenceAsync(string sequenceId, string parameterId, int orderNumber)
+
+    /// <inheritdoc />
+    public async Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber)
     {
         _logger.LogInformation("Adding parameter {ParameterId} to sequence {SequenceId} with order {OrderNumber}", 
             parameterId, sequenceId, orderNumber);
@@ -205,7 +162,7 @@ public class ParameterService
         
         try
         {
-            await _parameterRepository.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
+            await _parameterRepository.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber);
             await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully added parameter {ParameterId} to sequence {SequenceId}", 
                 parameterId, sequenceId);
@@ -218,15 +175,15 @@ public class ParameterService
         }
     }
     
-    // Remove a parameter from a sequence
-    public async Task RemoveParameterFromSequenceAsync(string sequenceId, string parameterId)
+    /// <inheritdoc />
+    public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
     {
         _logger.LogInformation("Removing parameter {ParameterId} from sequence {SequenceId}", 
             parameterId, sequenceId);
         
         try
         {
-            await _parameterRepository.RemoveParameterFromSequenceAsync(sequenceId, parameterId);
+            await _parameterRepository.RemoveParameterFromSequenceAsync(parameterId, sequenceId);
             await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully removed parameter {ParameterId} from sequence {SequenceId}", 
                 parameterId, sequenceId);
@@ -239,11 +196,13 @@ public class ParameterService
         }
     }
     
-    // Validate parameter value against constraints
+    /// <inheritdoc />
     public void ValidateParameterValue(Parameter parameter, string value)
     {
         if (parameter == null)
+        {
             throw new ArgumentNullException(nameof(parameter));
+        }
             
         _logger.LogInformation("Validating value '{Value}' for parameter {ParameterId} of type {ParameterType}", 
             value, parameter.Id, parameter.Type);
@@ -258,7 +217,7 @@ public class ParameterService
         {
             case ParameterType.IntegerType:
             case ParameterType.DecimalType:
-                if (!decimal.TryParse(value, out decimal numValue))
+                if (!decimal.TryParse(value, out var numValue))
                 {
                     _logger.LogWarning("Value '{Value}' is not a valid number for parameter {ParameterId}", 
                         value, parameter.Id);
@@ -266,7 +225,7 @@ public class ParameterService
                 }
                 
                 if (!string.IsNullOrEmpty(parameter.Min) && 
-                    decimal.TryParse(parameter.Min, out decimal minValue) &&
+                    decimal.TryParse(parameter.Min, out var minValue) &&
                     numValue < minValue)
                 {
                     _logger.LogWarning("Value {Value} is less than minimum value {MinValue} for parameter {ParameterId}", 
@@ -275,7 +234,7 @@ public class ParameterService
                 }
                 
                 if (!string.IsNullOrEmpty(parameter.Max) && 
-                    decimal.TryParse(parameter.Max, out decimal maxValue) &&
+                    decimal.TryParse(parameter.Max, out var maxValue) &&
                     numValue > maxValue)
                 {
                     _logger.LogWarning("Value {Value} is greater than maximum value {MaxValue} for parameter {ParameterId}", 
@@ -289,7 +248,7 @@ public class ParameterService
                 
             case ParameterType.StringType:
                 if (!string.IsNullOrEmpty(parameter.Min) && 
-                    int.TryParse(parameter.Min, out int minLength) &&
+                    int.TryParse(parameter.Min, out var minLength) &&
                     value.Length < minLength)
                 {
                     _logger.LogWarning("String length {Length} is less than minimum length {MinLength} for parameter {ParameterId}", 
@@ -298,7 +257,7 @@ public class ParameterService
                 }
                 
                 if (!string.IsNullOrEmpty(parameter.Max) && 
-                    int.TryParse(parameter.Max, out int maxLength) &&
+                    int.TryParse(parameter.Max, out var maxLength) &&
                     value.Length > maxLength)
                 {
                     _logger.LogWarning("String length {Length} is greater than maximum length {MaxLength} for parameter {ParameterId}", 
@@ -329,7 +288,6 @@ public class ParameterService
     }
     
     // Simple wrapper method that returns a boolean instead of throwing exceptions
-    // This is useful for UI validation scenarios
     public bool TryValidateParameterValue(Parameter parameter, string value)
     {
         try

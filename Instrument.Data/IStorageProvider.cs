@@ -1,4 +1,4 @@
-namespace Instrument.Data.Interfaces;
+namespace Instrument.Data;
 public interface IStorageProvider<T> where T : class
 {
     Task<IEnumerable<T>> GetAllAsync();

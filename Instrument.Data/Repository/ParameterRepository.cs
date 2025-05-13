@@ -1,6 +1,5 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Instrument.Data.Repository;
@@ -18,12 +17,9 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
         : base(dbContext)
     {
     }
-    
-    /// <summary>
-    /// Gets parameters for a sequence
-    /// </summary>
-    /// <param name="sequenceId">Sequence ID</param>
-    public async Task<IEnumerable<Parameter>> GetParametersForSequenceAsync(string sequenceId)
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId)
     {
         return await DbContext.SequenceParameters
             .Where(sp => sp.SequenceId == sequenceId)
@@ -32,12 +28,7 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Adds a parameter to a sequence
-    /// </summary>
-    /// <param name="parameterId">Parameter ID</param>
-    /// <param name="sequenceId">Sequence ID</param>
-    /// <param name="orderNumber">Order number</param>
+    /// <inheritdoc />
     public async Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber)
     {
         // Check if the parameter and sequence exist
@@ -78,12 +69,8 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
         
         await DbContext.SaveChangesAsync();
     }
-    
-    /// <summary>
-    /// Removes a parameter from a sequence
-    /// </summary>
-    /// <param name="parameterId">Parameter ID</param>
-    /// <param name="sequenceId">Sequence ID</param>
+
+    /// <inheritdoc />
     public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
     {
         var sequenceParameter = await DbContext.SequenceParameters

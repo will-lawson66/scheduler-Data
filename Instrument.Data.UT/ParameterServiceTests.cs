@@ -2,7 +2,6 @@ using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
@@ -65,7 +64,7 @@ public class ParameterServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetParameterAsync(id);
+        var result = await _service.GetParameterByIdAsync(id);
 
         // Assert
         Assert.NotNull(result);
@@ -78,7 +77,7 @@ public class ParameterServiceTests : IDisposable
     public async Task GetParameterAsync_WithInvalidId_ReturnsNull()
     {
         // Act
-        var result = await _service.GetParameterAsync("non-existent");
+        var result = await _service.GetParameterByIdAsync("non-existent");
 
         // Assert
         Assert.Null(result);
@@ -134,8 +133,8 @@ public class ParameterServiceTests : IDisposable
         Assert.Contains(id, exception.Message);
         
         var unchangedParameter = await _dbContext.Parameters.FindAsync(id);
-        Assert.Equal("Existing Parameter", unchangedParameter.Name);
-        Assert.Equal(ParameterType.IntegerType, unchangedParameter.Type);
+        Assert.Equal("Existing Parameter", unchangedParameter?.Name);
+        Assert.Equal(ParameterType.IntegerType, unchangedParameter?.Type);
     }
 
     [Fact]
@@ -234,41 +233,35 @@ public class ParameterServiceTests : IDisposable
     public async Task AddParameterToSequenceAsync_WithValidIds_AddsParameterToSequence()
     {
         // Arrange
-        string sequenceId = "seq-1";
-        string parameterId = "param-1";
-        int orderNumber = 1;
-        
-        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType};
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000)};
-        
+        var sequenceId = "seq-1";
+        var parameterId = "param-1";
+        var orderNumber = 1;
+
+        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType };
+        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
+
         await _dbContext.Parameters.AddAsync(parameter);
         await _dbContext.Sequences.AddAsync(sequence);
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _service.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber);
+        await _service.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber);
 
-        // Make sure all changes are committed before any assertions
-        await _dbContext.SaveChangesAsync();
-
-        // Detach all entities to ensure fresh retrieval
-        _dbContext.ChangeTracker.Clear();
-
-        // Assert - Use a new query to ensure we're getting fresh data
+        // Assert
         var association = await _dbContext.SequenceParameters
             .AsNoTracking()
             .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
         Assert.NotNull(association);
         Assert.Equal(orderNumber, association.OrderNumber);
     }
-    
+
     [Fact]
     public async Task AddParameterToSequenceAsync_WithInvalidParameterId_ThrowsEntityNotFoundException()
     {
         // Arrange
-        string sequenceId = "seq-1";
-        string parameterId = "invalid-param";
-        int orderNumber = 1;
+        var sequenceId = "seq-1";
+        var parameterId = "invalid-param";
+        var orderNumber = 1;
         
         var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000)};
         await _dbContext.Sequences.AddAsync(sequence);
@@ -276,7 +269,7 @@ public class ParameterServiceTests : IDisposable
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.AddParameterToSequenceAsync(sequenceId, parameterId, orderNumber));
+            _service.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber));
             
         Assert.Equal(parameterId, exception.EntityId);
         Assert.Equal("Parameter", exception.EntityType);
@@ -286,7 +279,7 @@ public class ParameterServiceTests : IDisposable
     public async Task GetParametersForSequenceAsync_ReturnsCorrectParameters()
     {
         // Arrange
-        string sequenceId = "seq-1";
+        var sequenceId = "seq-1";
         
         // Create parameters
         var param1 = new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType };
@@ -313,8 +306,8 @@ public class ParameterServiceTests : IDisposable
         // Assert
         var parameters = result.ToList();
         Assert.Equal(2, parameters.Count);
-        Assert.Contains(parameters, p => p.Id == "param1");
-        Assert.Contains(parameters, p => p.Id == "param2");
+        Assert.Contains(parameters, p => p?.Id == "param1");
+        Assert.Contains(parameters, p => p?.Id == "param2");
     }
 
     // Validation tests
@@ -324,7 +317,7 @@ public class ParameterServiceTests : IDisposable
     {
         // Arrange
         Parameter? parameter = null;
-        string value = "test";
+        var value = "test";
         
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => 

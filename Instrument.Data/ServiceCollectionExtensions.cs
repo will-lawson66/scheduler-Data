@@ -4,7 +4,7 @@ using Instrument.Data.Configuration;
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Initialization;
-using Instrument.Data.Interfaces;
+using Instrument.Data;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;

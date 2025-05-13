@@ -1,13 +1,11 @@
+using Instrument.Data;
 using Instrument.Data.Configuration;
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data.Initialization;
-using Instrument.Data.Interfaces;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace Instrument.Data.UT;
 public class ServiceCollectionExtensionsTests
@@ -110,7 +108,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         
         // Act & Assert
-        Assert.Throws<NullReferenceException>(() => services.AddSchedulerDataLayer(null));
+        Assert.Throws<NullReferenceException>(() => services.AddSchedulerDataLayer(null!));
     }
     
     [Fact]
@@ -120,6 +118,6 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         
         // Act & Assert
-        Assert.Throws<NullReferenceException>(() => services.AddSchedulerDataWithInitialization(null));
+        Assert.Throws<NullReferenceException>(() => services.AddSchedulerDataWithInitialization(null!));
     }
 }
