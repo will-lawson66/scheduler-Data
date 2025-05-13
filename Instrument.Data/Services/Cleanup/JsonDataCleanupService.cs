@@ -1,4 +1,4 @@
-using Instrument.Data.Interfaces;
+using Instrument.Data;
 using Microsoft.Extensions.Logging;
 using System.IO;
 

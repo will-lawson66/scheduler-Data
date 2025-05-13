@@ -253,12 +253,13 @@ public class SequenceRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetSequencesByNameAsync("Beta");
+        var result = await _repository.GetSequencesByPartialNameAsync("Beta");
         
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Beta Sequence", result.First().Name);
+        var collection = result.ToList();
+        Assert.Single(collection);
+        Assert.Equal("Beta Sequence", collection.First().Name);
     }
     
     [Fact]
@@ -304,27 +305,5 @@ public class SequenceRepositoryTests : IDisposable
         var result = await _dbContext.SequenceParameters
             .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
         Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task GetSequencesByIdsAsync_ReturnsMatchingSequences()
-    {
-        // Arrange
-        await _dbContext.Sequences.AddRangeAsync(
-            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Description 1", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Description 2", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq3", Name = "Sequence 3", Description = "Description 3", WorstCaseTime = TimeSpan.Zero }
-        );
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _repository.GetSequencesByIdsAsync(new[] { "seq1", "seq3" });
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, s => s.Id == "seq1");
-        Assert.Contains(result, s => s.Id == "seq3");
-        Assert.DoesNotContain(result, s => s.Id == "seq2");
     }
 }

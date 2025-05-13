@@ -194,7 +194,7 @@ public class ResourceRepositoryTests : IDisposable
     public async Task GetByCodeAsync_ReturnsCorrectResource()
     {
         // Arrange
-        string code = "R1";
+        var code = "R1";
         
         await _dbContext.Resources.AddRangeAsync(
             new Resource { Id = "res1", Name = "Resource 1", Code = code },
@@ -254,7 +254,7 @@ public class ResourceRepositoryTests : IDisposable
     public async Task GetParametersForResourceAsync_ReturnsCorrectParameters()
     {
         // Arrange
-        string resourceId = "res1";
+        var resourceId = "res1";
         
         var resource = new Resource 
         { 
@@ -268,9 +268,12 @@ public class ResourceRepositoryTests : IDisposable
         
         var parameters = new List<Parameter>
         {
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType, ResourceId = resourceId },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType, ResourceId = resourceId },
-            new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType, ResourceId = "different-resource" }
+            new()
+                { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType, ResourceId = resourceId },
+            new()
+                { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType, ResourceId = resourceId },
+            new()
+                { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType, ResourceId = "different-resource" }
         };
         
         await _dbContext.Parameters.AddRangeAsync(parameters);
@@ -290,8 +293,8 @@ public class ResourceRepositoryTests : IDisposable
     public async Task AddParameterToResourceAsync_UpdatesParameter()
     {
         // Arrange
-        string resourceId = "res1";
-        string parameterId = "param1";
+        var resourceId = "res1";
+        var parameterId = "param1";
         
         var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };
@@ -313,8 +316,8 @@ public class ResourceRepositoryTests : IDisposable
     public async Task RemoveParameterFromResourceAsync_UpdatesParameter()
     {
         // Arrange
-        string resourceId = "res1";
-        string parameterId = "param1";
+        var resourceId = "res1";
+        var parameterId = "param1";
         
         var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter 

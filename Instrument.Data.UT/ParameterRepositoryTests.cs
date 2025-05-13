@@ -194,7 +194,7 @@ public class ParameterRepositoryTests : IDisposable
     public async Task GetParametersForSequenceAsync_ReturnsCorrectParameters()
     {
         // Arrange
-        string sequenceId = "seq1";
+        var sequenceId = "seq1";
         
         // Create parameters
         var param1 = new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType };
@@ -222,18 +222,18 @@ public class ParameterRepositoryTests : IDisposable
         // Assert
         var parameters = result.ToList();
         Assert.Equal(2, parameters.Count);
-        Assert.Contains(parameters, p => p.Id == "param1");
-        Assert.Contains(parameters, p => p.Id == "param2");
-        Assert.DoesNotContain(parameters, p => p.Id == "param3");
+        Assert.Contains(parameters, p => p?.Id == "param1");
+        Assert.Contains(parameters, p => p?.Id == "param2");
+        Assert.DoesNotContain(parameters, p => p?.Id == "param3");
     }
     
     [Fact]
     public async Task AddParameterToSequenceAsync_AddsSequenceParameter()
     {
         // Arrange
-        string parameterId = "param1";
-        string sequenceId = "seq1";
-        int orderNumber = 1;
+        var parameterId = "param1";
+        var sequenceId = "seq1";
+        var orderNumber = 1;
         
         // Create parameter and sequence
         var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };
@@ -258,8 +258,8 @@ public class ParameterRepositoryTests : IDisposable
     public async Task RemoveParameterFromSequenceAsync_RemovesSequenceParameter()
     {
         // Arrange
-        string parameterId = "param1";
-        string sequenceId = "seq1";
+        var parameterId = "param1";
+        var sequenceId = "seq1";
         
         // Create parameter and sequence
         var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };

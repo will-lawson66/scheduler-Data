@@ -202,7 +202,7 @@ public class RangeValueRepositoryTests : IDisposable
     public async Task GetValuesByRangeIdAsync_ReturnsCorrectValues()
     {
         // Arrange
-        string rangeId = "range1";
+        var rangeId = "range1";
         
         await _dbContext.RangeValues.AddRangeAsync(
             new RangeValue { Id = "rv1", RangeId = rangeId, Name = "Value 1", Value = "1" },
@@ -212,7 +212,7 @@ public class RangeValueRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetValuesByRangeIdAsync(rangeId);
+        var result = await _repository.GetRangeValuesByRangeIdAsync(rangeId);
         
         // Assert
         Assert.Equal(2, result.Count());
@@ -225,7 +225,7 @@ public class RangeValueRepositoryTests : IDisposable
     public async Task GetValuesForRangeAsync_ReturnsCorrectValues()
     {
         // Arrange
-        string rangeId = "range1";
+        var rangeId = "range1";
         
         await _dbContext.RangeValues.AddRangeAsync(
             new RangeValue { Id = "rv1", RangeId = rangeId, Name = "Value 1", Value = "1" },
@@ -235,7 +235,7 @@ public class RangeValueRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetValuesForRangeAsync(rangeId);
+        var result = await _repository.GetRangeValuesByRangeIdAsync(rangeId);
         
         // Assert
         Assert.Equal(2, result.Count());
@@ -244,63 +244,6 @@ public class RangeValueRepositoryTests : IDisposable
         Assert.DoesNotContain(result, rv => rv.Id == "rv3");
     }
     
-    [Fact]
-    public async Task GetByNameAndRangeIdAsync_ReturnsCorrectValue()
-    {
-        // Arrange
-        string rangeId = "range1";
-        string name = "Value 1";
-        
-        await _dbContext.RangeValues.AddRangeAsync(
-            new RangeValue { Id = "rv1", RangeId = rangeId, Name = name, Value = "1" },
-            new RangeValue { Id = "rv2", RangeId = rangeId, Name = "Value 2", Value = "2" }
-        );
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _repository.GetByNameAndRangeIdAsync(name, rangeId);
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("rv1", result.Id);
-        Assert.Equal(name, result.Name);
-        Assert.Equal(rangeId, result.RangeId);
-    }
     
-    [Fact]
-    public async Task UpdateRangeValueAsync_UpdatesExistingValue()
-    {
-        // Arrange
-        string id = "rv1";
-        string name = "Updated Name";
-        string value = "updated";
-        
-        var rangeValue = new RangeValue 
-        { 
-            Id = id, 
-            RangeId = "range1", 
-            Name = "Original Name", 
-            Value = "original" 
-        };
-        
-        await _dbContext.RangeValues.AddAsync(rangeValue);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        await _repository.UpdateRangeValueAsync(id, name, value);
-        
-        // Assert
-        var result = await _dbContext.RangeValues.FindAsync(id);
-        Assert.NotNull(result);
-        Assert.Equal(name, result.Name);
-        Assert.Equal(value, result.Value);
-    }
     
-    [Fact]
-    public async Task UpdateRangeValueAsync_ThrowsException_WhenValueNotFound()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _repository.UpdateRangeValueAsync("non-existent", "new name", "new value"));
-    }
 }

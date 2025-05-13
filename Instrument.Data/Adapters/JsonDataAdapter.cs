@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data.Interfaces;
+using Instrument.Data;
 
 namespace Instrument.Data.Adapters;
 
@@ -97,7 +97,7 @@ public class JsonDataAdapter : IJsonDataAdapter
         await ImportEntityAsync<RangeValue>(Path.Combine(directoryPath, "range_values.json"), _dbContext.RangeValues);
         await ImportEntityAsync<SequenceParameter>(Path.Combine(directoryPath, "sequence_parameters.json"), _dbContext.SequenceParameters);
         await ImportEntityAsync<SequenceGroup>(Path.Combine(directoryPath, "sequence_groups.json"), _dbContext.SequenceGroups);
-        await ImportEntityAsync<SequenceGroupSequences>(Path.Combine(directoryPath, "sequence_group_sequences.json"), _dbContext.SequenceGroupSequences);
+        await ImportEntityAsync<SequenceGroupSequence>(Path.Combine(directoryPath, "sequence_group_sequences.json"), _dbContext.SequenceGroupSequences);
 
         // Save all changes to database
         await _dbContext.SaveChangesAsync();

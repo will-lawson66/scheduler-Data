@@ -1,5 +1,5 @@
 using Instrument.Data.DataContext;
-using Instrument.Data.Interfaces;
+using Instrument.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

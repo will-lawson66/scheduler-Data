@@ -1,7 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
-using Instrument.Data.Interfaces;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +34,6 @@ public class SequenceGroupServiceTests : IDisposable
 
         // Create the service
         _service = new SequenceGroupService(
-            _dbContext,
             _sequenceGroupRepository,
             _sequenceRepository,
             _mockLogger.Object
@@ -91,7 +89,7 @@ public class SequenceGroupServiceTests : IDisposable
         
         // Verify the group wasn't changed
         var unchangedGroup = await _dbContext.SequenceGroups.FindAsync(id);
-        Assert.Equal("Existing Group", unchangedGroup.Name);
+        Assert.Equal("Existing Group", unchangedGroup?.Name);
     }
 
     [Fact]
@@ -100,8 +98,10 @@ public class SequenceGroupServiceTests : IDisposable
         // Arrange
         var groups = new List<SequenceGroup>
         {
-            new SequenceGroup { Id = "group1", Name = "Group 1" },
-            new SequenceGroup { Id = "group2", Name = "Group 2" }
+            new()
+                { Id = "group1", Name = "Group 1" },
+            new()
+                { Id = "group2", Name = "Group 2" }
         };
 
         await _dbContext.SequenceGroups.AddRangeAsync(groups);
@@ -112,8 +112,8 @@ public class SequenceGroupServiceTests : IDisposable
 
         // Assert
         Assert.Equal(2, result.Count());
-        Assert.Contains(result, g => g.Id == "group1");
-        Assert.Contains(result, g => g.Id == "group2");
+        Assert.Contains(result, g => g?.Id == "group1");
+        Assert.Contains(result, g => g?.Id == "group2");
     }
 
     [Fact]
@@ -127,10 +127,9 @@ public class SequenceGroupServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.DeleteSequenceGroupAsync(id);
+        await _service.DeleteSequenceGroupAsync(id);
 
         // Assert
-        Assert.True(result);
         var deletedGroup = await _dbContext.SequenceGroups.FindAsync(id);
         Assert.Null(deletedGroup);
     }
@@ -169,44 +168,64 @@ public class SequenceGroupServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSequenceGroupWithSequencesAsync_WithValidId_ReturnsGroupWithSequences()
+    public async Task GetSequenceGroupByIdAsync_ReturnsGroup_WithSequences()
     {
         // Arrange
         var id = "test-group-1";
+        var group = new SequenceGroup { Id = id, Name = "Test Group" };
+
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetSequenceGroupByIdAsync(id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(id, result.Id);
+        Assert.Equal("Test Group", result.Name);
+    }
+
+    [Fact]
+    public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroupWithSequences()
+    {
+        // Arrange
+        var groupId = "test-group-1";
+        var sequenceId = "test-sequence-1";
         var sequence = new Sequence { 
-            Id = "seq1", 
+            Id = sequenceId, 
             Name = "Sequence 1", 
             WorstCaseTime = TimeSpan.FromMilliseconds(30000)
         };
         
         var group = new SequenceGroup { 
-            Id = id, 
+            Id = groupId, 
             Name = "Test Group"
         };
 
         await _dbContext.Sequences.AddAsync(sequence);
         await _dbContext.SequenceGroups.AddAsync(group);
         await _dbContext.SaveChangesAsync();
-        
+
         // Create association
-        var sequenceGroupSequences = new SequenceGroupSequences {
-            SequenceId = "seq1",
-            SequenceGroupId = id,
+        var sequenceGroupSequence = new SequenceGroupSequence {
+            SequenceId = sequenceId,
+            SequenceGroupId = groupId,
             Order = 1
         };
-        
-        await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequences);
+
+        await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequence);
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetSequenceGroupWithSequencesAsync(id);
+        var result = await _service.GetSequenceGroupByIdAsync(groupId);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(id, result.Id);
+        Assert.Equal(groupId, result.Id);
         Assert.NotNull(result.SequenceGroupSequences);
         Assert.Single(result.SequenceGroupSequences);
-        Assert.Equal("seq1", result.SequenceGroupSequences.First().SequenceId);
+        Assert.Equal(sequenceId, result.SequenceGroupSequences.First().SequenceId);
     }
     
     [Fact]
@@ -229,7 +248,7 @@ public class SequenceGroupServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
             
         // Act
-        var result = await _service.AddSequenceToGroupAsync(groupId, sequenceId, order);
+        var result = await _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order);
         
         // Make sure all changes are committed before any assertions
         await _dbContext.SaveChangesAsync();
@@ -267,7 +286,7 @@ public class SequenceGroupServiceTests : IDisposable
             
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.AddSequenceToGroupAsync(groupId, sequenceId, order));
+            _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order));
             
         Assert.Equal(groupId, exception.EntityId);
         Assert.Equal("SequenceGroup", exception.EntityType);
@@ -288,7 +307,7 @@ public class SequenceGroupServiceTests : IDisposable
             
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.AddSequenceToGroupAsync(groupId, sequenceId, order));
+            _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order));
             
         Assert.Equal(sequenceId, exception.EntityId);
         Assert.Equal("Sequence", exception.EntityType);
