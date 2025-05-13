@@ -21,11 +21,6 @@ public interface IDataInitializer
     Task<bool> MigrateAsync();
 
     /// <summary>
-    /// Seeds the data storage with default data if empty
-    /// </summary>
-    Task<bool> SeedDefaultDataAsync();
-
-    /// <summary>
     /// Gets the storage status message
     /// </summary>
     Task<string> GetStatusMessageAsync();

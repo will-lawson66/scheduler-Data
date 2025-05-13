@@ -31,6 +31,7 @@ namespace Instrument.Data.Services
                 // Start with tables that reference others (child tables)
                 await _context.SequenceParameters.ExecuteDeleteAsync();
                 await _context.SequenceGroupSequences.ExecuteDeleteAsync();
+                await _context.SequenceGroupCollectionSequenceGroups.ExecuteDeleteAsync();
                 await _context.RangeValues.ExecuteDeleteAsync();
 
                 // Then clear parent tables
@@ -39,6 +40,10 @@ namespace Instrument.Data.Services
                 await _context.SequenceGroups.ExecuteDeleteAsync();
                 await _context.Ranges.ExecuteDeleteAsync();
                 await _context.Resources.ExecuteDeleteAsync();
+                await _context.SequenceGroupCollections.ExecuteDeleteAsync();
+
+                // shouldn't be needed but getting unexpected exception that data still exists in Db after cleaning 
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Database cleanup completed successfully");
             }
