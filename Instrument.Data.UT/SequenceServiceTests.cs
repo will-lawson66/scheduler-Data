@@ -48,10 +48,8 @@ public class SequenceServiceTests : IDisposable
     public async Task GetSequenceAsync_WithValidId_ReturnsSequence()
     {
         // Arrange
-        var id = "test-sequence-1";
         var sequence = new Sequence 
         { 
-            Id = id, 
             Name = "Test Sequence", 
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
@@ -60,11 +58,11 @@ public class SequenceServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetSequenceByIdAsync(id);
+        var result = await _service.GetSequenceByIdAsync(sequence.Id);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(id, result.Id);
+        Assert.Equal(sequence.Id, result.Id);
         Assert.Equal("Test Sequence", result.Name);
         Assert.Equal(TimeSpan.FromSeconds(30), result.WorstCaseTime);
     }
@@ -75,7 +73,6 @@ public class SequenceServiceTests : IDisposable
         // Arrange
         var sequence = new Sequence 
         { 
-            Id = "test-sequence-1", 
             Name = "Test Sequence", 
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
@@ -90,38 +87,7 @@ public class SequenceServiceTests : IDisposable
         Assert.Equal(TimeSpan.FromSeconds(30), createdSequence.WorstCaseTime);
     }
 
-    [Fact]
-    public async Task CreateSequenceAsync_WithExistingId_ThrowsSchedulerDataException()
-    {
-        // Arrange
-        var id = "test-sequence-1";
-        var existingSequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Existing Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(45) 
-        };
-        
-        await _dbContext.Sequences.AddAsync(existingSequence);
-        await _dbContext.SaveChangesAsync();
-
-        var newSequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Test Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
-            _service.CreateSequenceAsync(newSequence));
-            
-        Assert.Contains(id, exception.Message);
-        
-        // Verify the sequence wasn't changed
-        var unchangedSequence = await _dbContext.Sequences.FindAsync(id);
-        Assert.Equal("Existing Sequence", unchangedSequence?.Name);
-    }
+    // This test is no longer applicable as IDs are auto-generated
 
     [Fact]
     public async Task UpdateSequenceAsync_WithValidSequence_UpdatesSequence()

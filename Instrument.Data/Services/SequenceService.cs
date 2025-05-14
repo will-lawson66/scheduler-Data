@@ -15,7 +15,7 @@ public class SequenceService : ISequenceService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<Sequence?> GetSequenceByIdAsync(string id)
+    public async Task<Sequence?> GetSequenceByIdAsync(int id)
     {
         _logger.LogInformation("Retrieving sequence with ID: {Id}", id);
         return await _sequenceRepository.GetByIdAsync(id);
@@ -30,13 +30,7 @@ public class SequenceService : ISequenceService
 
         _logger.LogInformation("Creating new sequence with ID: {Id}", sequence.Id);
         
-        // Validate if a sequence with this ID already exists
-        var existingSequence = await _sequenceRepository.GetByIdAsync(sequence.Id);
-        if (existingSequence != null)
-        {
-            _logger.LogWarning("Sequence with ID {Id} already exists", sequence.Id);
-            throw new SchedulerDataException($"Sequence with ID {sequence.Id} already exists");
-        }
+        // No need to check for existing ID as it will be auto-generated
 
         try
         {
@@ -81,7 +75,7 @@ public class SequenceService : ISequenceService
         }
     }
     
-    public async Task DeleteSequenceAsync(string id)
+    public async Task DeleteSequenceAsync(int id)
     {
         _logger.LogInformation("Deleting sequence with ID: {Id}", id);
         

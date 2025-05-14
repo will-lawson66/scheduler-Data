@@ -31,7 +31,7 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    public virtual async Task<T?> GetByIdAsync(string id)
+    public virtual async Task<T?> GetByIdAsync(int id)
     {
         try
         {
@@ -71,11 +71,13 @@ public class Repository<T> : IRepository<T> where T : class
     {
         try
         {
-            var id = entity.GetType().GetProperty("Id")?.GetValue(entity)?.ToString();
-            if (string.IsNullOrEmpty(id))
+            var idProperty = entity.GetType().GetProperty("Id");
+            if (idProperty == null)
             {
-                throw new ArgumentException("Entity must have an Id property with a non-null value");
+                throw new ArgumentException("Entity must have an Id property");
             }
+            
+            var id = (int)idProperty.GetValue(entity);
 
             // Find the entity that's already being tracked
             var existingEntity = await DbSet.FindAsync(id);
@@ -98,7 +100,7 @@ public class Repository<T> : IRepository<T> where T : class
         }
     }
 
-    public virtual async Task DeleteAsync(string id)
+    public virtual async Task DeleteAsync(int id)
     {
         try
         {

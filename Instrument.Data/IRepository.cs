@@ -15,7 +15,7 @@ public interface IRepository<T> where T : class
     /// Gets an entity by its ID
     /// </summary>
     /// <param name="id">Entity ID</param>
-    Task<T?> GetByIdAsync(string id);
+    Task<T?> GetByIdAsync(int id);
     
     /// <summary>
     /// Gets a queryable for the entity
@@ -38,7 +38,7 @@ public interface IRepository<T> where T : class
     /// Deletes an entity by its ID
     /// </summary>
     /// <param name="id">Entity ID</param>
-    Task DeleteAsync(string id);
+    Task DeleteAsync(int id);
     
     /// <summary>
     /// Saves changes to the data store

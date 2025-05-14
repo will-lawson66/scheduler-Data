@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Instrument.Data.Entities.Enums;
 
 namespace Instrument.Data.Entities;
@@ -5,15 +7,17 @@ namespace Instrument.Data.Entities;
 
 public record Parameter
 {
-    public required string Id { get; init; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; init; }
     public required string Name { get; init; }
     public required ParameterType Type { get; init; }
     public string? Min { get; init; }
     public string? Max { get; init; }
     public string? DefaultValue { get; init; }
     public string? Format { get; init; }
-    public string? RangeId { get; init; }
-    public string? ResourceId { get; set; }
+    public int? RangeId { get; init; }
+    public int? ResourceId { get; set; }
     
     // Navigation properties
     public Range? Range { get; init; }
@@ -28,8 +32,8 @@ public record Parameter
         string? max = null, 
         string? defaultValue = null, 
         string? format = null, 
-        string? rangeId = null,
-        string? resourceId = null)
+        int? rangeId = null,
+        int? resourceId = null)
     {
         // Validate updates if needed
         if (name != null && string.IsNullOrWhiteSpace(name))

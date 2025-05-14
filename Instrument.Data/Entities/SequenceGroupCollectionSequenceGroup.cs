@@ -1,9 +1,11 @@
-﻿namespace Instrument.Data.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Instrument.Data.Entities;
 
 public class SequenceGroupCollectionSequenceGroup
 {
-    public required string SequenceGroupCollectionId { get; init; }
-    public required string SequenceGroupId { get; init; }
+    public required int SequenceGroupCollectionId { get; init; }
+    public required int SequenceGroupId { get; init; }
     public required int Order { get; set; }
 
     // Navigation properties

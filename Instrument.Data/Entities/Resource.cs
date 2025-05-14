@@ -1,8 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Instrument.Data.Entities;
 
 public record Resource
 {
-    public required string Id { get; init; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; init; }
     public required string Name { get; init; }
     public required string Code { get; init; }
     public bool Locked { get; init; }

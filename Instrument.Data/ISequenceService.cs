@@ -4,9 +4,9 @@ namespace Instrument.Data;
 
 public interface ISequenceService
 {
-    Task<Sequence?> GetSequenceByIdAsync(string id);
+    Task<Sequence?> GetSequenceByIdAsync(int id);
     Task CreateSequenceAsync(Sequence sequence);
     Task UpdateSequenceAsync(Sequence sequence);
-    Task DeleteSequenceAsync(string id);
+    Task DeleteSequenceAsync(int id);
     Task<IEnumerable<Sequence>> GetAllSequencesAsync();
 }

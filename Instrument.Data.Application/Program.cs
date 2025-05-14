@@ -132,7 +132,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Create a parameter for reagent volume
         var reagentVolumeParam = new Parameter
         {
-            Id = "demo_reagent_volume",
             Name = "Reagent Volume",
             Type = ParameterType.IntegerType,
             DefaultValue = "50",
@@ -146,7 +145,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Create a parameter for temperature
         var temperatureParam = new Parameter
         {
-            Id = "demo_temperature",
             Name = "Temperature",
             Type = ParameterType.DecimalType,
             DefaultValue = "37.0",
@@ -160,7 +158,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Create a parameter for time
         var timeParam = new Parameter
         {
-            Id = "demo_time",
             Name = "Incubation Time",
             Type = ParameterType.IntegerType,
             DefaultValue = "60",
@@ -174,7 +171,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Create sequences
         var prepSequence = new Sequence
         {
-            Id = "demo_prep",
             Name = "Preparation Sequence",
             Description = "Prepares the samples for processing",
             WorstCaseTime = TimeSpan.FromSeconds(30),
@@ -183,7 +179,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
 
         var processSequence = new Sequence
         {
-            Id = "demo_process",
             Name = "Processing Sequence",
             Description = "Processes the samples",
             WorstCaseTime = TimeSpan.FromSeconds(120),
@@ -192,7 +187,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
 
         var washSequence = new Sequence
         {
-            Id = "demo_wash",
             Name = "Wash Sequence",
             Description = "Washes the samples",
             WorstCaseTime = TimeSpan.FromSeconds(45),
@@ -201,7 +195,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
 
         var analyzeSequence = new Sequence
         {
-            Id = "demo_analyze",
             Name = "Analyze Sequence",
             Description = "Analyzes the samples",
             WorstCaseTime = TimeSpan.FromSeconds(60),
@@ -225,7 +218,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         Console.WriteLine("\nStep 2: Creating a sequence group template...");
 
         var templateGroup = await sequenceGroupService.CreateSequenceGroupAsync(
-            "demo_template",
             "Demo Sample Processing Template",
             "Template for processing samples"
         );
@@ -265,7 +257,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         Console.WriteLine("\nStep 3: Creating a 'real' sequence group based on the template...");
 
         var realGroup = await sequenceGroupService.CreateSequenceGroupAsync(
-            "demo_real_group",
             "Sample Batch #12345",
             "Processing configuration for sample batch #12345"
         );
@@ -303,7 +294,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         Console.WriteLine("\nStep 5: Creating a 'real' sequence group based on the template...");
         var sequenceGroupCollection = new SequenceGroupCollection<Technology>
         {
-            Id = "sequence-group-collection-technology",
             Name = "Technology sequence group 1",
             Description = "Add two sequence groups to a collection",
             //CategoryTypeName = "Technology",

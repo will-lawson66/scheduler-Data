@@ -1,4 +1,10 @@
 classDiagram
+    class SequenceAggregateBase {
+        +string Id
+        +string Name
+        +string Description
+    }
+    
     class Sequence {
         +string Id
         +string Name
@@ -28,6 +34,7 @@ classDiagram
     class SequenceParameter {
         +string SequenceId
         +string ParameterId
+        +int OrderNumber
         +Sequence Sequence
         +Parameter Parameter
     }
@@ -58,25 +65,34 @@ classDiagram
     }
     
     class SequenceGroup {
-        +string Id
-        +string Name
-        +string Description
-        +List~SequenceGroupSequences~ SequenceGroupSequences
+        +List~SequenceGroupSequence~ SequenceGroupSequences
         +Update()
     }
     
-    class SequenceGroupBase {
-        +string Id
-        +string Name
-        +string Description
-    }
-    
-    class SequenceGroupSequences {
+    class SequenceGroupSequence {
         +string SequenceGroupId
         +string SequenceId
         +int Order
         +SequenceGroup SequenceGroup
         +Sequence Sequence
+    }
+    
+    class SequenceGroupCollectionBase {
+        +string CategoryTypeName
+        +string CategoryName
+        +List~SequenceGroupCollectionSequenceGroup~ SequenceGroupCollectionSequenceGroups
+    }
+    
+    class SequenceGroupCollection~TEnum~ {
+        +TEnum Category
+    }
+    
+    class SequenceGroupCollectionSequenceGroup {
+        +string SequenceGroupCollectionId
+        +string SequenceGroupId
+        +int Order
+        +SequenceGroupCollectionBase SequenceGroupCollection
+        +SequenceGroup SequenceGroup
     }
     
     class ParameterType {
@@ -89,12 +105,17 @@ classDiagram
         ArrayType
     }
     
+    SequenceGroup --|> SequenceAggregateBase : inherits
+    SequenceGroupCollectionBase --|> SequenceAggregateBase : inherits
+    SequenceGroupCollection~TEnum~ --|> SequenceGroupCollectionBase : inherits
+    
     Sequence "1" -- "many" SequenceParameter : contains
     Parameter "1" -- "many" SequenceParameter : used in
-    SequenceGroup --|> SequenceGroupBase : inherits
-    SequenceGroup "1" -- "many" SequenceGroupSequences : contains
-    Sequence "1" -- "many" SequenceGroupSequences : belongs to
+    SequenceGroup "1" -- "many" SequenceGroupSequence : contains
+    Sequence "1" -- "many" SequenceGroupSequence : belongs to
     Range "1" -- "many" RangeValue : contains
     Range "1" -- "many" Parameter : used by
     Resource "1" -- "many" Parameter : referenced by
     Parameter -- ParameterType : has
+    SequenceGroupCollectionBase "1" -- "many" SequenceGroupCollectionSequenceGroup : contains
+    SequenceGroup "1" -- "many" SequenceGroupCollectionSequenceGroup : belongs to
