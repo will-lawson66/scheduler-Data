@@ -27,14 +27,18 @@ public static class ServiceCollectionExtensions
 
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
-                    options.UseSqlite(config.ConnectionString));
+                    options
+                        .UseSqlite(config.ConnectionString)
+                        .LogTo(Console.WriteLine, LogLevel.Warning));
                 services.AddScoped<DatabaseCleanupService>();
 
                 break;
 
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
-                    options.UseSqlServer(config.ConnectionString));
+                    options
+                        .UseSqlServer(config.ConnectionString)
+                        .LogTo(Console.WriteLine, LogLevel.Warning));
                 services.AddScoped<DatabaseCleanupService>();
                 break;
         }
@@ -49,32 +53,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRangeValueRepository, RangeValueRepository>();
         services.AddScoped<IResourceRepository, ResourceRepository>();
         services.AddScoped<ISequenceGroupRepository, SequenceGroupRepository>();
+        services.AddScoped(typeof(ISequenceGroupCollectionRepository<>), typeof(SequenceGroupCollectionRepository<>));
 
         // Services
-        services.AddScoped<ParameterService>();
-        services.AddScoped<RangeService>();
-        services.AddScoped<RangeValueService>();
-        services.AddScoped<ResourceService>();
-        services.AddScoped<SequenceGroupService>();
-        services.AddScoped<SequenceService>();
+        services.AddScoped<IParameterService, ParameterService>();
+        services.AddScoped<IRangeService, RangeService>();
+        services.AddScoped<IRangeValueService, RangeValueService>();
+        services.AddScoped<IResourceService, ResourceService>();
+        services.AddScoped<ISequenceGroupService, SequenceGroupService>();
+        services.AddScoped(typeof(ISequenceGroupCollectionService<>), typeof(SequenceGroupCollectionService<>));
+        services.AddScoped<ISequenceService, SequenceService>();
 
-
-        //// Register services with explicit logging dependencies
-        //services.AddScoped<SequenceService>((sp) => new SequenceService(
-        //    sp.GetRequiredService<ISequenceRepository>(),
-        //    sp.GetRequiredService<ILogger<SequenceService>>()));
-            
-        //services.AddScoped<SequenceGroupService>((sp) => new SequenceGroupService(
-        //    sp.GetRequiredService<SchedulerDbContext>(),
-        //    sp.GetRequiredService<ISequenceGroupRepository>(),
-        //    sp.GetRequiredService<ISequenceRepository>(),
-        //    sp.GetRequiredService<ILogger<SequenceGroupService>>()));
-            
-        //services.AddScoped<ParameterService>((sp) => new ParameterService(
-        //    sp.GetRequiredService<IParameterRepository>(),
-        //    sp.GetRequiredService<ILogger<ParameterService>>()
-        //));
-            
         return services;
     }
 

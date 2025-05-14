@@ -19,6 +19,8 @@ public class SequenceGroupCollectionService<TEnum>
         _sequenceGroupRepository = sequenceGroupRepository;
         _logger = logger;
     }
+
+    // Todo: overload the create/update/etc. methods with ones that take the entity object
     public async Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(TEnum category, string id, string name, string? description = null)
     {
         _logger.LogInformation("Creating SequenceGroupCollection with Id: {Id}", id);
@@ -193,16 +195,16 @@ public class SequenceGroupCollectionService<TEnum>
         try
         {
             // Get the sequence group collection
-            var sequenceGroup = await _repository.GetByIdAsync(sequenceGroupId);
-            if (sequenceGroup == null)
+            var sequenceGroupCollection = await _repository.GetByIdAsync(sequenceGroupCollectionId);
+            if (sequenceGroupCollection == null)
             {
                 _logger.LogWarning("Sequence group collection not found: {Id}", sequenceGroupCollectionId);
                 return false;
             }
 
             // Get the sequence group
-            var sequence = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
-            if (sequence == null)
+            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(sequenceGroupId);
+            if (sequenceGroup == null)
             {
                 _logger.LogWarning("Sequence group not found: {Id}", sequenceGroupId);
                 return false;
@@ -236,8 +238,8 @@ public class SequenceGroupCollectionService<TEnum>
     {
         try
         {
-            // Validate if the sequence group exists
-            var sequenceGroupCollection = await _repository.GetByIdAsync(sequenceGroupId);
+            // Validate if the sequence group collection exists
+            var sequenceGroupCollection = await _repository.GetByIdAsync(sequenceGroupCollectionId);
             if (sequenceGroupCollection == null)
             {
                 throw new EntityNotFoundException("SequenceGroupCollection", sequenceGroupCollectionId);
@@ -283,23 +285,23 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task<SortedList<int, Sequence>> GetOrderedSequenceGroupsAsync(string collectionId)
+    public async Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string sequenceGroupCollectionId)
     {
-        _logger.LogInformation("Getting ordered sequence groups for sequence group collection: {Id}", collectionId);
+        _logger.LogInformation("Getting ordered sequence groups for sequence group collection: {Id}", sequenceGroupCollectionId);
         try
         {
             // Validate if the sequence group exists
-            var sequenceGroup = await _sequenceGroupRepository.GetByIdAsync(collectionId);
+            var sequenceGroup = await _repository.GetByIdAsync(sequenceGroupCollectionId);
             if (sequenceGroup == null)
             {
-                throw new EntityNotFoundException("SequenceGroup", collectionId);
+                throw new EntityNotFoundException("SequenceGroupCollection", sequenceGroupCollectionId);
             }
 
-            return await _sequenceGroupRepository.GetOrderedSequencesAsync(collectionId);
+            return await _repository.GetOrderedSequenceGroupsAsync(sequenceGroupCollectionId);
         }
         catch (EntityNotFoundException)
         {
-            _logger.LogError("Sequence group collection not found: {Id}", collectionId);
+            _logger.LogError("Sequence group collection not found: {Id}", sequenceGroupCollectionId);
             throw;
         }
         catch (StorageProviderException)
@@ -308,7 +310,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting ordered sequence groups for sequence group collection: {Id}", collectionId);
+            _logger.LogError(ex, "Error getting ordered sequence groups for sequence group collection: {Id}", sequenceGroupCollectionId);
             throw new StorageProviderException("GetOrderedSequencesGroups", ex);
         }
     }
