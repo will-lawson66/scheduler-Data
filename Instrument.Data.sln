@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data", "Instrume
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data.UT", "Instrument.Data.UT\Instrument.Data.UT.csproj", "{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data.Application", "Instrument.Data.Application\Instrument.Data.Application.csproj", "{968ED4BE-C23D-4A47-BD47-25CC95834B20}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instrument.Data.Avalonia", "Instrument.Data.Avalonia\Instrument.Data.Avalonia.csproj", "{9A0236DD-C6ED-4C6F-BB4F-43454B977423}"
 EndProject
 Global
@@ -22,6 +24,10 @@ Global
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2BD18CC-EB5A-47A4-B10F-97D2A3346709}.Release|Any CPU.Build.0 = Release|Any CPU
+		{968ED4BE-C23D-4A47-BD47-25CC95834B20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{968ED4BE-C23D-4A47-BD47-25CC95834B20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{968ED4BE-C23D-4A47-BD47-25CC95834B20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{968ED4BE-C23D-4A47-BD47-25CC95834B20}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9A0236DD-C6ED-4C6F-BB4F-43454B977423}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A0236DD-C6ED-4C6F-BB4F-43454B977423}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A0236DD-C6ED-4C6F-BB4F-43454B977423}.Release|Any CPU.ActiveCfg = Release|Any CPU

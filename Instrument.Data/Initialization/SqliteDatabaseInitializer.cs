@@ -14,7 +14,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
 {
     private readonly SchedulerDbContext _context;
     private readonly ILogger<SqliteDatabaseInitializer> _logger;
-    private readonly string _dbPath;
+    private readonly string _dbPath = "";
 
     public SqliteDatabaseInitializer(
         SchedulerDbContext context,
@@ -97,95 +97,6 @@ public class SqliteDatabaseInitializer : IDataInitializer
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to apply migrations");
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Seeds the database with default data if it's empty
-    /// </summary>
-    public async Task<bool> SeedDefaultDataAsync()
-    {
-        try
-        {
-            // Check if database is empty
-            if (!await _context.Sequences.AnyAsync() &&
-                !await _context.Parameters.AnyAsync() &&
-                !await _context.Ranges.AnyAsync())
-            {
-                _logger.LogInformation("Seeding default data");
-
-                // Add default range
-                var defaultRange = new Range
-                {
-                    Id = "1",
-                    Name = "Default Range",
-                    Description = "Default range for testing"
-                };
-
-                await _context.Ranges.AddAsync(defaultRange);
-
-                // Add default range values
-                await _context.RangeValues.AddRangeAsync(
-                    new RangeValue
-                    {
-                        Id = "1",
-                        RangeId = defaultRange.Id,
-                        Value = "Value1",
-                        Name = "Default Value 1"
-                    },
-                    new RangeValue
-                    {
-                        Id = "2",
-                        RangeId = defaultRange.Id,
-                        Value = "Value2",
-                        Name = "Default Value 2"
-                    }
-                );
-
-                // Add a default parameter
-                var defaultParameter = new Parameter
-                {
-                    Id = "1",
-                    Name = "Default Parameter",
-                    Type = ParameterType.StringType,
-                    DefaultValue = "default"
-                };
-
-                await _context.Parameters.AddAsync(defaultParameter);
-
-                // Add a default sequence
-                var defaultSequence = new Sequence
-                {
-                    Id = "1",
-                    Name = "Default Sequence",
-                    Description = "Default sequence for testing",
-                    WorstCaseTime = TimeSpan.FromMilliseconds(30000),
-                    CanBeParallel = false
-                };
-
-                await _context.Sequences.AddAsync(defaultSequence);
-
-                // Link parameter to sequence
-                await _context.SequenceParameters.AddAsync(new SequenceParameter
-                {
-                    SequenceId = defaultSequence.Id,
-                    ParameterId = defaultParameter.Id,
-                    OrderNumber = 1
-                });
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Default data seeded successfully");
-                return true;
-            }
-
-            _logger.LogInformation("Database already contains data, skipping seed");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to seed default data");
             throw;
         }
     }

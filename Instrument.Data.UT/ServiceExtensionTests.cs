@@ -96,7 +96,6 @@ public class ServiceCollectionExtensionsTests
         // Assert
         var provider = services.BuildServiceProvider();
         var dbCleanupService = provider.GetService<DatabaseCleanupService>();
-        var jsonCleanupService = provider.GetService<JsonDataCleanupService>();
         
         Assert.NotNull(dbCleanupService);
     }

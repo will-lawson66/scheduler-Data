@@ -1,4 +1,4 @@
-﻿
+﻿using Instrument.Data.Entities;
 
 namespace Instrument.Data;
 
@@ -12,7 +12,7 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// <param name="name">Name of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
     /// <param name="description">Description of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
     /// <returns>The created sequence group collection</returns>
-    Task<Instrument.Data.Entities.SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(
+    Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(
         TEnum category,
         string id,
         string name,
@@ -23,7 +23,7 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="collection">The collection with updated values</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    Task UpdateSequenceGroupCollectionAsync(Instrument.Data.Entities.SequenceGroupCollection<TEnum> collection);
+    Task UpdateSequenceGroupCollectionAsync(SequenceGroupCollection<TEnum> collection);
 
     /// <summary>
     /// Deletes a sequence group collection
@@ -37,20 +37,20 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="id">The ID of the collection</param>
     /// <returns>The sequence group collection with the specified ID</returns>
-    Task<Instrument.Data.Entities.SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(string id);
+    Task<SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(string id);
 
     /// <summary>
     /// Gets all sequence group collections
     /// </summary>
     /// <returns>All sequence group collections</returns>
-    Task<IEnumerable<Instrument.Data.Entities.SequenceGroupCollection<TEnum>>> GetAllSequenceGroupCollectionsAsync();
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetAllSequenceGroupCollectionsAsync();
 
     /// <summary>
     /// Gets sequence group collections by category type
     /// </summary>
     /// <param name="category">The enum value representing the category type</param>
     /// <returns>Collections matching the category type</returns>
-    Task<IEnumerable<Instrument.Data.Entities.SequenceGroupCollection<TEnum>>> GetSequenceGroupCollectionsByCategoryAsync(TEnum category);
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetSequenceGroupCollectionsByCategoryAsync(TEnum category);
 
     /// <summary>
     /// Adds a sequence to a collection
@@ -74,5 +74,5 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="collectionId">The ID of the collection</param>
     /// <returns>Ordered sequences in the collection</returns>
-    Task<SortedList<int, Instrument.Data.Entities.Sequence>> GetOrderedSequenceGroupsAsync(string collectionId);
+    Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string collectionId);
 }
