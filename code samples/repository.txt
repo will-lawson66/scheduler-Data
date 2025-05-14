@@ -1,0 +1,548 @@
+/// <summary>
+/// Repository interface for SequenceGroupCollection entities
+/// </summary>
+/// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+public interface ISequenceGroupCollectionRepository<TEnum> : IRepository<SequenceGroupCollection<TEnum>> 
+    where TEnum : Enum
+{
+    /// <summary>
+    /// Gets sequence group collections by category name
+    /// </summary>
+    /// <param name="categoryName">The name of the category</param>
+    /// <returns>Collections matching the category name</returns>
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetByCategoryNameAsync(string categoryName);
+    
+    /// <summary>
+    /// Gets sequence group collections by the enum category type
+    /// </summary>
+    /// <param name="categoryType">The enum value representing the category type</param>
+    /// <returns>Collections matching the category type</returns>
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetByCategoryTypeAsync(TEnum categoryType);
+    
+    /// <summary>
+    /// Gets sequence group collections that contain a specific sequence
+    /// </summary>
+    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <returns>Collections containing the specified sequence</returns>
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetBySequenceIdAsync(string sequenceId);
+    
+    /// <summary>
+    /// Creates a new sequence group collection with default values for the given category type
+    /// </summary>
+    /// <param name="categoryType">The enum value representing the category type</param>
+    /// <param name="name">The name of the collection</param>
+    /// <returns>The newly created sequence group collection</returns>
+    Task<SequenceGroupCollection<TEnum>> CreateDefaultCollectionAsync(TEnum categoryType, string name);
+}
+
+/// <summary>
+/// Repository implementation for SequenceGroupCollection entities
+/// </summary>
+/// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+public class SequenceGroupCollectionRepository<TEnum> : Repository<SequenceGroupCollection<TEnum>>, ISequenceGroupCollectionRepository<TEnum> 
+    where TEnum : Enum
+{
+    public SequenceGroupCollectionRepository(SchedulerDbContext dbContext) : base(dbContext)
+    {
+    }
+
+    public async Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetByCategoryNameAsync(string categoryName)
+    {
+        return await _dbContext.Set<SequenceGroupCollection<TEnum>>()
+            .Where(sgc => sgc.CategoryName == categoryName)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetByCategoryTypeAsync(TEnum categoryType)
+    {
+        return await _dbContext.Set<SequenceGroupCollection<TEnum>>()
+            .Where(sgc => sgc.CategoryType.Equals(categoryType))
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetBySequenceIdAsync(string sequenceId)
+    {
+        return await _dbContext.Set<SequenceGroupCollection<TEnum>>()
+            .Include(sgc => sgc.SequenceGroupSequences)
+            .Where(sgc => sgc.SequenceGroupSequences.Any(sgs => sgs.SequenceId == sequenceId))
+            .ToListAsync();
+    }
+
+    public async Task<SequenceGroupCollection<TEnum>> CreateDefaultCollectionAsync(TEnum categoryType, string name)
+    {
+        var collection = new SequenceGroupCollection<TEnum>
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = name,
+            CategoryType = categoryType,
+            CategoryName = categoryType.ToString(),
+            CategoryTypeName = typeof(TEnum).Name,
+            Description = $"Default collection for {categoryType}"
+        };
+
+        return await AddAsync(collection);
+    }
+}
+
+/// <summary>
+/// Service interface for SequenceGroupCollection operations
+/// </summary>
+/// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
+{
+    /// <summary>
+    /// Gets all sequence group collections
+    /// </summary>
+    /// <returns>All sequence group collections</returns>
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetAllCollectionsAsync();
+    
+    /// <summary>
+    /// Gets a sequence group collection by ID
+    /// </summary>
+    /// <param name="id">The ID of the collection</param>
+    /// <returns>The sequence group collection with the specified ID</returns>
+    Task<SequenceGroupCollection<TEnum>?> GetCollectionByIdAsync(string id);
+    
+    /// <summary>
+    /// Gets sequence group collections by category type
+    /// </summary>
+    /// <param name="categoryType">The enum value representing the category type</param>
+    /// <returns>Collections matching the category type</returns>
+    Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetCollectionsByCategoryTypeAsync(TEnum categoryType);
+    
+    /// <summary>
+    /// Creates a new sequence group collection
+    /// </summary>
+    /// <param name="collection">The collection to create</param>
+    /// <returns>The created sequence group collection</returns>
+    Task<SequenceGroupCollection<TEnum>> CreateCollectionAsync(SequenceGroupCollection<TEnum> collection);
+    
+    /// <summary>
+    /// Creates a new sequence group collection with default values
+    /// </summary>
+    /// <param name="categoryType">The enum value representing the category type</param>
+    /// <param name="name">The name of the collection</param>
+    /// <returns>The created sequence group collection</returns>
+    Task<SequenceGroupCollection<TEnum>> CreateDefaultCollectionAsync(TEnum categoryType, string name);
+    
+    /// <summary>
+    /// Updates an existing sequence group collection
+    /// </summary>
+    /// <param name="collection">The collection with updated values</param>
+    /// <returns>Task representing the asynchronous operation</returns>
+    Task UpdateCollectionAsync(SequenceGroupCollection<TEnum> collection);
+    
+    /// <summary>
+    /// Deletes a sequence group collection
+    /// </summary>
+    /// <param name="id">The ID of the collection to delete</param>
+    /// <returns>Task representing the asynchronous operation</returns>
+    Task DeleteCollectionAsync(string id);
+    
+    /// <summary>
+    /// Adds a sequence to a collection
+    /// </summary>
+    /// <param name="collectionId">The ID of the collection</param>
+    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <param name="order">The order of the sequence in the collection</param>
+    /// <returns>True if successful, false otherwise</returns>
+    Task<bool> AddSequenceToCollectionAsync(string collectionId, string sequenceId, int order);
+    
+    /// <summary>
+    /// Removes a sequence from a collection
+    /// </summary>
+    /// <param name="collectionId">The ID of the collection</param>
+    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <returns>True if successful, false otherwise</returns>
+    Task<bool> RemoveSequenceFromCollectionAsync(string collectionId, string sequenceId);
+    
+    /// <summary>
+    /// Reorders a sequence in a collection
+    /// </summary>
+    /// <param name="collectionId">The ID of the collection</param>
+    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <param name="newOrder">The new order for the sequence</param>
+    /// <returns>True if successful, false otherwise</returns>
+    Task<bool> ReorderSequenceInCollectionAsync(string collectionId, string sequenceId, int newOrder);
+    
+    /// <summary>
+    /// Gets sequences in a collection in order
+    /// </summary>
+    /// <param name="collectionId">The ID of the collection</param>
+    /// <returns>Ordered sequences in the collection</returns>
+    Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string collectionId);
+}
+
+/// <summary>
+/// Service implementation for SequenceGroupCollection operations
+/// </summary>
+/// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+public class SequenceGroupCollectionService<TEnum> : ISequenceGroupCollectionService<TEnum> where TEnum : Enum
+{
+    private readonly ISequenceGroupCollectionRepository<TEnum> _repository;
+    private readonly ISequenceRepository _sequenceRepository;
+    private readonly ILogger<SequenceGroupCollectionService<TEnum>> _logger;
+    
+    public SequenceGroupCollectionService(
+        ISequenceGroupCollectionRepository<TEnum> repository,
+        ISequenceRepository sequenceRepository,
+        ILogger<SequenceGroupCollectionService<TEnum>> logger)
+    {
+        _repository = repository;
+        _sequenceRepository = sequenceRepository;
+        _logger = logger;
+    }
+    
+    public async Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetAllCollectionsAsync()
+    {
+        try
+        {
+            return await _repository.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving all sequence group collections");
+            throw new StorageProviderException("Failed to retrieve sequence group collections", ex);
+        }
+    }
+    
+    public async Task<SequenceGroupCollection<TEnum>?> GetCollectionByIdAsync(string id)
+    {
+        try
+        {
+            var collection = await _repository.GetByIdAsync(id);
+            
+            if (collection == null)
+            {
+                _logger.LogWarning("Sequence group collection with ID {Id} not found", id);
+                return null;
+            }
+            
+            return collection;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sequence group collection {Id}", id);
+            throw new StorageProviderException($"Failed to retrieve sequence group collection {id}", ex);
+        }
+    }
+    
+    public async Task<IEnumerable<SequenceGroupCollection<TEnum>>> GetCollectionsByCategoryTypeAsync(TEnum categoryType)
+    {
+        try
+        {
+            return await _repository.GetByCategoryTypeAsync(categoryType);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sequence group collections by category type {CategoryType}", categoryType);
+            throw new StorageProviderException($"Failed to retrieve sequence group collections for category type {categoryType}", ex);
+        }
+    }
+    
+    public async Task<SequenceGroupCollection<TEnum>> CreateCollectionAsync(SequenceGroupCollection<TEnum> collection)
+    {
+        try
+        {
+            // Ensure we have proper ID and other required fields
+            if (string.IsNullOrEmpty(collection.Id))
+            {
+                collection.Id = Guid.NewGuid().ToString();
+            }
+            
+            // Set category name if not provided
+            if (string.IsNullOrEmpty(collection.CategoryName))
+            {
+                collection.CategoryName = collection.CategoryType.ToString();
+            }
+            
+            // Set category type name if not provided
+            if (string.IsNullOrEmpty(collection.CategoryTypeName))
+            {
+                collection.CategoryTypeName = typeof(TEnum).Name;
+            }
+            
+            return await _repository.AddAsync(collection);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating sequence group collection {Name}", collection.Name);
+            throw new StorageProviderException($"Failed to create sequence group collection", ex);
+        }
+    }
+    
+    public async Task<SequenceGroupCollection<TEnum>> CreateDefaultCollectionAsync(TEnum categoryType, string name)
+    {
+        try
+        {
+            return await _repository.CreateDefaultCollectionAsync(categoryType, name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating default sequence group collection {Name} for category type {CategoryType}", 
+                name, categoryType);
+            throw new StorageProviderException($"Failed to create default sequence group collection", ex);
+        }
+    }
+    
+    public async Task UpdateCollectionAsync(SequenceGroupCollection<TEnum> collection)
+    {
+        try
+        {
+            await _repository.UpdateAsync(collection);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating sequence group collection {Id}", collection.Id);
+            throw new StorageProviderException($"Failed to update sequence group collection {collection.Id}", ex);
+        }
+    }
+    
+    public async Task DeleteCollectionAsync(string id)
+    {
+        try
+        {
+            await _repository.DeleteAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting sequence group collection {Id}", id);
+            throw new StorageProviderException($"Failed to delete sequence group collection {id}", ex);
+        }
+    }
+    
+    public async Task<bool> AddSequenceToCollectionAsync(string collectionId, string sequenceId, int order)
+    {
+        try
+        {
+            // Verify collection exists
+            var collection = await _repository.GetByIdAsync(collectionId);
+            if (collection == null)
+            {
+                _logger.LogWarning("Sequence group collection {Id} not found", collectionId);
+                return false;
+            }
+            
+            // Verify sequence exists
+            var sequence = await _sequenceRepository.GetByIdAsync(sequenceId);
+            if (sequence == null)
+            {
+                _logger.LogWarning("Sequence {Id} not found", sequenceId);
+                return false;
+            }
+            
+            // Check if sequence is already in collection
+            var existingEntry = collection.SequenceGroupSequences
+                .FirstOrDefault(sgs => sgs.SequenceId == sequenceId);
+                
+            if (existingEntry != null)
+            {
+                // Update order if needed
+                if (existingEntry.Order != order)
+                {
+                    existingEntry.Order = order;
+                    await _repository.UpdateAsync(collection);
+                }
+                return true;
+            }
+            
+            // Add sequence to collection
+            collection.SequenceGroupSequences.Add(new SequenceGroupSequences
+            {
+                SequenceGroupId = collectionId,
+                SequenceId = sequenceId,
+                Order = order
+            });
+            
+            await _repository.UpdateAsync(collection);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding sequence {SequenceId} to collection {CollectionId}",
+                sequenceId, collectionId);
+            throw new StorageProviderException($"Failed to add sequence to collection", ex);
+        }
+    }
+    
+    public async Task<bool> RemoveSequenceFromCollectionAsync(string collectionId, string sequenceId)
+    {
+        try
+        {
+            // Verify collection exists
+            var collection = await _repository.GetByIdAsync(collectionId);
+            if (collection == null)
+            {
+                _logger.LogWarning("Sequence group collection {Id} not found", collectionId);
+                return false;
+            }
+            
+            // Find entry to remove
+            var entryToRemove = collection.SequenceGroupSequences
+                .FirstOrDefault(sgs => sgs.SequenceId == sequenceId);
+                
+            if (entryToRemove == null)
+            {
+                // Sequence not in collection
+                return false;
+            }
+            
+            // Remove sequence from collection
+            collection.SequenceGroupSequences.Remove(entryToRemove);
+            
+            await _repository.UpdateAsync(collection);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing sequence {SequenceId} from collection {CollectionId}",
+                sequenceId, collectionId);
+            throw new StorageProviderException($"Failed to remove sequence from collection", ex);
+        }
+    }
+    
+    public async Task<bool> ReorderSequenceInCollectionAsync(string collectionId, string sequenceId, int newOrder)
+    {
+        try
+        {
+            // Verify collection exists
+            var collection = await _repository.GetByIdAsync(collectionId);
+            if (collection == null)
+            {
+                _logger.LogWarning("Sequence group collection {Id} not found", collectionId);
+                return false;
+            }
+            
+            // Find entry to reorder
+            var entryToReorder = collection.SequenceGroupSequences
+                .FirstOrDefault(sgs => sgs.SequenceId == sequenceId);
+                
+            if (entryToReorder == null)
+            {
+                // Sequence not in collection
+                return false;
+            }
+            
+            // Update order
+            entryToReorder.Order = newOrder;
+            
+            await _repository.UpdateAsync(collection);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reordering sequence {SequenceId} in collection {CollectionId}",
+                sequenceId, collectionId);
+            throw new StorageProviderException($"Failed to reorder sequence in collection", ex);
+        }
+    }
+    
+    public async Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string collectionId)
+    {
+        try
+        {
+            // Verify collection exists
+            var collection = await _repository.GetByIdAsync(collectionId);
+            if (collection == null)
+            {
+                _logger.LogWarning("Sequence group collection {Id} not found", collectionId);
+                return new SortedList<int, Sequence>();
+            }
+            
+            // Get sequences in order
+            var result = new SortedList<int, Sequence>();
+            
+            foreach (var entry in collection.SequenceGroupSequences.OrderBy(sgs => sgs.Order))
+            {
+                var sequence = await _sequenceRepository.GetByIdAsync(entry.SequenceId);
+                if (sequence != null)
+                {
+                    result.Add(entry.Order, sequence);
+                }
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting ordered sequences for collection {CollectionId}", collectionId);
+            throw new StorageProviderException($"Failed to get ordered sequences", ex);
+        }
+    }
+}
+
+public static class ServiceCollectionExtensions
+{
+    // Existing extension methods...
+    
+    /// <summary>
+    /// Registers a SequenceGroupCollection repository and service for a specific enum type
+    /// </summary>
+    /// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+    /// <param name="services">The service collection</param>
+    /// <returns>The service collection for chaining</returns>
+    public static IServiceCollection AddSequenceGroupCollectionServices<TEnum>(this IServiceCollection services)
+        where TEnum : Enum
+    {
+        // Register repository
+        services.AddScoped<ISequenceGroupCollectionRepository<TEnum>, SequenceGroupCollectionRepository<TEnum>>();
+        
+        // Register service
+        services.AddScoped<ISequenceGroupCollectionService<TEnum>, SequenceGroupCollectionService<TEnum>>();
+        
+        return services;
+    }
+}
+
+/// <summary>
+/// Base class for sequence group collections
+/// </summary>
+public abstract class SequenceGroupCollectionBase : SequenceGroupBase
+{
+    public required string CategoryName { get; init; }
+    public required string CategoryTypeName { get; init; }
+}
+
+/// <summary>
+/// Generic sequence group collection with enum-based category
+/// </summary>
+/// <typeparam name="TEnum">The enum type used for categorization</typeparam>
+public class SequenceGroupCollection<TEnum> : SequenceGroupCollectionBase
+    where TEnum : Enum
+{
+    public required TEnum CategoryType { get; init; }
+}
+
+// Define an enum for categorization
+public enum SequenceCategory
+{
+    Startup,
+    Calibration,
+    Measurement,
+    Shutdown
+}
+
+// Configure services
+services.AddInstrumentData(storageConfig);
+services.AddSequenceGroupCollectionServices<SequenceCategory>();
+
+// Usage in an application service
+public class SequencePlannerService
+{
+    private readonly ISequenceGroupCollectionService<SequenceCategory> _collectionService;
+    
+    public SequencePlannerService(ISequenceGroupCollectionService<SequenceCategory> collectionService)
+    {
+        _collectionService = collectionService;
+    }
+    
+    public async Task<SequenceGroupCollection<SequenceCategory>> CreateStartupCollectionAsync(string name)
+    {
+        return await _collectionService.CreateDefaultCollectionAsync(SequenceCategory.Startup, name);
+    }
+    
+    public async Task<IEnumerable<SequenceGroupCollection<SequenceCategory>>> GetCalibrationCollectionsAsync()
+    {
+        return await _collectionService.GetCollectionsByCategoryTypeAsync(SequenceCategory.Calibration);
+    }
+}

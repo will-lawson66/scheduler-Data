@@ -1,0 +1,100 @@
+classDiagram
+    class Sequence {
+        +string Id
+        +string Name
+        +string Description
+        +TimeSpan WorstCaseTime
+        +bool CanBeParallel
+        +List~SequenceParameter~ SequenceParameters
+        +Update()
+    }
+    
+    class Parameter {
+        +string Id
+        +string Name
+        +ParameterType Type
+        +string Min
+        +string Max
+        +string DefaultValue
+        +string Format
+        +string RangeId
+        +string ResourceId
+        +Range Range
+        +Resource Resource
+        +List~SequenceParameter~ SequenceParameters
+        +Update()
+    }
+    
+    class SequenceParameter {
+        +string SequenceId
+        +string ParameterId
+        +Sequence Sequence
+        +Parameter Parameter
+    }
+    
+    class Range {
+        +string Id
+        +string Name
+        +string Description
+        +List~RangeValue~ Values
+        +List~Parameter~ Parameters
+        +Update()
+    }
+    
+    class RangeValue {
+        +string Id
+        +string RangeId
+        +string Value
+        +string DisplayValue
+        +int Order
+        +Range Range
+    }
+    
+    class Resource {
+        +string Id
+        +string Name
+        +string Description
+        +List~Parameter~ Parameters
+    }
+    
+    class SequenceGroup {
+        +string Id
+        +string Name
+        +string Description
+        +List~SequenceGroupSequences~ SequenceGroupSequences
+        +Update()
+    }
+    
+    class SequenceGroupBase {
+        +string Id
+        +string Name
+        +string Description
+    }
+    
+    class SequenceGroupSequences {
+        +string SequenceGroupId
+        +string SequenceId
+        +int Order
+        +SequenceGroup SequenceGroup
+        +Sequence Sequence
+    }
+    
+    class ParameterType {
+        <<enumeration>>
+        BooleanType
+        StringType
+        IntegerType
+        DecimalType
+        EnumType
+        ArrayType
+    }
+    
+    Sequence "1" -- "many" SequenceParameter : contains
+    Parameter "1" -- "many" SequenceParameter : used in
+    SequenceGroup --|> SequenceGroupBase : inherits
+    SequenceGroup "1" -- "many" SequenceGroupSequences : contains
+    Sequence "1" -- "many" SequenceGroupSequences : belongs to
+    Range "1" -- "many" RangeValue : contains
+    Range "1" -- "many" Parameter : used by
+    Resource "1" -- "many" Parameter : referenced by
+    Parameter -- ParameterType : has
