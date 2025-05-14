@@ -10,6 +10,7 @@ public record RangeValue
     public int Id { get; init; }
     public required string Name { get; init; }
     public required string Value { get; init; }
+    
     [ForeignKey(nameof(RangeId))]
     public required int RangeId { get; init; }
     

@@ -1,6 +1,6 @@
+using Instrument.Data.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Instrument.Data.Entities.Enums;
 
 namespace Instrument.Data.Entities;
 
@@ -16,7 +16,7 @@ public record Parameter
     public string? Max { get; init; }
     public string? DefaultValue { get; init; }
     public string? Format { get; init; }
-    // Foreign keys with explicit attributes
+    
     [ForeignKey(nameof(Range))]
     public int? RangeId { get; init; }
     
