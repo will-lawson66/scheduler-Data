@@ -27,6 +27,8 @@ public class SchedulerDbContext : DbContext
 
         modelBuilder.Entity<Sequence>(entity =>
         {
+            // Primary key configuration is now redundant with the [Key] attribute
+            // but we'll keep it for clarity in the fluent API configuration
             entity.HasKey(e => e.Id);
             
             entity.Property(e => e.Name)
@@ -75,17 +77,20 @@ public class SchedulerDbContext : DbContext
         
         modelBuilder.Entity<SequenceParameter>(entity =>
         {
-            // Configure the composite key
+            // Configure the composite key - redundant with attributes but kept for clarity
             entity.HasKey(e => new { e.SequenceId, e.ParameterId });
             
-            // Configure the many-to-many relationship
+            // The foreign key relationships are already configured with attributes
+            // but we'll keep them in the fluent API for clarity and complete configuration
             entity.HasOne(e => e.Sequence)
                 .WithMany(e => e.SequenceParameters)
-                .HasForeignKey(e => e.SequenceId);
+                .HasForeignKey(e => e.SequenceId)
+                .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasOne(e => e.Parameter)
                 .WithMany(e => e.SequenceParameters)
-                .HasForeignKey(e => e.ParameterId);
+                .HasForeignKey(e => e.ParameterId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Entities.Range>(entity => 
@@ -148,14 +153,16 @@ public class SchedulerDbContext : DbContext
             // Configure the composite key
             entity.HasKey(e => new { e.SequenceGroupId, e.SequenceId });
             
-            // Configure the many-to-many relationship
+            // Configure the many-to-many relationship with explicit cascade behavior
             entity.HasOne(e => e.SequenceGroup)
                 .WithMany(e => e.SequenceGroupSequences)
-                .HasForeignKey(e => e.SequenceGroupId);
+                .HasForeignKey(e => e.SequenceGroupId)
+                .OnDelete(DeleteBehavior.Cascade);
                 
             entity.HasOne(e => e.Sequence)
                 .WithMany()
-                .HasForeignKey(e => e.SequenceId);
+                .HasForeignKey(e => e.SequenceId)
+                .OnDelete(DeleteBehavior.Restrict);
                 
             // Configure the Order property
             entity.Property(e => e.Order)
@@ -192,7 +199,7 @@ public class SchedulerDbContext : DbContext
             // Configure the composite key
             entity.HasKey(e => new { e.SequenceGroupCollectionId, e.SequenceGroupId });
 
-            // Configure the many-to-many relationship
+            // Configure the many-to-many relationship with explicit cascade behavior
             entity.HasOne(e => e.SequenceGroupCollection)
                 .WithMany(e => e.SequenceGroupCollectionSequenceGroups)
                 .HasForeignKey(e => e.SequenceGroupCollectionId)

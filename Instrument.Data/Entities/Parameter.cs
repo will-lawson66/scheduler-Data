@@ -16,7 +16,11 @@ public record Parameter
     public string? Max { get; init; }
     public string? DefaultValue { get; init; }
     public string? Format { get; init; }
+    // Foreign keys with explicit attributes
+    [ForeignKey(nameof(Range))]
     public int? RangeId { get; init; }
+    
+    [ForeignKey(nameof(Resource))]
     public int? ResourceId { get; set; }
     
     // Navigation properties
