@@ -26,36 +26,22 @@ public class SequenceGroupService : ISequenceGroupService
     /// <summary>
     /// Creates a new sequence group
     /// </summary>
-    /// <param name="id">Identifier for the sequence group</param>
     /// <param name="name">Name of the sequence group</param>
     /// <param name="description">Optional description of the sequence group</param>
     /// <returns>The created sequence group</returns>
-    public async Task<SequenceGroup> CreateSequenceGroupAsync(string id, string name, string? description = null)
+    public async Task<SequenceGroup> CreateSequenceGroupAsync(string name, string? description = null)
     {
-        _logger.LogInformation("Creating sequence group with ID: {Id}", id);
+        _logger.LogInformation("Creating sequence group with Name: {Name}", name);
 
         // Validate inputs
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            throw new ArgumentException("Sequence group ID cannot be empty", nameof(id));
-        }
-
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("Sequence group name cannot be empty", nameof(name));
         }
 
-        // Check if ID already exists
-        var existingGroup = await _sequenceGroupRepository.GetByIdAsync(id);
-        if (existingGroup != null)
-        {
-            throw new SchedulerDataException($"Sequence group with ID {id} already exists");
-        }
-
         // Create and save the sequence group
         var sequenceGroup = new SequenceGroup
         {
-            Id = id,
             Name = name,
             Description = description
         };
@@ -65,12 +51,12 @@ public class SequenceGroupService : ISequenceGroupService
             await _sequenceGroupRepository.AddAsync(sequenceGroup);
             await _sequenceGroupRepository.SaveChangesAsync();
 
-            _logger.LogInformation("Sequence group created successfully: {Id}", id);
+            _logger.LogInformation("Sequence group created successfully: {Name}", name);
             return sequenceGroup;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating sequence group with ID: {Id}", id);
+            _logger.LogError(ex, "Error creating sequence group with Name: {Name}", name);
             throw new StorageProviderException("CreateSequenceGroup", ex);
         }
     }
@@ -118,7 +104,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// </summary>
     /// <param name="sequenceGroupId">Identifier of the sequence group</param>
     /// <returns>The sequence group if found, null otherwise</returns>
-    public async Task<SequenceGroup?> GetSequenceGroupByIdAsync(string sequenceGroupId)
+    public async Task<SequenceGroup?> GetSequenceGroupByIdAsync(int sequenceGroupId)
     {
         try
         {
@@ -153,7 +139,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// </summary>
     /// <param name="sequenceGroupId">Identifier of the sequence group to delete</param>
     /// <returns>True if successful, false otherwise</returns>
-    public async Task DeleteSequenceGroupAsync(string sequenceGroupId)
+    public async Task DeleteSequenceGroupAsync(int sequenceGroupId)
     {
         try
         {
@@ -191,7 +177,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// <param name="sequenceId">Identifier of the sequence to add</param>
     /// <param name="order">Order/position of the sequence within the group</param>
     /// <returns>True if successful, false otherwise</returns>
-    public async Task<bool> AddSequenceToSequenceGroupAsync(string sequenceGroupId, string sequenceId, int order)
+    public async Task<bool> AddSequenceToSequenceGroupAsync(int sequenceGroupId, int sequenceId, int order)
     {
         _logger.LogInformation("Adding sequence {SequenceId} to group {GroupId} at order {Order}",
             sequenceId, sequenceGroupId, order);
@@ -240,7 +226,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// </summary>
     /// <param name="sequenceGroupId">Identifier of the sequence group</param>
     /// <returns><see cref="SortedList{TKey,TValue}"/>A sorted list of sequences sorted by order.</returns>
-    public async Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string sequenceGroupId)
+    public async Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(int sequenceGroupId)
     {
         _logger.LogInformation("Getting ordered sequences for group: {Id}", sequenceGroupId);
         try
@@ -273,7 +259,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// <param name="sequenceGroupId">Identifier of the sequence group</param>
     /// <param name="sequenceId">Identifier of the sequence to remove</param>
     /// <returns>True if successful, false otherwise</returns>
-    public async Task<bool> RemoveSequenceFromSequenceGroupAsync(string sequenceGroupId, string sequenceId)
+    public async Task<bool> RemoveSequenceFromSequenceGroupAsync(int sequenceGroupId, int sequenceId)
     {
         try
         {
@@ -329,7 +315,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// </summary>
     /// <param name="sequenceGroupId">Identifier of the sequence group to validate</param>
     /// <returns>True if valid, false otherwise</returns>
-    public async Task<bool> ValidateSequenceGroupAsync(string sequenceGroupId)
+    public async Task<bool> ValidateSequenceGroupAsync(int sequenceGroupId)
     {
         try
         {

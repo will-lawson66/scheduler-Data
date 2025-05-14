@@ -6,7 +6,7 @@ public interface ISequenceGroupService
 {
     Task<SequenceGroup> CreateSequenceGroupAsync(string name, string? description = null);
     Task UpdateSequenceGroupAsync(SequenceGroup sequenceGroup);
-    Task<SequenceGroup?> GetSequenceGroupByIdAsync(string sequenceGroupId);
+    Task<SequenceGroup?> GetSequenceGroupByIdAsync(int sequenceGroupId);
     Task<IEnumerable<SequenceGroup>> GetAllSequenceGroupsAsync();
     Task DeleteSequenceGroupAsync(int sequenceGroupId);
 

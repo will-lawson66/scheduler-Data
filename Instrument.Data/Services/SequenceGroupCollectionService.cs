@@ -21,31 +21,18 @@ public class SequenceGroupCollectionService<TEnum>
     }
 
     // Todo: overload the create/update/etc. methods with ones that take the entity object
-    public async Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(TEnum category, string id, string name, string? description = null)
+    public async Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(TEnum category, string name, string? description = null)
     {
-        _logger.LogInformation("Creating SequenceGroupCollection with Id: {Id}", id);
+        _logger.LogInformation("Creating SequenceGroupCollection with Name: {Name}", name);
 
         // Validate inputs
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            throw new ArgumentException("SequenceGroupCollection Id cannot be empty", nameof(id));
-        }
-
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("SequenceGroupCollection name cannot be empty", nameof(name));
         }
 
-        // Check if ID already exists
-        var existingGroup = await _repository.GetByIdAsync(id);
-        if (existingGroup != null)
-        {
-            throw new SchedulerDataException($"SequenceGroupCollection with Id {id} already exists");
-        }
-
         var collection = new SequenceGroupCollection<TEnum>
         {
-            Id = id,
             Name = name,
             Category = category,
             CategoryName = category.ToString(),
@@ -58,12 +45,12 @@ public class SequenceGroupCollectionService<TEnum>
             await _repository.AddAsync(collection);
             await _repository.SaveChangesAsync();
 
-            _logger.LogInformation("SequenceGroupCollection created successfully: {Id}", id);
+            _logger.LogInformation("SequenceGroupCollection created successfully: {Name}", name);
             return collection;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating SequenceGroupCollection with Id: {Id}", id);
+            _logger.LogError(ex, "Error creating SequenceGroupCollection with Id: {Name}", name);
             throw new StorageProviderException("CreateSequenceGroup", ex);
         }
     }
@@ -106,7 +93,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task DeleteSequenceGroupCollectionAsync(string sequenceGroupCollectionId)
+    public async Task DeleteSequenceGroupCollectionAsync(int sequenceGroupCollectionId)
     {
         try
         {
@@ -136,7 +123,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task<SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(string sequenceGroupCollectionId)
+    public async Task<SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(int sequenceGroupCollectionId)
     {
         try
         {
@@ -187,7 +174,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(string sequenceGroupCollectionId, string sequenceGroupId, int order = 0)
+    public async Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(int sequenceGroupCollectionId, int sequenceGroupId, int order = 0)
     {
         _logger.LogInformation("Adding sequence group {groupId} to sequence group collection {collectionId} at order {order}",
             sequenceGroupCollectionId, sequenceGroupId, order);
@@ -234,7 +221,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task<bool> RemoveSequenceGroupFromSequenceGroupCollectionAsync(string sequenceGroupCollectionId, string sequenceGroupId)
+    public async Task<bool> RemoveSequenceGroupFromSequenceGroupCollectionAsync(int sequenceGroupCollectionId, int sequenceGroupId)
     {
         try
         {
@@ -285,7 +272,7 @@ public class SequenceGroupCollectionService<TEnum>
         }
     }
 
-    public async Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string sequenceGroupCollectionId)
+    public async Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(int sequenceGroupCollectionId)
     {
         _logger.LogInformation("Getting ordered sequence groups for sequence group collection: {Id}", sequenceGroupCollectionId);
         try

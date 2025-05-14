@@ -12,10 +12,7 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// <param name="name">Name of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
     /// <param name="description">Description of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
     /// <returns>The created sequence group collection</returns>
-    Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(
-        TEnum category,
-        string name,
-        string? description);
+    Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(TEnum category, string name, string? description);
 
     /// <summary>
     /// Updates an existing sequence group collection
