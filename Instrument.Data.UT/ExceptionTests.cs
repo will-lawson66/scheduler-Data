@@ -36,7 +36,7 @@ public class ExceptionTests
     public void ValidationException_ConstructsCorrectly_WithParameterIdValueAndReason()
     {
         // Arrange
-        var parameterId = "param-123";
+        var parameterId = 123;
         var value = "invalid-value";
         var reason = "Value must be a number";
         
@@ -44,7 +44,7 @@ public class ExceptionTests
         var exception = new ValidationException(parameterId, value, reason);
         
         // Assert
-        Assert.Contains(parameterId, exception.Message);
+        Assert.Contains(parameterId.ToString(), exception.Message);
         Assert.Contains(value, exception.Message);
         Assert.Contains(reason, exception.Message);
         Assert.Equal(value, exception.Value);
@@ -90,7 +90,7 @@ public class ExceptionTests
     public void Exceptions_InheritFromSchedulerDataException()
     {
         // Arrange & Act
-        var validationException = new ValidationException("param-123", "invalid", "Test reason");
+        var validationException = new ValidationException(123, "invalid", "Test reason");
         var storageProviderException = new StorageProviderException("GetAll", new Exception());
         var entityNotFoundException = new EntityNotFoundException("Entity", "id-123");
         

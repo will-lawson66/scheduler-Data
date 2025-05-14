@@ -37,8 +37,8 @@ public class ParameterRepositoryTests : IDisposable
     {
         // Arrange
         await _dbContext.Parameters.AddRangeAsync(
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
-            new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType }
+            new Parameter { Id = 1, Name = "Parameter 1", Type = ParameterType.StringType },
+            new Parameter { Id = 2, Name = "Parameter 2", Type = ParameterType.IntegerType }
         );
         await _dbContext.SaveChangesAsync();
 
@@ -48,8 +48,8 @@ public class ParameterRepositoryTests : IDisposable
         // Assert
         var parameters = result.ToList();
         Assert.Equal(2, parameters.Count);
-        Assert.Contains(parameters, p => p.Id == "param1");
-        Assert.Contains(parameters, p => p.Id == "param2");
+        Assert.Contains(parameters, p => p.Id == 1);
+        Assert.Contains(parameters, p => p.Id == 2);
     }
     
     [Fact]
@@ -58,7 +58,7 @@ public class ParameterRepositoryTests : IDisposable
         // Arrange
         var parameter = new Parameter
         { 
-            Id = "param1",
+            Id = 1,
             Name = "Parameter 1", 
             Type = ParameterType.StringType
         };
@@ -67,11 +67,11 @@ public class ParameterRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _repository.GetByIdAsync("param1");
+        var result = await _repository.GetByIdAsync(1);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("param1", result.Id);
+        Assert.Equal(1, result.Id);
         Assert.Equal("Parameter 1", result.Name);
         Assert.Equal(ParameterType.StringType, result.Type);
     }
@@ -80,7 +80,7 @@ public class ParameterRepositoryTests : IDisposable
     public async Task GetByIdAsync_WithInvalidId_ReturnsNull()
     {
         // Act
-        var result = await _repository.GetByIdAsync("non-existent");
+        var result = await _repository.GetByIdAsync(-2);
         
         // Assert
         Assert.Null(result);
@@ -91,7 +91,7 @@ public class ParameterRepositoryTests : IDisposable
     {
         // Arrange
         await _dbContext.Parameters.AddRangeAsync(
-            new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType },
+            new Parameter { Id = 1, Name = "Parameter 1", Type = ParameterType.StringType },
             new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType }
         );
         await _dbContext.SaveChangesAsync();
@@ -197,7 +197,7 @@ public class ParameterRepositoryTests : IDisposable
         var sequenceId = "seq1";
         
         // Create parameters
-        var param1 = new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType };
+        var param1 = new Parameter { Id = 1, Name = "Parameter 1", Type = ParameterType.StringType };
         var param2 = new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType };
         var param3 = new Parameter { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType };
         
@@ -205,7 +205,7 @@ public class ParameterRepositoryTests : IDisposable
         var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
         
         // Create sequence parameters (relationships)
-        var seqParam1 = new SequenceParameter { SequenceId = sequenceId, ParameterId = "param1", OrderNumber = 1 };
+        var seqParam1 = new SequenceParameter { SequenceId = sequenceId, ParameterId = 1, OrderNumber = 1 };
         var seqParam2 = new SequenceParameter { SequenceId = sequenceId, ParameterId = "param2", OrderNumber = 2 };
         
         // Add to database
@@ -222,7 +222,7 @@ public class ParameterRepositoryTests : IDisposable
         // Assert
         var parameters = result.ToList();
         Assert.Equal(2, parameters.Count);
-        Assert.Contains(parameters, p => p?.Id == "param1");
+        Assert.Contains(parameters, p => p?.Id == 1);
         Assert.Contains(parameters, p => p?.Id == "param2");
         Assert.DoesNotContain(parameters, p => p?.Id == "param3");
     }
@@ -231,7 +231,7 @@ public class ParameterRepositoryTests : IDisposable
     public async Task AddParameterToSequenceAsync_AddsSequenceParameter()
     {
         // Arrange
-        var parameterId = "param1";
+        var parameterId = 1;
         var sequenceId = "seq1";
         var orderNumber = 1;
         
@@ -258,7 +258,7 @@ public class ParameterRepositoryTests : IDisposable
     public async Task RemoveParameterFromSequenceAsync_RemovesSequenceParameter()
     {
         // Arrange
-        var parameterId = "param1";
+        var parameterId = 1;
         var sequenceId = "seq1";
         
         // Create parameter and sequence

@@ -301,7 +301,6 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
             Category = Technology.ImmunoCap
         };
         await sequenceGroupCollectionService.CreateSequenceGroupCollectionAsync(sequenceGroupCollection.Category,
-            sequenceGroupCollection.Id,
             sequenceGroupCollection.Name,
             sequenceGroupCollection.Description);
 
