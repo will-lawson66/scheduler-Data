@@ -20,7 +20,7 @@ public class SequenceGroupCollectionRepository<TEnum>
     }
 
     /// <inheritdoc />
-    public async Task AddSequenceGroupToSequenceGroupCollectionAsync(string sequenceGroupCollectionId, string sequenceGroupId, int order)
+    public async Task AddSequenceGroupToSequenceGroupCollectionAsync(int sequenceGroupCollectionId, int sequenceGroupId, int order)
     {
         // retrieve the SequenceGroupCollection with its SequenceGroupCollectionSequenceGroup data
         var sequenceGroupCollection
@@ -30,13 +30,13 @@ public class SequenceGroupCollectionRepository<TEnum>
         // if order is default, find the highest order number in SequenceGroupCollectionSequenceGroups and increment
         if (order == 0) // todo: factor out and test this function
         {
-            int newOrder;
-
             var sequenceGroupCollectionSequenceGroups
                 = sequenceGroupCollection.SequenceGroupCollectionSequenceGroups;
-            _ = sequenceGroupCollectionSequenceGroups is null
-                ? newOrder = 1
-                : newOrder = sequenceGroupCollectionSequenceGroups.Max(s => s.Order) + 1;
+                
+            var maxOrderGroup = sequenceGroupCollectionSequenceGroups
+                .OrderByDescending(s => s.Order)
+                .FirstOrDefault();
+            var newOrder = maxOrderGroup == null ? 1 : maxOrderGroup.Order + 1;
 
             await DbContext.SequenceGroupCollectionSequenceGroups.AddAsync(new SequenceGroupCollectionSequenceGroup
             {
@@ -89,7 +89,7 @@ public class SequenceGroupCollectionRepository<TEnum>
     }
 
     /// <inheritdoc />
-    public async Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string collectionId)
+    public async Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(int collectionId)
     {
         // Get all SequenceGroupSequences for the specified SequenceGroup
         var sequenceGroupCollectionSequenceGroups = await DbContext.SequenceGroupCollectionSequenceGroups

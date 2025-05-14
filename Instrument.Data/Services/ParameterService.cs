@@ -18,7 +18,7 @@ public class ParameterService : IParameterService
         _parameterRepository = parameterRepository ?? throw new ArgumentNullException(nameof(parameterRepository));
     }
 
-    public async Task<Parameter?> GetParameterByIdAsync(string id)
+    public async Task<Parameter?> GetParameterByIdAsync(int id)
     {
         _logger.LogInformation("Retrieving parameter with ID: {Id}", id);
         try
@@ -92,7 +92,7 @@ public class ParameterService : IParameterService
         }
     }
     
-    public async Task DeleteParameterAsync(string id)
+    public async Task DeleteParameterAsync(int id)
     {
         _logger.LogInformation("Deleting parameter with ID: {Id}", id);
         
@@ -132,7 +132,7 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId)
+    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(int sequenceId)
     {
         _logger.LogInformation("Retrieving parameters for sequence ID: {SequenceId}", sequenceId);
         try
@@ -147,7 +147,7 @@ public class ParameterService : IParameterService
     }
 
     /// <inheritdoc />
-    public async Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber)
+    public async Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber)
     {
         _logger.LogInformation("Adding parameter {ParameterId} to sequence {SequenceId} with order {OrderNumber}", 
             parameterId, sequenceId, orderNumber);
@@ -176,7 +176,7 @@ public class ParameterService : IParameterService
     }
     
     /// <inheritdoc />
-    public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
+    public async Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId)
     {
         _logger.LogInformation("Removing parameter {ParameterId} from sequence {SequenceId}", 
             parameterId, sequenceId);

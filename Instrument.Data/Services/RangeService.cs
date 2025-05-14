@@ -13,13 +13,13 @@ public class RangeService : IRangeService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<Entities.Range?> GetRangeByIdAsync(string id)
+    public async Task<Entities.Range?> GetRangeByIdAsync(int id)
     {
         _logger.LogInformation("Retrieving range with ID: {Id}", id);
         return await _rangeRepository.GetByIdAsync(id);
     }
 
-    public async Task<Entities.Range?> GetRangeWithRangeValuesAsync(string id)
+    public async Task<Entities.Range?> GetRangeWithRangeValuesAsync(int id)
     {
         _logger.LogInformation("Retrieving range with values for ID: {Id}", id);
         return await _rangeRepository.GetRangeWithRangeValuesByIdAsync(id);
@@ -55,7 +55,7 @@ public class RangeService : IRangeService
         _logger.LogInformation("Successfully updated range with ID: {Id}", range.Id);
     }
     
-    public async Task DeleteRangeAsync(string id)
+    public async Task DeleteRangeAsync(int id)
     {
         _logger.LogInformation("Deleting range with ID: {Id}", id);
         

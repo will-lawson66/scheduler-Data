@@ -2,15 +2,15 @@
 
 public interface IRangeService
 {
-    Task<Entities.Range?> GetRangeByIdAsync(string id);
+    Task<Entities.Range?> GetRangeByIdAsync(int id);
 
-    Task<Entities.Range?> GetRangeWithRangeValuesAsync(string id);
+    Task<Entities.Range?> GetRangeWithRangeValuesAsync(int id);
 
     Task CreateRangeAsync(Entities.Range range);
 
     Task UpdateRangeAsync(Entities.Range range);
 
-    Task DeleteRangeAsync(string id);
+    Task DeleteRangeAsync(int id);
 
     Task<IEnumerable<Entities.Range>> GetAllRangesAsync();
 }

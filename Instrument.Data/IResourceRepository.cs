@@ -21,18 +21,18 @@ public interface IResourceRepository : IRepository<Instrument.Data.Entities.Reso
     /// </summary>
     /// <param name="resourceId">Resource ID</param>
     /// <param name="parameterId">Parameter ID</param>
-    Task AddParameterToResourceAsync(string resourceId, string parameterId);
+    Task AddParameterToResourceAsync(int resourceId, int parameterId);
     
     /// <summary>
     /// Removes a parameter from a resource
     /// </summary>
     /// <param name="resourceId">Resource ID</param>
     /// <param name="parameterId">Parameter ID</param>
-    Task RemoveParameterFromResourceAsync(string resourceId, string parameterId);
+    Task RemoveParameterFromResourceAsync(int resourceId, int parameterId);
     
     /// <summary>
     /// Gets parameters for a resource
     /// </summary>
     /// <param name="resourceId">Resource ID</param>
-    Task<IEnumerable<Instrument.Data.Entities.Parameter>> GetParametersForResourceAsync(string resourceId);
+    Task<IEnumerable<Instrument.Data.Entities.Parameter>> GetParametersForResourceAsync(int resourceId);
 }

@@ -19,7 +19,7 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId)
+    public async Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(int sequenceId)
     {
         return await DbContext.SequenceParameters
             .Where(sp => sp.SequenceId == sequenceId)
@@ -29,7 +29,7 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
     }
 
     /// <inheritdoc />
-    public async Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber)
+    public async Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber)
     {
         // Check if the parameter and sequence exist
         var parameter = await DbContext.Parameters.FindAsync(parameterId);
@@ -71,7 +71,7 @@ public class ParameterRepository : Repository<Parameter>, IParameterRepository
     }
 
     /// <inheritdoc />
-    public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
+    public async Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId)
     {
         var sequenceParameter = await DbContext.SequenceParameters
             .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);

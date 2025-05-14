@@ -4,10 +4,10 @@ namespace Instrument.Data;
 
 public interface IParameterService
 {
-    Task<Parameter?> GetParameterByIdAsync(string id);
+    Task<Parameter?> GetParameterByIdAsync(int id);
     Task CreateParameterAsync(Parameter parameter);
     Task UpdateParameterAsync(Parameter parameter);
-    Task DeleteParameterAsync(string id);
+    Task DeleteParameterAsync(int id);
     Task<IEnumerable<Parameter>> GetAllParametersAsync();
 
     /// <summary>
@@ -15,7 +15,7 @@ public interface IParameterService
     /// </summary>
     /// <param name="sequenceId"></param>
     /// <returns></returns>
-    Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId);
+    Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(int sequenceId);
 
     /// <summary>
     /// Add a parameter to a sequence
@@ -24,7 +24,7 @@ public interface IParameterService
     /// <param name="sequenceId"></param>
     /// <param name="orderNumber"></param>
     /// <returns></returns>
-    Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber = 0);
+    Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber = 0);
 
     /// <summary>
     /// Remove a parameter from a sequence
@@ -32,7 +32,7 @@ public interface IParameterService
     /// <param name="parameterId"></param>
     /// <param name="sequenceId"></param>
     /// <returns></returns>
-    Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId);
+    Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId);
 
     /// <summary>
     /// Validate parameter value against constraints

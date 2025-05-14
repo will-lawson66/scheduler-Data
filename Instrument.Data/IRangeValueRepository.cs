@@ -9,5 +9,5 @@ public interface IRangeValueRepository : IRepository<Instrument.Data.Entities.Ra
     /// Gets range values by range ID
     /// </summary>
     /// <param name="rangeId">Range ID</param>
-    Task<IEnumerable<Instrument.Data.Entities.RangeValue>> GetRangeValuesByRangeIdAsync(string rangeId);
+    Task<IEnumerable<Instrument.Data.Entities.RangeValue>> GetRangeValuesByRangeIdAsync(int rangeId);
 }

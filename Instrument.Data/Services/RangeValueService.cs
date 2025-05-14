@@ -14,7 +14,7 @@ public class RangeValueService : IRangeValueService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<RangeValue?> GetRangeValueByIdAsync(string id)
+    public async Task<RangeValue?> GetRangeValueByIdAsync(int id)
     {
         _logger.LogInformation("Retrieving range value with ID: {Id}", id);
         return await _rangeValueRepository.GetByIdAsync(id);
@@ -50,7 +50,7 @@ public class RangeValueService : IRangeValueService
         _logger.LogInformation("Successfully updated range value with ID: {Id}", rangeValue.Id);
     }
     
-    public async Task DeleteRangeValueAsync(string id)
+    public async Task DeleteRangeValueAsync(int id)
     {
         _logger.LogInformation("Deleting range value with ID: {Id}", id);
         
@@ -67,7 +67,7 @@ public class RangeValueService : IRangeValueService
     }
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<RangeValue>> GetRangeValuesForRangeAsync(string rangeId)
+    public async Task<IEnumerable<RangeValue>> GetRangeValuesForRangeAsync(int rangeId)
     {
         _logger.LogInformation("Retrieving values for range ID: {RangeId}", rangeId);
         return await _rangeValueRepository.GetRangeValuesByRangeIdAsync(rangeId);

@@ -35,7 +35,7 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
     }
 
     /// <inheritdoc />
-    public async Task AddParameterToResourceAsync(string resourceId, string parameterId)
+    public async Task AddParameterToResourceAsync(int resourceId, int parameterId)
     {
         // Check if the resource exists
         var resource = await DbContext.Resources.FindAsync(resourceId);
@@ -59,7 +59,7 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
     }
 
     /// <inheritdoc />
-    public async Task RemoveParameterFromResourceAsync(string resourceId, string parameterId)
+    public async Task RemoveParameterFromResourceAsync(int resourceId, int parameterId)
     {
         // Find the parameter
         var parameter = await DbContext.Parameters
@@ -78,7 +78,7 @@ public class ResourceRepository : Repository<Resource>, IResourceRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Parameter>> GetParametersForResourceAsync(string resourceId)
+    public async Task<IEnumerable<Parameter>> GetParametersForResourceAsync(int resourceId)
     {
         return await DbContext.Parameters
             .Where(p => p.ResourceId == resourceId)

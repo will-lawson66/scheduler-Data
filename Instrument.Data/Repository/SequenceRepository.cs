@@ -19,7 +19,7 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
     }
 
     /// <inheritdoc />
-    public async Task<Sequence?> GetSequenceWithParametersAsync(string id)
+    public async Task<Sequence?> GetSequenceWithParametersAsync(int id)
     {
         return await DbContext.Sequences
             .Include(s => s.SequenceParameters)
@@ -36,7 +36,7 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
     }
 
     /// <inheritdoc />
-    public async Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId)
+    public async Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId)
     {
         var sequenceParameter = await DbContext.SequenceParameters
             .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);

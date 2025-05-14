@@ -18,7 +18,7 @@ public class RangeRepository : Repository<Entities.Range>, IRangeRepository
     }
 
     /// <inheritdoc />
-    public async Task<Entities.Range?> GetRangeWithRangeValuesByIdAsync(string rangeId)
+    public async Task<Entities.Range?> GetRangeWithRangeValuesByIdAsync(int rangeId)
     {
         return await DbContext.Ranges
             .Include(r => r.RangeValues)

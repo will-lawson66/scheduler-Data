@@ -23,7 +23,7 @@ public interface ISequenceGroupCollectionRepository<TEnum>
     /// <param name="sequenceGroupId"></param>
     /// <param name="order"></param>
     /// <returns></returns>
-    Task AddSequenceGroupToSequenceGroupCollectionAsync(string collectionId, string sequenceGroupId, int order);
+    Task AddSequenceGroupToSequenceGroupCollectionAsync(int collectionId, int sequenceGroupId, int order);
 
     /// <summary>
     /// Remove a <see cref="SequenceGroup"/> from a <see cref="SequenceGroupCollection{TEnum}"/>
@@ -37,5 +37,5 @@ public interface ISequenceGroupCollectionRepository<TEnum>
     /// </summary>
     /// <param name="collectionId"></param>
     /// <returns></returns>
-    Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string collectionId);
+    Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(int collectionId);
 }

@@ -9,7 +9,7 @@ public interface ISequenceRepository : IRepository<Entities.Sequence>
     /// Gets a sequence with its parameters
     /// </summary>
     /// <param name="id">Sequence ID</param>
-    Task<Entities.Sequence?> GetSequenceWithParametersAsync(string id);
+    Task<Entities.Sequence?> GetSequenceWithParametersAsync(int id);
     
     /// <summary>
     /// Gets sequences by name
@@ -22,5 +22,5 @@ public interface ISequenceRepository : IRepository<Entities.Sequence>
     /// </summary>
     /// <param name="parameterId">Parameter ID</param>
     /// <param name="sequenceId">Sequence ID</param>
-    Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId);
+    Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId);
 }

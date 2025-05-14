@@ -14,7 +14,7 @@ public class ResourceService : IResourceService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<Resource?> GetResourceByIdAsync(string id)
+    public async Task<Resource?> GetResourceByIdAsync(int id)
     {
         _logger.LogInformation("Retrieving resource with ID: {Id}", id);
         return await _resourceRepository.GetByIdAsync(id);
@@ -50,7 +50,7 @@ public class ResourceService : IResourceService
         _logger.LogInformation("Successfully updated resource with ID: {Id}", resource.Id);
     }
     
-    public async Task DeleteResourceAsync(string id)
+    public async Task DeleteResourceAsync(int id)
     {
         _logger.LogInformation("Deleting resource with ID: {Id}", id);
         

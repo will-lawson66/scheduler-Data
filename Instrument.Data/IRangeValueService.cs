@@ -4,10 +4,10 @@ namespace Instrument.Data;
 
 public interface IRangeValueService
 {
-    Task<RangeValue?> GetRangeValueByIdAsync(string id);
+    Task<RangeValue?> GetRangeValueByIdAsync(int id);
     Task CreateRangeValueAsync(RangeValue rangeValue);
     Task UpdateRangeValueAsync(RangeValue rangeValue);
-    Task DeleteRangeValueAsync(string id);
+    Task DeleteRangeValueAsync(int id);
     Task<IEnumerable<RangeValue>> GetAllRangeValuesAsync();
 
     /// <summary>
@@ -15,5 +15,5 @@ public interface IRangeValueService
     /// </summary>
     /// <param name="rangeId"></param>
     /// <returns></returns>
-    Task<IEnumerable<RangeValue>> GetRangeValuesForRangeAsync(string rangeId);
+    Task<IEnumerable<RangeValue>> GetRangeValuesForRangeAsync(int rangeId);
 }

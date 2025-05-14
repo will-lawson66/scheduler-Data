@@ -16,7 +16,7 @@ public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroup
     }
 
     /// <inheritdoc />
-    public async Task AddSequenceToSequenceGroupAsync(string sequenceGroupId, string sequenceId, int order = 0)
+    public async Task AddSequenceToSequenceGroupAsync(int sequenceGroupId, int sequenceId, int order = 0)
     {
         // retrieve the SequenceGroup with its SequenceGroupSequence data
         var sequenceGroup
@@ -26,11 +26,11 @@ public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroup
         // if order is default, find the highest order number in SequenceGroupSequences and increment
         if (order == 0)
         {
-            int newOrder;
             var sequenceGroupSequences = sequenceGroup.SequenceGroupSequences;
-            _ = sequenceGroupSequences is null
-                ? newOrder = 1
-                : newOrder = sequenceGroupSequences.Max(s => s.Order) + 1;
+            var maxOrderSequence = sequenceGroupSequences
+                .OrderByDescending(s => s.Order)
+                .FirstOrDefault();
+            var newOrder = maxOrderSequence == null ? 1 : maxOrderSequence.Order + 1;
 
             await DbContext.SequenceGroupSequences.AddAsync(new SequenceGroupSequence
             {
@@ -83,7 +83,7 @@ public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroup
     }
 
     /// <inheritdoc />
-    public async Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string sequenceGroupId)
+    public async Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(int sequenceGroupId)
     {
         // Get all SequenceGroupSequences for the specified SequenceGroup
         var sequenceGroupSequences = await DbContext.SequenceGroupSequences

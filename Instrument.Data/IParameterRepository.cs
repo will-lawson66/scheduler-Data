@@ -11,7 +11,7 @@ public interface IParameterRepository : IRepository<Parameter>
     /// Gets parameters for a sequence
     /// </summary>
     /// <param name="sequenceId">Sequence ID</param>
-    Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(string sequenceId);
+    Task<IEnumerable<Parameter?>> GetParametersForSequenceAsync(int sequenceId);
 
     /// <summary>
     /// Adds a parameter to a sequence
@@ -19,12 +19,12 @@ public interface IParameterRepository : IRepository<Parameter>
     /// <param name="parameterId">Parameter ID</param>
     /// <param name="sequenceId">Sequence ID</param>
     /// <param name="orderNumber">Order number</param>
-    Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber = 0);
+    Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber = 0);
 
     /// <summary>
     /// Removes a parameter from a sequence
     /// </summary>
     /// <param name="parameterId">Parameter ID</param>
     /// <param name="sequenceId">Sequence ID</param>
-    Task RemoveParameterFromSequenceAsync(string parameterId, string sequenceId);
+    Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId);
 }

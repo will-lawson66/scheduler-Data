@@ -4,9 +4,9 @@ namespace Instrument.Data;
 
 public interface IResourceService
 {
-    Task<Resource?> GetResourceByIdAsync(string id);
+    Task<Resource?> GetResourceByIdAsync(int id);
     Task CreateResourceAsync(Resource resource);
     Task UpdateResourceAsync(Resource resource);
-    Task DeleteResourceAsync(string id);
+    Task DeleteResourceAsync(int id);
     Task<IEnumerable<Resource>> GetAllResourcesAsync();
 }

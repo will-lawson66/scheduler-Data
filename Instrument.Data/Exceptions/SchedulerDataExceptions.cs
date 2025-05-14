@@ -19,7 +19,7 @@ public class ValidationException : SchedulerDataException
     public string Value { get; }
     public string Reason { get; }
 
-    public ValidationException(string parameterId, string value, string reason)
+    public ValidationException(int parameterId, string value, string reason)
         : base($"Invalid value '{value}' for parameter {parameterId}: {reason}")
     {
         Value = value;

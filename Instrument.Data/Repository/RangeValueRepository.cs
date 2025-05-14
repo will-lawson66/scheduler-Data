@@ -16,7 +16,7 @@ public class RangeValueRepository : Repository<RangeValue>, IRangeValueRepositor
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<RangeValue>> GetRangeValuesByRangeIdAsync(string rangeId)
+    public async Task<IEnumerable<RangeValue>> GetRangeValuesByRangeIdAsync(int rangeId)
     {
         return await DbContext.RangeValues
             .Where(rv => rv.RangeId == rangeId)

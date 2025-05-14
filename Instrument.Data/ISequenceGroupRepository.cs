@@ -13,12 +13,12 @@ public interface ISequenceGroupRepository : IRepository<SequenceGroup>
     /// <param name="sequenceId"></param>
     /// <param name="order"></param>
     /// <returns></returns>
-    Task AddSequenceToSequenceGroupAsync(string sequenceGroupId, string sequenceId, int order = 0);
+    Task AddSequenceToSequenceGroupAsync(int sequenceGroupId, int sequenceId, int order = 0);
 
     /// <summary>
     /// Gets the ordered Sequences for a SequenceGroup
     /// </summary>
     /// <param name="sequenceGroupId"></param>
     /// <returns><see cref="SortedList{TKey,TValue}"/></returns>
-    Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string sequenceGroupId);
+    Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(int sequenceGroupId);
 }

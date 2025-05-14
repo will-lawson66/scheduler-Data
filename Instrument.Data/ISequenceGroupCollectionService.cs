@@ -14,7 +14,6 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// <returns>The created sequence group collection</returns>
     Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(
         TEnum category,
-        string id,
         string name,
         string? description);
 
@@ -30,14 +29,14 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// </summary>
     /// <param name="id">The ID of the collection to delete</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    Task DeleteSequenceGroupCollectionAsync(string id);
+    Task DeleteSequenceGroupCollectionAsync(int id);
 
     /// <summary>
     /// Gets a sequence group collection by ID
     /// </summary>
     /// <param name="id">The ID of the collection</param>
     /// <returns>The sequence group collection with the specified ID</returns>
-    Task<SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(string id);
+    Task<SequenceGroupCollection<TEnum>?> GetSequenceGroupCollectionByIdAsync(int id);
 
     /// <summary>
     /// Gets all sequence group collections
@@ -56,23 +55,23 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// Adds a sequence to a collection
     /// </summary>
     /// <param name="collectionId">The ID of the collection</param>
-    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <param name="sequenceGroupId">The ID of the sequence</param>
     /// <param name="order">The order of the sequence in the collection</param>
     /// <returns>True if successful, false otherwise</returns>
-    Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(string collectionId, string sequenceId, int order = 0);
+    Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(int collectionId, int sequenceGroupId, int order = 0);
 
     /// <summary>
     /// Removes a sequence from a collection
     /// </summary>
     /// <param name="collectionId">The ID of the collection</param>
-    /// <param name="sequenceId">The ID of the sequence</param>
+    /// <param name="sequenceGroupId">The ID of the sequence</param>
     /// <returns>True if successful, false otherwise</returns>
-    Task<bool> RemoveSequenceGroupFromSequenceGroupCollectionAsync(string collectionId, string sequenceId);
+    Task<bool> RemoveSequenceGroupFromSequenceGroupCollectionAsync(int collectionId, int sequenceGroupId);
 
     /// <summary>
     /// Gets sequences in a collection in order
     /// </summary>
     /// <param name="collectionId">The ID of the collection</param>
     /// <returns>Ordered sequences in the collection</returns>
-    Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(string collectionId);
+    Task<SortedList<int, SequenceGroup>> GetOrderedSequenceGroupsAsync(int collectionId);
 }
