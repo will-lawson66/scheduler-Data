@@ -4,7 +4,7 @@ public class SequenceGroupCollectionSequenceGroup
 {
     public required string SequenceGroupCollectionId { get; init; }
     public required string SequenceGroupId { get; init; }
-    public required int Order { get; init; }
+    public required int Order { get; set; }
 
     // Navigation properties
     public SequenceGroupCollectionBase? SequenceGroupCollection { get; set; }

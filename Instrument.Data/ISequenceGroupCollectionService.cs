@@ -59,7 +59,7 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// <param name="sequenceId">The ID of the sequence</param>
     /// <param name="order">The order of the sequence in the collection</param>
     /// <returns>True if successful, false otherwise</returns>
-    Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(string collectionId, string sequenceId, int order);
+    Task<bool> AddSequenceGroupToSequenceGroupCollectionAsync(string collectionId, string sequenceId, int order = 0);
 
     /// <summary>
     /// Removes a sequence from a collection

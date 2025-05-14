@@ -24,7 +24,7 @@ public interface IParameterService
     /// <param name="sequenceId"></param>
     /// <param name="orderNumber"></param>
     /// <returns></returns>
-    Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber);
+    Task AddParameterToSequenceAsync(string parameterId, string sequenceId, int orderNumber = 0);
 
     /// <summary>
     /// Remove a parameter from a sequence

@@ -1,7 +1,5 @@
 ﻿namespace Instrument.Data.Entities;
 
-using System.ComponentModel.DataAnnotations.Schema;
-
 /// <summary>
 /// Generic sequence group collection with enum-based category
 /// </summary>

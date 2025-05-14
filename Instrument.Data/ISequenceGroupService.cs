@@ -17,7 +17,7 @@ public interface ISequenceGroupService
     /// <param name="sequenceId">Identifier of the sequence to add</param>
     /// <param name="order">Order/position of the sequence within the group</param>
     /// <returns>True if successful, false otherwise</returns>
-    Task<bool> AddSequenceToSequenceGroupAsync(string sequenceGroupId, string sequenceId, int order);
+    Task<bool> AddSequenceToSequenceGroupAsync(string sequenceGroupId, string sequenceId, int order = 0);
 
     /// <summary>
     /// Gets all sequences in a sequence group in their specified order

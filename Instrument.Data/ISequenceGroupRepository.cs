@@ -1,8 +1,10 @@
+using Instrument.Data.Entities;
+
 namespace Instrument.Data;
 /// <summary>
 /// Repository interface for sequence groups
 /// </summary>
-public interface ISequenceGroupRepository : IRepository<Entities.SequenceGroup>
+public interface ISequenceGroupRepository : IRepository<SequenceGroup>
 {
     /// <summary>
     /// Adds a Sequence to a SequenceGroup
@@ -18,5 +20,5 @@ public interface ISequenceGroupRepository : IRepository<Entities.SequenceGroup>
     /// </summary>
     /// <param name="sequenceGroupId"></param>
     /// <returns><see cref="SortedList{TKey,TValue}"/></returns>
-    Task<SortedList<int, Entities.Sequence>> GetOrderedSequencesAsync(string sequenceGroupId);
+    Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(string sequenceGroupId);
 }
