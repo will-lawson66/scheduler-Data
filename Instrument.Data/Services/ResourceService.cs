@@ -65,4 +65,34 @@ public class ResourceService : IResourceService
         _logger.LogInformation("Retrieving all resources");
         return await _resourceRepository.GetAllAsync();
     }
+
+    // Todo
+    public Task<Resource?> GetByCodeAsync(string code)
+    {
+        throw new NotImplementedException();
+    }
+
+    // Todo
+    public Task<IEnumerable<Resource>> GetResourcesWithParametersAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    // Todo
+    public Task AddParameterToResourceAsync(int resourceId, int parameterId)
+    {
+        throw new NotImplementedException();
+    }
+
+    // Todo
+    public Task RemoveParameterFromResourceAsync(int resourceId, int parameterId)
+    {
+        throw new NotImplementedException();
+    }
+
+    // Todo
+    public Task<IEnumerable<Parameter>> GetParametersForResourceAsync(int resourceId)
+    {
+        throw new NotImplementedException();
+    }
 }

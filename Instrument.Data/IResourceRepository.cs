@@ -1,20 +1,22 @@
+using Instrument.Data.Entities;
+
 namespace Instrument.Data;
 
 /// <summary>
 /// Repository interface for resources
 /// </summary>
-public interface IResourceRepository : IRepository<Instrument.Data.Entities.Resource>
+public interface IResourceRepository : IRepository<Resource>
 {
     /// <summary>
     /// Gets a resource by code
     /// </summary>
     /// <param name="code">Resource code</param>
-    Task<Instrument.Data.Entities.Resource?> GetByCodeAsync(string code);
+    Task<Resource?> GetByCodeAsync(string code);
     
     /// <summary>
     /// Gets resources with their parameters
     /// </summary>
-    Task<IEnumerable<Instrument.Data.Entities.Resource>> GetResourcesWithParametersAsync();
+    Task<IEnumerable<Resource>> GetResourcesWithParametersAsync();
     
     /// <summary>
     /// Adds a parameter to a resource
@@ -34,5 +36,5 @@ public interface IResourceRepository : IRepository<Instrument.Data.Entities.Reso
     /// Gets parameters for a resource
     /// </summary>
     /// <param name="resourceId">Resource ID</param>
-    Task<IEnumerable<Instrument.Data.Entities.Parameter>> GetParametersForResourceAsync(int resourceId);
+    Task<IEnumerable<Parameter>> GetParametersForResourceAsync(int resourceId);
 }

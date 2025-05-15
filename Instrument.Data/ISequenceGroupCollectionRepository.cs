@@ -3,7 +3,7 @@
 namespace Instrument.Data;
 
 /// <summary>
-/// Repository interface for <see cref="Entities.SequenceGroupCollection{TEnum}"/> /> entities
+/// Repository interface for <see cref="SequenceGroupCollection{TEnum}"/> /> entities
 /// </summary>
 /// <typeparam name="TEnum">The enum type used for categorization</typeparam>
 public interface ISequenceGroupCollectionRepository<TEnum>
@@ -24,13 +24,6 @@ public interface ISequenceGroupCollectionRepository<TEnum>
     /// <param name="order"></param>
     /// <returns></returns>
     Task AddSequenceGroupToSequenceGroupCollectionAsync(int collectionId, int sequenceGroupId, int order);
-
-    /// <summary>
-    /// Remove a <see cref="SequenceGroup"/> from a <see cref="SequenceGroupCollection{TEnum}"/>
-    /// </summary>
-    /// <param name="collectionId"></param>
-    /// <returns></returns>
-    /// Task<bool> RemoveSequenceGroupFromSequenceGroupCollectionAsync(string collectionId, string sequenceGroupId);
 
     /// <summary>
     /// Get a <see cref="SortedList{TKey,TValue}"/> of the SequenceGroups in the collection
