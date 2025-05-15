@@ -1,5 +1,6 @@
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
 using Microsoft.Extensions.Logging;
 
 namespace Instrument.Data.Services;
@@ -129,6 +130,56 @@ public class SequenceService : ISequenceService
         {
             _logger.LogError(ex, "Error searching sequences");
             throw new StorageProviderException("SearchSequences", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber)
+    {
+        _logger.LogInformation("Adding parameter {ParameterId} to sequence {SequenceId} with order {OrderNumber}",
+            parameterId, sequenceId, orderNumber);
+
+        // Validate parameter exists
+        var parameter = await _sequenceRepository.GetByIdAsync(parameterId);
+        if (parameter == null)
+        {
+            _logger.LogWarning("Parameter with ID {Id} does not exist", parameterId);
+            throw new EntityNotFoundException("Parameter", parameterId);
+        }
+
+        try
+        {
+            await _sequenceRepository.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber);
+            await _sequenceRepository.SaveChangesAsync();
+            _logger.LogInformation("Successfully added parameter {ParameterId} to sequence {SequenceId}",
+                parameterId, sequenceId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding parameter {ParameterId} to sequence {SequenceId}",
+                parameterId, sequenceId);
+            throw new StorageProviderException("AddParameterToSequence", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId)
+    {
+        _logger.LogInformation("Removing parameter {ParameterId} from sequence {SequenceId}",
+            parameterId, sequenceId);
+
+        try
+        {
+            await _sequenceRepository.RemoveParameterFromSequenceAsync(parameterId, sequenceId);
+            await _sequenceRepository.SaveChangesAsync();
+            _logger.LogInformation("Successfully removed parameter {ParameterId} from sequence {SequenceId}",
+                parameterId, sequenceId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing parameter {ParameterId} from sequence {SequenceId}",
+                parameterId, sequenceId);
+            throw new StorageProviderException("RemoveParameterFromSequence", ex);
         }
     }
 }

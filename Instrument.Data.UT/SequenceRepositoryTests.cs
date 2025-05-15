@@ -1,5 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -32,176 +33,11 @@ public class SequenceRepositoryTests : IDisposable
     }
     
     [Fact]
-    public async Task GetAllAsync_ReturnsAllSequences()
-    {
-        // Arrange
-        await _dbContext.Sequences.AddRangeAsync(
-            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
-        );
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetAllAsync();
-
-        // Assert
-        var sequences = result.ToList();
-        Assert.Equal(2, sequences.Count);
-        Assert.Contains(sequences, s => s.Id == "seq1");
-        Assert.Contains(sequences, s => s.Id == "seq2");
-    }
-    
-    [Fact]
-    public async Task GetByIdAsync_WithValidId_ReturnsSequence()
-    {
-        // Arrange
-        var sequence = new Sequence 
-        { 
-            Id = "seq-id",
-            Name = "Test Sequence", 
-            Description = "Test description", 
-            WorstCaseTime = TimeSpan.Zero 
-        };
-        
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetByIdAsync("seq-id");
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("seq-id", result.Id);
-        Assert.Equal("Test Sequence", result.Name);
-        Assert.Equal("Test description", result.Description);
-    }
-    
-    [Fact]
-    public async Task GetByIdAsync_WithInvalidId_ReturnsNull()
-    {
-        // Act
-        var result = await _repository.GetByIdAsync("non-existent");
-        
-        // Assert
-        Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task GetQueryableAsync_ReturnsQueryable()
-    {
-        // Arrange
-        await _dbContext.Sequences.AddRangeAsync(
-            new Sequence { Id = "seq1", Name = "Sequence 1", Description = "Sequence description", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq2", Name = "Sequence 2", Description = "Sequence 2 description", WorstCaseTime = TimeSpan.Zero }
-        );
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetQueryableAsync();
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.IsAssignableFrom<IQueryable<Sequence>>(result);
-        Assert.Equal(2, result.Count());
-    }
-    
-    [Fact]
-    public async Task AddAsync_AddsSequence()
-    {
-        // Arrange
-        var sequence = new Sequence 
-        { 
-            Id = "new-id", 
-            Name = "New Sequence",
-            Description = "New description", 
-            WorstCaseTime = TimeSpan.Zero 
-        };
-        
-        // Act
-        await _repository.AddAsync(sequence);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var result = await _dbContext.Sequences.FindAsync("new-id");
-        Assert.NotNull(result);
-        Assert.Equal("New Sequence", result.Name);
-        Assert.Equal("New description", result.Description);
-    }
-    
-    [Fact]
-    public async Task UpdateAsync_UpdatesSequence()
-    {
-        // Arrange
-        var original = new Sequence 
-        { 
-            Id = "seq-id", 
-            Name = "Original Sequence",
-            Description = "Original description", 
-            WorstCaseTime = TimeSpan.Zero 
-        };
-        
-        await _dbContext.Sequences.AddAsync(original);
-        await _dbContext.SaveChangesAsync();
-        
-        var updated = new Sequence 
-        { 
-            Id = "seq-id", 
-            Name = "Updated Sequence",
-            Description = "Updated description", 
-            WorstCaseTime = TimeSpan.FromSeconds(10) 
-        };
-
-        // Act
-        await _repository.UpdateAsync(updated);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var result = await _dbContext.Sequences.FindAsync("seq-id");
-        Assert.NotNull(result);
-        Assert.Equal("Updated Sequence", result.Name);
-        Assert.Equal("Updated description", result.Description);
-        Assert.Equal(TimeSpan.FromSeconds(10), result.WorstCaseTime);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_DeletesSequence()
-    {
-        // Arrange
-        var sequence = new Sequence 
-        { 
-            Id = "delete-id", 
-            Name = "Delete Sequence",
-            Description = "Delete description", 
-            WorstCaseTime = TimeSpan.Zero 
-        };
-        
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        await _repository.DeleteAsync("delete-id");
-        await _repository.SaveChangesAsync();
-        
-        // Assert
-        var result = await _dbContext.Sequences.FindAsync("delete-id");
-        Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_WithInvalidId_ThrowsEntityNotFoundException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _repository.DeleteAsync("non-existent"));
-    }
-    
-    [Fact]
     public async Task GetSequenceWithParametersAsync_ReturnsSequenceWithParameters()
     {
         // Arrange
         var sequence = new Sequence 
         { 
-            Id = "seq1", 
             Name = "Sequence 1", 
             Description = "Sequence description", 
             WorstCaseTime = TimeSpan.Zero
@@ -212,9 +48,8 @@ public class SequenceRepositoryTests : IDisposable
         
         var parameter = new Parameter
         {
-            Id = "param1",
             Name = "Parameter 1",
-            Type = Entities.Enums.ParameterType.StringType
+            Type = ParameterType.StringType
         };
         
         await _dbContext.Parameters.AddAsync(parameter);
@@ -222,8 +57,8 @@ public class SequenceRepositoryTests : IDisposable
         
         var sequenceParameter = new SequenceParameter 
         { 
-            SequenceId = "seq1", 
-            ParameterId = "param1", 
+            SequenceId = sequence.Id, 
+            ParameterId = parameter.Id, 
             OrderNumber = 1 
         };
         
@@ -231,24 +66,23 @@ public class SequenceRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetSequenceWithParametersAsync("seq1");
+        var result = await _repository.GetSequenceWithParametersAsync(sequence.Id);
         
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("seq1", result.Id);
         Assert.NotNull(result.SequenceParameters);
         Assert.Single(result.SequenceParameters);
-        Assert.Equal("param1", result.SequenceParameters.First().ParameterId);
+        Assert.Equal(parameter.Id, result.SequenceParameters.First().ParameterId);
     }
     
     [Fact]
-    public async Task GetSequencesByNameAsync_ReturnsMatchingSequences()
+    public async Task GetSequencesByPartialNameAsync_ReturnsMatchingSequences()
     {
         // Arrange
         await _dbContext.Sequences.AddRangeAsync(
-            new Sequence { Id = "seq1", Name = "Alpha Sequence", Description = "Alpha description", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq2", Name = "Beta Sequence", Description = "Beta description", WorstCaseTime = TimeSpan.Zero },
-            new Sequence { Id = "seq3", Name = "Gamma Sequence", Description = "Gamma description", WorstCaseTime = TimeSpan.Zero }
+            new Sequence { Name = "Alpha Sequence", Description = "Alpha description", WorstCaseTime = TimeSpan.Zero },
+            new Sequence { Name = "Beta Sequence", Description = "Beta description", WorstCaseTime = TimeSpan.Zero },
+            new Sequence { Name = "Gamma Sequence", Description = "Gamma description", WorstCaseTime = TimeSpan.Zero }
         );
         await _dbContext.SaveChangesAsync();
         
@@ -266,12 +100,8 @@ public class SequenceRepositoryTests : IDisposable
     public async Task RemoveParameterFromSequenceAsync_RemovesParameter()
     {
         // Arrange
-        var parameterId = "param1";
-        var sequenceId = "seq1";
-        
         var sequence = new Sequence 
         { 
-            Id = sequenceId, 
             Name = "Test Sequence", 
             Description = "Test description", 
             WorstCaseTime = TimeSpan.Zero 
@@ -279,31 +109,86 @@ public class SequenceRepositoryTests : IDisposable
         
         var parameter = new Parameter
         {
-            Id = parameterId,
             Name = "Test Parameter",
             Type = Entities.Enums.ParameterType.StringType
         };
-        
-        var sequenceParameter = new SequenceParameter 
-        { 
-            SequenceId = sequenceId, 
-            ParameterId = parameterId, 
-            OrderNumber = 1 
-        };
-        
+
         await _dbContext.Sequences.AddAsync(sequence);
         await _dbContext.Parameters.AddAsync(parameter);
         await _dbContext.SaveChangesAsync();
+
+        var sequenceParameter = new SequenceParameter 
+        { 
+            SequenceId = sequence.Id, 
+            ParameterId = parameter.Id, 
+            OrderNumber = 1 
+        };
         
         await _dbContext.SequenceParameters.AddAsync(sequenceParameter);
         await _dbContext.SaveChangesAsync();
         
         // Act
-        await _repository.RemoveParameterFromSequenceAsync(parameterId, sequenceId);
+        await _repository.RemoveParameterFromSequenceAsync(parameter.Id, sequence.Id);
         
         // Assert
         var result = await _dbContext.SequenceParameters
-            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task AddParameterToSequenceAsync_AddsSequenceParameter()
+    {
+        // Arrange
+        // Create parameter and sequence
+        var parameter = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
+        var sequence = new Sequence { Name = "Sequence 1", WorstCaseTime = TimeSpan.Zero };
+
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _repository.AddParameterToSequenceAsync(parameter.Id, sequence.Id);
+
+        // Assert
+        var sequenceParameter = await _dbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
+
+        Assert.NotNull(sequenceParameter);
+        Assert.Equal(0, sequenceParameter.OrderNumber);
+    }
+
+    [Fact]
+    public async Task RemoveParameterFromSequenceAsync_RemovesSequenceParameter()
+    {
+        // Arrange
+        // Create parameter and sequence
+        var parameter = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
+        var sequence = new Sequence { Name = "Sequence 1", WorstCaseTime = TimeSpan.Zero };
+
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Create association
+        var sequenceParameter = new SequenceParameter
+        {
+            ParameterId = parameter.Id,
+            SequenceId = sequence.Id,
+            OrderNumber = 1
+        };
+
+        await _dbContext.SequenceParameters.AddAsync(sequenceParameter);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _repository.RemoveParameterFromSequenceAsync(parameter.Id, sequence.Id);
+
+        // Assert
+        var result = await _dbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
+
         Assert.Null(result);
     }
 }

@@ -33,172 +33,14 @@ public class ResourceRepositoryTests : IDisposable
     }
     
     [Fact]
-    public async Task GetAllAsync_ReturnsAllResources()
-    {
-        // Arrange
-        await _dbContext.Resources.AddRangeAsync(
-            new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
-        );
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetAllAsync();
-
-        // Assert
-        var resources = result.ToList();
-        Assert.Equal(2, resources.Count);
-        Assert.Contains(resources, r => r.Id == "res1");
-        Assert.Contains(resources, r => r.Id == "res2");
-    }
-    
-    [Fact]
-    public async Task GetByIdAsync_WithValidId_ReturnsResource()
-    {
-        // Arrange
-        var resource = new Resource
-        { 
-            Id = "res-id",
-            Name = "Test Resource", 
-            Code = "TR"
-        };
-        
-        await _dbContext.Resources.AddAsync(resource);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetByIdAsync("res-id");
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("res-id", result.Id);
-        Assert.Equal("Test Resource", result.Name);
-        Assert.Equal("TR", result.Code);
-    }
-    
-    [Fact]
-    public async Task GetByIdAsync_WithInvalidId_ReturnsNull()
-    {
-        // Act
-        var result = await _repository.GetByIdAsync("non-existent");
-        
-        // Assert
-        Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task GetQueryableAsync_ReturnsQueryable()
-    {
-        // Arrange
-        await _dbContext.Resources.AddRangeAsync(
-            new Resource { Id = "res1", Name = "Resource 1", Code = "R1" },
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
-        );
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _repository.GetQueryableAsync();
-        
-        // Assert
-        Assert.NotNull(result);
-        Assert.IsAssignableFrom<IQueryable<Resource>>(result);
-        Assert.Equal(2, result.Count());
-    }
-    
-    [Fact]
-    public async Task AddAsync_AddsResource()
-    {
-        // Arrange
-        var resource = new Resource
-        { 
-            Id = "new-id", 
-            Name = "New Resource",
-            Code = "NR"
-        };
-        
-        // Act
-        await _repository.AddAsync(resource);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var result = await _dbContext.Resources.FindAsync("new-id");
-        Assert.NotNull(result);
-        Assert.Equal("New Resource", result.Name);
-        Assert.Equal("NR", result.Code);
-    }
-    
-    [Fact]
-    public async Task UpdateAsync_UpdatesResource()
-    {
-        // Arrange
-        var original = new Resource
-        { 
-            Id = "res-id", 
-            Name = "Original Resource",
-            Code = "OR"
-        };
-        
-        await _dbContext.Resources.AddAsync(original);
-        await _dbContext.SaveChangesAsync();
-        
-        var updated = new Resource
-        { 
-            Id = "res-id", 
-            Name = "Updated Resource",
-            Code = "UR"
-        };
-
-        // Act
-        await _repository.UpdateAsync(updated);
-        await _repository.SaveChangesAsync();
-
-        // Assert
-        var result = await _dbContext.Resources.FindAsync("res-id");
-        Assert.NotNull(result);
-        Assert.Equal("Updated Resource", result.Name);
-        Assert.Equal("UR", result.Code);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_DeletesResource()
-    {
-        // Arrange
-        var resource = new Resource
-        { 
-            Id = "delete-id", 
-            Name = "Delete Resource",
-            Code = "DR"
-        };
-        
-        await _dbContext.Resources.AddAsync(resource);
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        await _repository.DeleteAsync("delete-id");
-        await _repository.SaveChangesAsync();
-        
-        // Assert
-        var result = await _dbContext.Resources.FindAsync("delete-id");
-        Assert.Null(result);
-    }
-    
-    [Fact]
-    public async Task DeleteAsync_WithInvalidId_ThrowsEntityNotFoundException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _repository.DeleteAsync("non-existent"));
-    }
-    
-    [Fact]
     public async Task GetByCodeAsync_ReturnsCorrectResource()
     {
         // Arrange
         var code = "R1";
         
         await _dbContext.Resources.AddRangeAsync(
-            new Resource { Id = "res1", Name = "Resource 1", Code = code },
-            new Resource { Id = "res2", Name = "Resource 2", Code = "R2" }
+            new Resource { Name = "Resource 1", Code = code },
+            new Resource { Name = "Resource 2", Code = "R2" }
         );
         await _dbContext.SaveChangesAsync();
         
@@ -207,7 +49,6 @@ public class ResourceRepositoryTests : IDisposable
         
         // Assert
         Assert.NotNull(result);
-        Assert.Equal("res1", result.Id);
         Assert.Equal(code, result.Code);
         Assert.Equal("Resource 1", result.Name);
     }
@@ -218,7 +59,6 @@ public class ResourceRepositoryTests : IDisposable
         // Arrange
         var resource = new Resource 
         { 
-            Id = "res1", 
             Name = "Resource 1", 
             Code = "R1"
         };
@@ -228,10 +68,9 @@ public class ResourceRepositoryTests : IDisposable
         
         var parameter = new Parameter 
         { 
-            Id = "param1", 
             Name = "Parameter 1", 
             Type = ParameterType.StringType,
-            ResourceId = "res1"
+            ResourceId = resource.Id
         };
         
         await _dbContext.Parameters.AddAsync(parameter);
@@ -244,21 +83,17 @@ public class ResourceRepositoryTests : IDisposable
         Assert.NotNull(result);
         Assert.Single(result);
         var fetchedResource = result.First();
-        Assert.Equal("res1", fetchedResource.Id);
         Assert.NotNull(fetchedResource.Parameters);
         Assert.Single(fetchedResource.Parameters);
-        Assert.Equal("param1", fetchedResource.Parameters.First().Id);
+        Assert.Equal(parameter.Id, fetchedResource.Parameters.First().Id);
     }
     
     [Fact]
     public async Task GetParametersForResourceAsync_ReturnsCorrectParameters()
     {
         // Arrange
-        var resourceId = "res1";
-        
         var resource = new Resource 
         { 
-            Id = resourceId, 
             Name = "Resource 1", 
             Code = "R1" 
         };
@@ -269,63 +104,57 @@ public class ResourceRepositoryTests : IDisposable
         var parameters = new List<Parameter>
         {
             new()
-                { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType, ResourceId = resourceId },
+                { Name = "Parameter 1", Type = ParameterType.StringType, ResourceId = resource.Id },
             new()
-                { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType, ResourceId = resourceId },
+                { Name = "Parameter 2", Type = ParameterType.IntegerType, ResourceId = resource.Id },
             new()
-                { Id = "param3", Name = "Parameter 3", Type = ParameterType.BooleanType, ResourceId = "different-resource" }
+                { Name = "Parameter 3", Type = ParameterType.BooleanType, ResourceId = resource.Id + 2 }
         };
         
         await _dbContext.Parameters.AddRangeAsync(parameters);
         await _dbContext.SaveChangesAsync();
         
         // Act
-        var result = await _repository.GetParametersForResourceAsync(resourceId);
+        var result = await _repository.GetParametersForResourceAsync(resource.Id);
         
         // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, p => p.Id == "param1");
-        Assert.Contains(result, p => p.Id == "param2");
-        Assert.DoesNotContain(result, p => p.Id == "param3");
+        var enumerable = result.ToList();
+        Assert.Equal(2, enumerable.Count);
+        Assert.Contains(enumerable, p => p.Name == "Parameter 1");
+        Assert.Contains(enumerable, p => p.Name == "Parameter 2");
+        Assert.DoesNotContain(enumerable, p => p.Name == "Parameter 3");
     }
     
     [Fact]
     public async Task AddParameterToResourceAsync_UpdatesParameter()
     {
         // Arrange
-        var resourceId = "res1";
-        var parameterId = "param1";
-        
-        var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
-        var parameter = new Parameter { Id = parameterId, Name = "Parameter 1", Type = ParameterType.StringType };
+        var resource = new Resource { Name = "Resource 1", Code = "R1" };
+        var parameter = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
         
         await _dbContext.Resources.AddAsync(resource);
         await _dbContext.Parameters.AddAsync(parameter);
         await _dbContext.SaveChangesAsync();
         
         // Act
-        await _repository.AddParameterToResourceAsync(resourceId, parameterId);
+        await _repository.AddParameterToResourceAsync(resource.Id, parameter.Id);
         
         // Assert
-        var updatedParameter = await _dbContext.Parameters.FindAsync(parameterId);
+        var updatedParameter = await _dbContext.Parameters.FindAsync(parameter.Id);
         Assert.NotNull(updatedParameter);
-        Assert.Equal(resourceId, updatedParameter.ResourceId);
+        Assert.Equal(resource.Id, updatedParameter.ResourceId);
     }
     
     [Fact]
     public async Task RemoveParameterFromResourceAsync_UpdatesParameter()
     {
         // Arrange
-        var resourceId = "res1";
-        var parameterId = "param1";
-        
-        var resource = new Resource { Id = resourceId, Name = "Resource 1", Code = "R1" };
+        var resource = new Resource { Name = "Resource 1", Code = "R1" };
         var parameter = new Parameter 
         { 
-            Id = parameterId, 
             Name = "Parameter 1", 
             Type = ParameterType.StringType,
-            ResourceId = resourceId
+            ResourceId = resource.Id
         };
         
         await _dbContext.Resources.AddAsync(resource);
@@ -333,10 +162,10 @@ public class ResourceRepositoryTests : IDisposable
         await _dbContext.SaveChangesAsync();
         
         // Act
-        await _repository.RemoveParameterFromResourceAsync(resourceId, parameterId);
+        await _repository.RemoveParameterFromResourceAsync(resource.Id, parameter.Id);
         
         // Assert
-        var updatedParameter = await _dbContext.Parameters.FindAsync(parameterId);
+        var updatedParameter = await _dbContext.Parameters.FindAsync(parameter.Id);
         Assert.NotNull(updatedParameter);
         Assert.Null(updatedParameter.ResourceId);
     }

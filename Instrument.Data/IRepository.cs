@@ -27,7 +27,7 @@ public interface IRepository<T> where T : class
     /// </summary>
     /// <param name="entity">Entity to add</param>
     Task AddAsync(T entity);
-    
+
     /// <summary>
     /// Updates an existing entity
     /// </summary>

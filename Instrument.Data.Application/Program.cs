@@ -207,10 +207,10 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         await sequenceService.CreateSequenceAsync(analyzeSequence);
 
         // Link parameters to sequences
-        await parameterService.AddParameterToSequenceAsync(reagentVolumeParam.Id, washSequence.Id);
-        await parameterService.AddParameterToSequenceAsync(temperatureParam.Id, prepSequence.Id);
-        await parameterService.AddParameterToSequenceAsync(timeParam.Id, processSequence.Id);
-        await parameterService.AddParameterToSequenceAsync(timeParam.Id, analyzeSequence.Id);
+        await sequenceService.AddParameterToSequenceAsync(reagentVolumeParam.Id, washSequence.Id);
+        await sequenceService.AddParameterToSequenceAsync(temperatureParam.Id, prepSequence.Id);
+        await sequenceService.AddParameterToSequenceAsync(timeParam.Id, processSequence.Id);
+        await sequenceService.AddParameterToSequenceAsync(timeParam.Id, analyzeSequence.Id);
 
         Console.WriteLine("Created sequences and parameters successfully");
 

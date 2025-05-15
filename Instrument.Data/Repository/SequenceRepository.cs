@@ -19,12 +19,12 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
     }
 
     /// <inheritdoc />
-    public async Task<Sequence?> GetSequenceWithParametersAsync(int id)
+    public async Task<Sequence?> GetSequenceWithParametersAsync(int sequenceId)
     {
         return await DbContext.Sequences
             .Include(s => s.SequenceParameters)
             .ThenInclude(sp => sp.Parameter)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .FirstOrDefaultAsync(s => s.Id == sequenceId);
     }
 
     /// <inheritdoc />
@@ -33,6 +33,48 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
         return await DbContext.Sequences
             .Where(s => s.Name.Contains(name))
             .ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task AddParameterToSequenceAsync(int parameterId, int sequenceId, int orderNumber = 0)
+    {
+        // Check if the parameter and sequence exist
+        var parameter = await DbContext.Parameters.FindAsync(parameterId);
+        var sequence = await DbContext.Sequences.FindAsync(sequenceId);
+
+        if (parameter == null || sequence == null)
+        {
+            throw new Exceptions.EntityNotFoundException(parameter == null ? "Parameter" : "Sequence",
+                parameter == null ? parameterId : sequenceId);
+        }
+
+        // Check if the association already exists
+        var existingAssociation = await DbContext.SequenceParameters
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
+
+        if (existingAssociation != null)
+        {
+            // Todo: throw an exception?
+
+            // Update the order number if it's different
+            if (existingAssociation.OrderNumber != orderNumber)
+            {
+                existingAssociation.OrderNumber = orderNumber;
+                DbContext.SequenceParameters.Update(existingAssociation);
+            }
+        }
+        else
+        {
+            // Create a new association
+            await DbContext.SequenceParameters.AddAsync(new SequenceParameter
+            {
+                ParameterId = parameterId,
+                SequenceId = sequenceId,
+                OrderNumber = orderNumber
+            });
+        }
+
+        await DbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc />
