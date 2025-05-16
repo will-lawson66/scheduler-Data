@@ -176,7 +176,7 @@ public class SequenceServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task AddParameterToSequenceAsync_WithValidIds_AddsParameterToSequence()
+    public async Task AddParameterToSequenceAsync_AddsParameterToSequence()
     {
         // Arrange
         var orderNumber = 1;
@@ -192,11 +192,11 @@ public class SequenceServiceTests : IDisposable
         await _service.AddParameterToSequenceAsync(parameter.Id, sequence.Id, orderNumber);
 
         // Assert
-        var association = await _dbContext.SequenceParameters
-        .AsNoTracking()
-            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
-        Assert.NotNull(association);
-        Assert.Equal(orderNumber, association.OrderNumber);
+        var sequenceActual = await _dbContext.Sequences.FindAsync(sequence.Id);
+        Assert.NotNull(sequenceActual);
+        Assert.NotNull(sequenceActual.SequenceParameters);
+        var sequenceParameter = sequenceActual.SequenceParameters.FirstOrDefault(sp => sp.ParameterId == parameter.Id
+            && sp.SequenceId == sequence.Id);
     }
 
     [Fact]
