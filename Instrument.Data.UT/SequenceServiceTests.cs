@@ -4,45 +4,46 @@ using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Instrument.Data.UT;
-
+[Collection("Database Tests")]
 public class SequenceServiceTests : IDisposable
 {
     private readonly SchedulerDbContext _dbContext;
     private readonly ISequenceRepository _sequenceRepository;
     private readonly Mock<ILogger<SequenceService>> _mockLogger;
     private readonly SequenceService _service;
+    private readonly SqliteConnection _connection;
 
     public SequenceServiceTests()
     {
-        // Set up in-memory database
+        // Create a new SQLite connection for each test
+        _connection = new SqliteConnection("DataSource=:memory:");
+        _connection.Open();
+
         var options = new DbContextOptionsBuilder<SchedulerDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .UseSqlite(_connection)
+            .EnableSensitiveDataLogging() // Helpful for debugging
             .Options;
+
+        // Create the context and create the schema
         _dbContext = new SchedulerDbContext(options);
+        _dbContext.Database.EnsureCreated();
 
-        // Set up real repository with in-memory database
+        // Set up repository and service
         _sequenceRepository = new SequenceRepository(_dbContext);
-        
-        // Set up logger mock
         _mockLogger = new Mock<ILogger<SequenceService>>();
-
-        // Create the service
-        _service = new SequenceService(
-            _sequenceRepository,
-            _mockLogger.Object
-        );
+        _service = new SequenceService(_sequenceRepository, _mockLogger.Object);
     }
-    
+
     public void Dispose()
     {
-        // Clean up database after test
-        _dbContext.Database.EnsureDeleted();
         _dbContext.Dispose();
+        _connection.Dispose();
     }
 
     [Fact]
@@ -178,25 +179,37 @@ public class SequenceServiceTests : IDisposable
     [Fact]
     public async Task AddParameterToSequenceAsync_AddsParameterToSequence()
     {
-        // Arrange
-        var orderNumber = 1;
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-        var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
+        try
+        {
+            // Arrange
+            var orderNumber = 1;
+            var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
+            var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
+            await _dbContext.Parameters.AddAsync(parameter);
+            await _dbContext.Sequences.AddAsync(sequence);
+            await _dbContext.SaveChangesAsync();
 
-        await _dbContext.Parameters.AddAsync(parameter);
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
+            // Act
+            await _service.AddParameterToSequenceAsync(parameter.Id, sequence.Id, orderNumber);
 
-        // Act
-        await _service.AddParameterToSequenceAsync(parameter.Id, sequence.Id, orderNumber);
+            // Assert
+            var sequenceActual = await _dbContext.Sequences
+                .Include(s => s.SequenceParameters)
+                .FirstOrDefaultAsync(s => s.Id == sequence.Id);
 
-        // Assert
-        var sequenceActual = await _dbContext.Sequences.FindAsync(sequence.Id);
-        Assert.NotNull(sequenceActual);
-        Assert.NotNull(sequenceActual.SequenceParameters);
-        var sequenceParameter = sequenceActual.SequenceParameters.FirstOrDefault(sp => sp.ParameterId == parameter.Id
-            && sp.SequenceId == sequence.Id);
+            Assert.NotNull(sequenceActual);
+            Assert.NotNull(sequenceActual.SequenceParameters);
+            Assert.Contains(sequenceActual.SequenceParameters,
+                sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id && sp.OrderNumber == orderNumber);
+
+            // Explicitly don't commit the transaction
+        }
+        finally
+        {
+            await transaction.RollbackAsync();
+        }
     }
 
     [Fact]
