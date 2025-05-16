@@ -1,8 +1,7 @@
-using System;
+using Instrument.Data.Configuration;
+using Instrument.Data.DataContext;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Instrument.Data.DataContext;
-using Instrument.Data.Configuration;
 
 namespace Instrument.Data.Initialization
 {
@@ -45,7 +44,7 @@ namespace Instrument.Data.Initialization
         /// <summary>
         /// Creates a SQLite database initializer
         /// </summary>
-        private IDataInitializer CreateSqliteInitializer()
+        private SqliteDatabaseInitializer CreateSqliteInitializer()
         {
             var context = _serviceProvider.GetRequiredService<SchedulerDbContext>();
             var logger = _serviceProvider.GetRequiredService<ILogger<SqliteDatabaseInitializer>>();

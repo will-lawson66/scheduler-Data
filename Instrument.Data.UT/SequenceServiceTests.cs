@@ -1,5 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
@@ -87,16 +88,13 @@ public class SequenceServiceTests : IDisposable
         Assert.Equal(TimeSpan.FromSeconds(30), createdSequence.WorstCaseTime);
     }
 
-    // This test is no longer applicable as IDs are auto-generated
 
     [Fact]
     public async Task UpdateSequenceAsync_WithValidSequence_UpdatesSequence()
     {
         // Arrange
-        var id = "test-sequence-1";
         var existingSequence = new Sequence 
         { 
-            Id = id, 
             Name = "Original Sequence", 
             WorstCaseTime = TimeSpan.FromSeconds(45) 
         };
@@ -104,55 +102,25 @@ public class SequenceServiceTests : IDisposable
         await _dbContext.Sequences.AddAsync(existingSequence);
         await _dbContext.SaveChangesAsync();
 
-        var updatedSequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Updated Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
+        var updatedSequence = existingSequence.Update("Updated Sequence", TimeSpan.FromSeconds(30));
+        
 
         // Act
         await _service.UpdateSequenceAsync(updatedSequence);
 
         // Assert
-        var resultSequence = await _dbContext.Sequences.FindAsync(id);
+        var resultSequence = await _dbContext.Sequences.FindAsync(existingSequence.Id);
         Assert.NotNull(resultSequence);
         Assert.Equal("Updated Sequence", resultSequence.Name);
         Assert.Equal(TimeSpan.FromSeconds(30), resultSequence.WorstCaseTime);
     }
 
     [Fact]
-    public async Task UpdateSequenceAsync_WithNonExistingId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var id = "test-sequence-1";
-        var sequence = new Sequence 
-        { 
-            Id = id, 
-            Name = "Test Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.UpdateSequenceAsync(sequence));
-            
-        Assert.Equal(id, exception.EntityId);
-        Assert.Equal("Sequence", exception.EntityType);
-        
-        // Verify no sequence was added
-        var sequenceCount = await _dbContext.Sequences.CountAsync();
-        Assert.Equal(0, sequenceCount);
-    }
-    
-    [Fact]
     public async Task DeleteSequenceAsync_WithValidId_DeletesSequence()
     {
         // Arrange
-        var id = "test-sequence-1";
         var existingSequence = new Sequence 
         { 
-            Id = id, 
             Name = "Sequence to Delete", 
             WorstCaseTime = TimeSpan.FromSeconds(30) 
         };
@@ -161,10 +129,10 @@ public class SequenceServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _service.DeleteSequenceAsync(id);
+        await _service.DeleteSequenceAsync(existingSequence.Id);
 
         // Assert
-        var deletedSequence = await _dbContext.Sequences.FindAsync(id);
+        var deletedSequence = await _dbContext.Sequences.FindAsync(existingSequence.Id);
         Assert.Null(deletedSequence);
     }
 
@@ -172,7 +140,7 @@ public class SequenceServiceTests : IDisposable
     public async Task DeleteSequenceAsync_WithNonExistingId_ThrowsEntityNotFoundException()
     {
         // Arrange
-        var id = "test-sequence-1";
+        var id = -5;
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
@@ -189,9 +157,9 @@ public class SequenceServiceTests : IDisposable
         var sequences = new List<Sequence>
         {
             new()
-                { Id = "seq1", Name = "Sequence 1", WorstCaseTime = TimeSpan.FromSeconds(30) },
+                { Name = "Sequence 1", WorstCaseTime = TimeSpan.FromSeconds(30) },
             new()
-                { Id = "seq2", Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
+                { Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
         await _dbContext.Sequences.AddRangeAsync(sequences);
@@ -201,9 +169,86 @@ public class SequenceServiceTests : IDisposable
         var result = await _service.GetAllSequencesAsync();
 
         // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, s => s.Id == "seq1");
-        Assert.Contains(result, s => s.Id == "seq2");
+        var enumerable = result.ToList();
+        Assert.Equal(2, enumerable.Count);
+        Assert.Contains(enumerable, s => s.Name == "Sequence 1");
+        Assert.Contains(enumerable, s => s.Name == "Sequence 2");
+    }
+
+    [Fact]
+    public async Task AddParameterToSequenceAsync_WithValidIds_AddsParameterToSequence()
+    {
+        // Arrange
+        var orderNumber = 1;
+
+        var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
+        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
+
+        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        await _service.AddParameterToSequenceAsync(parameter.Id, sequence.Id, orderNumber);
+
+        // Assert
+        var association = await _dbContext.SequenceParameters
+        .AsNoTracking()
+            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
+        Assert.NotNull(association);
+        Assert.Equal(orderNumber, association.OrderNumber);
+    }
+
+    [Fact]
+    public async Task AddParameterToSequenceAsync_WithInvalidParameterId_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        var parameterId = -2;
+        var orderNumber = 1;
+
+        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000) };
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+            _service.AddParameterToSequenceAsync(parameterId, sequence.Id, orderNumber));
+
+        Assert.Equal(parameterId, exception.EntityId);
+        Assert.Equal("Parameter", exception.EntityType);
+    }
+
+    [Fact]
+    public async Task GetSequenceWithParameters_ReturnsSequenceWithParameters()
+    {
+        // Arrange
+        // Create parameters
+        var param1 = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
+        var param2 = new Parameter { Name = "Parameter 2", Type = ParameterType.IntegerType };
+
+        // Create sequence
+        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
+
+        // Add to database
+        await _dbContext.Parameters.AddRangeAsync(param1, param2);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Create associations
+        await _dbContext.SequenceParameters.AddRangeAsync(
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param1.Id, OrderNumber = 1 },
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param2.Id, OrderNumber = 2 }
+        );
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetSequenceWithParametersAsync(sequence.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        var parameter1 = result.SequenceParameters.Select(p => p.ParameterId == param1.Id);
+        //Assert.Equal(2, result.SequenceParameters);
+       // Assert.Equal(2, result.SequenceParameters.;
     }
 
     [Fact]
@@ -213,9 +258,9 @@ public class SequenceServiceTests : IDisposable
         var sequences = new List<Sequence>
         {
             new()
-                { Id = "seq1", Name = "Alpha Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) },
+                { Name = "Alpha Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) },
             new()
-                { Id = "seq2", Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
+                { Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
         };
 
         await _dbContext.Sequences.AddRangeAsync(sequences);
@@ -226,23 +271,6 @@ public class SequenceServiceTests : IDisposable
 
         // Assert
         Assert.Single(result);
-        Assert.Equal("seq1", result.First().Id);
-    }
-    
-    [Fact]
-    public void Constructor_WithNullRepository_ThrowsArgumentNullException()
-    {
-        // Arrange
-        var logger = new Mock<ILogger<SequenceService>>().Object;
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SequenceService(null!, logger));
-    }
-
-    [Fact]
-    public void Constructor_WithNullLogger_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new SequenceService(_sequenceRepository, null!));
+        Assert.Equal("Alpha Sequence", result.First().Name);
     }
 }

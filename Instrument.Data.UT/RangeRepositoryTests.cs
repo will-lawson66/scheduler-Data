@@ -1,6 +1,5 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 

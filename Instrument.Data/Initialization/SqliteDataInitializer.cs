@@ -1,9 +1,6 @@
-using Instrument.Data.Entities.Enums;
 using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Range = Instrument.Data.Entities.Range;
 
 namespace Instrument.Data.Initialization;
 
@@ -25,7 +22,10 @@ public class SqliteDatabaseInitializer : IDataInitializer
 
         // Extract database path from connection string
         var connectionString = _context.Database.GetConnectionString();
-        if (connectionString != null) _dbPath = ExtractDbPathFromConnectionString(connectionString);
+        if (connectionString != null)
+        {
+            _dbPath = ExtractDbPathFromConnectionString(connectionString);
+        }
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
     /// </summary>
     public Task<bool> ExistsAsync()
     {
-        bool exists = File.Exists(_dbPath);
+        var exists = File.Exists(_dbPath);
         _logger.LogInformation("SQLite database {Exists} at {Path}",
             exists ? "exists" : "does not exist", _dbPath);
         return Task.FromResult(exists);
@@ -80,7 +80,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
             var pendingMigrations = await _context.Database.GetPendingMigrationsAsync();
             var migrationsList = pendingMigrations.ToList();
 
-            if (migrationsList.Any())
+            if (migrationsList.Count == 0)
             {
                 _logger.LogInformation("Applying {Count} pending migrations", migrationsList.Count);
 
@@ -108,7 +108,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
     {
         try
         {
-            bool exists = await ExistsAsync();
+            var exists = await ExistsAsync();
             if (!exists)
             {
                 return $"SQLite database does not exist at {_dbPath}";
@@ -130,7 +130,7 @@ public class SqliteDatabaseInitializer : IDataInitializer
     /// <summary>
     /// Extracts the database file path from a SQLite connection string
     /// </summary>
-    private string ExtractDbPathFromConnectionString(string connectionString)
+    private static string ExtractDbPathFromConnectionString(string connectionString)
     {
         if (string.IsNullOrEmpty(connectionString))
         {
@@ -144,8 +144,8 @@ public class SqliteDatabaseInitializer : IDataInitializer
             var path = connectionString.Substring(dataSourcePrefix.Length).Trim();
 
             // Handle quoted paths
-            if ((path.StartsWith("'") && path.EndsWith("'")) ||
-                (path.StartsWith("\"") && path.EndsWith("\"")))
+            if ((path.StartsWith('\'') && path.EndsWith('\'')) ||
+                (path.StartsWith('\"') && path.EndsWith('\"')))
             {
                 path = path.Substring(1, path.Length - 2);
             }

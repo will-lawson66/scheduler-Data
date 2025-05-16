@@ -178,7 +178,7 @@ public class SequenceGroupService : ISequenceGroupService
     /// <param name="sequenceId">Identifier of the sequence to add</param>
     /// <param name="order">Order/position of the sequence within the group</param>
     /// <returns>True if successful, false otherwise</returns>
-    public async Task<bool> AddSequenceToSequenceGroupAsync(int sequenceGroupId, int sequenceId, int order)
+    public async Task<bool> AddSequenceToSequenceGroupAsync(int sequenceGroupId, int sequenceId, int order = 0)
     {
         _logger.LogInformation("Adding sequence {SequenceId} to group {GroupId} at order {Order}",
             sequenceId, sequenceGroupId, order);

@@ -4,7 +4,6 @@ using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 
 namespace Instrument.Data.UT;
 

@@ -2,6 +2,7 @@ using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.Extensions.Logging;
+using System.Reflection.Metadata;
 
 namespace Instrument.Data.Services;
 public class SequenceService : ISequenceService
@@ -179,6 +180,23 @@ public class SequenceService : ISequenceService
             _logger.LogError(ex, "Error removing parameter {ParameterId} from sequence {SequenceId}",
                 parameterId, sequenceId);
             throw new StorageProviderException("RemoveParameterFromSequence", ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Sequence?> GetSequenceWithParametersAsync(int sequenceId)
+    {
+        _logger.LogInformation("Retrieving sequence with ID: {Id}", sequenceId);
+
+        try
+        {
+            _logger.LogInformation("Sequence retrieved with ID: {Id}", sequenceId);
+            return await _sequenceRepository.GetSequenceWithParametersAsync(sequenceId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving sequence with Id: {Id}", sequenceId);
+            throw new StorageProviderException("GetSequenceWithParameters", ex);
         }
     }
 }

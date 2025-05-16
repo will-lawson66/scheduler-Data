@@ -1,7 +1,6 @@
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Entities.Enums;
-using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -150,6 +149,8 @@ public class ResourceRepositoryTests : IDisposable
     {
         // Arrange
         var resource = new Resource { Name = "Resource 1", Code = "R1" };
+        await _dbContext.Resources.AddAsync(resource);
+
         var parameter = new Parameter 
         { 
             Name = "Parameter 1", 
@@ -157,7 +158,6 @@ public class ResourceRepositoryTests : IDisposable
             ResourceId = resource.Id
         };
         
-        await _dbContext.Resources.AddAsync(resource);
         await _dbContext.Parameters.AddAsync(parameter);
         await _dbContext.SaveChangesAsync();
         

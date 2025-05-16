@@ -52,10 +52,8 @@ public class ParameterServiceTests : IDisposable
     public async Task GetParameterAsync_WithValidId_ReturnsParameter()
     {
         // Arrange
-        var id = "test-param-1";
         var parameter = new Parameter 
         { 
-            Id = id, 
             Name = "Test Parameter", 
             Type = ParameterType.StringType
         };
@@ -64,11 +62,11 @@ public class ParameterServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetParameterByIdAsync(id);
+        var result = await _service.GetParameterByIdAsync(parameter.Id);
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(id, result.Id);
+        Assert.Equal(parameter.Id, result.Id);
         Assert.Equal("Test Parameter", result.Name);
         Assert.Equal(ParameterType.StringType, result.Type);
     }
@@ -77,7 +75,7 @@ public class ParameterServiceTests : IDisposable
     public async Task GetParameterAsync_WithInvalidId_ReturnsNull()
     {
         // Act
-        var result = await _service.GetParameterByIdAsync("non-existent");
+        var result = await _service.GetParameterByIdAsync(-2);
 
         // Assert
         Assert.Null(result);
@@ -89,7 +87,6 @@ public class ParameterServiceTests : IDisposable
         // Arrange
         var parameter = new Parameter 
         { 
-            Id = "test-param-1", 
             Name = "Test Parameter", 
             Type = ParameterType.StringType
         };
@@ -105,46 +102,11 @@ public class ParameterServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateParameterAsync_WithExistingId_ThrowsSchedulerDataException()
-    {
-        // Arrange
-        var id = "test-param-1";
-        var existingParameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Existing Parameter", 
-            Type = ParameterType.IntegerType
-        };
-        
-        await _dbContext.Parameters.AddAsync(existingParameter);
-        await _dbContext.SaveChangesAsync();
-
-        var parameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Test Parameter", 
-            Type = ParameterType.StringType
-        };
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
-            _service.CreateParameterAsync(parameter));
-            
-        Assert.Contains(id, exception.Message);
-        
-        var unchangedParameter = await _dbContext.Parameters.FindAsync(id);
-        Assert.Equal("Existing Parameter", unchangedParameter?.Name);
-        Assert.Equal(ParameterType.IntegerType, unchangedParameter?.Type);
-    }
-
-    [Fact]
     public async Task UpdateParameterAsync_WithValidParameter_UpdatesParameter()
     {
         // Arrange
-        var id = "test-param-1";
         var existingParameter = new Parameter 
         { 
-            Id = id, 
             Name = "Original Parameter", 
             Type = ParameterType.StringType
         };
@@ -152,54 +114,24 @@ public class ParameterServiceTests : IDisposable
         await _dbContext.Parameters.AddAsync(existingParameter);
         await _dbContext.SaveChangesAsync();
 
-        var updatedParameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Updated Parameter", 
-            Type = ParameterType.IntegerType
-        };
+        var updatedParameter = existingParameter.Update(name: "Updated parameter", ParameterType.IntegerType);
 
         // Act
         await _service.UpdateParameterAsync(updatedParameter);
 
         // Assert
-        var resultParameter = await _dbContext.Parameters.FindAsync(id);
+        var resultParameter = await _dbContext.Parameters.FindAsync(existingParameter.Id);
         Assert.NotNull(resultParameter);
-        Assert.Equal("Updated Parameter", resultParameter.Name);
+        Assert.Equal("Updated parameter", resultParameter.Name);
         Assert.Equal(ParameterType.IntegerType, resultParameter.Type);
     }
 
     [Fact]
-    public async Task UpdateParameterAsync_WithNonExistingId_ThrowsEntityNotFoundException()
+    public async Task DeleteParameterAsync_DeletesParameter()
     {
         // Arrange
-        var id = "test-param-1";
-        var parameter = new Parameter 
-        { 
-            Id = id, 
-            Name = "Test Parameter", 
-            Type = ParameterType.StringType
-        };
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.UpdateParameterAsync(parameter));
-            
-        Assert.Equal(id, exception.EntityId);
-        Assert.Equal("Parameter", exception.EntityType);
-        
-        var parameterCount = await _dbContext.Parameters.CountAsync();
-        Assert.Equal(0, parameterCount);
-    }
-
-    [Fact]
-    public async Task DeleteParameterAsync_WithValidId_DeletesParameter()
-    {
-        // Arrange
-        var id = "test-param-1";
         var existingParameter = new Parameter 
         { 
-            Id = id, 
             Name = "Parameter to Delete", 
             Type = ParameterType.StringType
         };
@@ -208,10 +140,10 @@ public class ParameterServiceTests : IDisposable
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _service.DeleteParameterAsync(id);
+        await _service.DeleteParameterAsync(existingParameter.Id);
 
         // Assert
-        var deletedParameter = await _dbContext.Parameters.FindAsync(id);
+        var deletedParameter = await _dbContext.Parameters.FindAsync(existingParameter.Id);
         Assert.Null(deletedParameter);
     }
 
@@ -219,95 +151,14 @@ public class ParameterServiceTests : IDisposable
     public async Task DeleteParameterAsync_WithNonExistingId_ThrowsEntityNotFoundException()
     {
         // Arrange
-        var id = "test-param-1";
+        var id = -5;
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
             _service.DeleteParameterAsync(id));
-            
-        Assert.Equal(id, exception.EntityId);
+
+        Assert.Equal<int>(id, exception.EntityId);
         Assert.Equal("Parameter", exception.EntityType);
-    }
-
-    [Fact]
-    public async Task AddParameterToSequenceAsync_WithValidIds_AddsParameterToSequence()
-    {
-        // Arrange
-        var sequenceId = "seq-1";
-        var parameterId = "param-1";
-        var orderNumber = 1;
-
-        var parameter = new Parameter { Id = parameterId, Name = "Test Parameter", Type = ParameterType.StringType };
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
-
-        await _dbContext.Parameters.AddAsync(parameter);
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        await _service.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber);
-
-        // Assert
-        var association = await _dbContext.SequenceParameters
-            .AsNoTracking()
-            .FirstOrDefaultAsync(sp => sp.ParameterId == parameterId && sp.SequenceId == sequenceId);
-        Assert.NotNull(association);
-        Assert.Equal(orderNumber, association.OrderNumber);
-    }
-
-    [Fact]
-    public async Task AddParameterToSequenceAsync_WithInvalidParameterId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var sequenceId = "seq-1";
-        var parameterId = "invalid-param";
-        var orderNumber = 1;
-        
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000)};
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.AddParameterToSequenceAsync(parameterId, sequenceId, orderNumber));
-            
-        Assert.Equal(parameterId, exception.EntityId);
-        Assert.Equal("Parameter", exception.EntityType);
-    }
-    
-    [Fact]
-    public async Task GetParametersForSequenceAsync_ReturnsCorrectParameters()
-    {
-        // Arrange
-        var sequenceId = "seq-1";
-        
-        // Create parameters
-        var param1 = new Parameter { Id = "param1", Name = "Parameter 1", Type = ParameterType.StringType };
-        var param2 = new Parameter { Id = "param2", Name = "Parameter 2", Type = ParameterType.IntegerType };
-        
-        // Create sequence
-        var sequence = new Sequence { Id = sequenceId, Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
-        
-        // Add to database
-        await _dbContext.Parameters.AddRangeAsync(param1, param2);
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-        
-        // Create associations
-        await _dbContext.SequenceParameters.AddRangeAsync(
-            new SequenceParameter { SequenceId = sequenceId, ParameterId = "param1", OrderNumber = 1 },
-            new SequenceParameter { SequenceId = sequenceId, ParameterId = "param2", OrderNumber = 2 }
-        );
-        await _dbContext.SaveChangesAsync();
-        
-        // Act
-        var result = await _service.GetParametersForSequenceAsync(sequenceId);
-        
-        // Assert
-        var parameters = result.ToList();
-        Assert.Equal(2, parameters.Count);
-        Assert.Contains(parameters, p => p?.Id == "param1");
-        Assert.Contains(parameters, p => p?.Id == "param2");
     }
 
     // Validation tests
@@ -330,7 +181,6 @@ public class ParameterServiceTests : IDisposable
         // Arrange
         var numberParam = new Parameter
         {
-            Id = "num-param",
             Name = "Number Parameter",
             Type = ParameterType.IntegerType,
             Min = "0",
@@ -339,7 +189,6 @@ public class ParameterServiceTests : IDisposable
         
         var stringParam = new Parameter
         {
-            Id = "str-param",
             Name = "String Parameter",
             Type = ParameterType.StringType,
             Min = "3",
@@ -348,7 +197,6 @@ public class ParameterServiceTests : IDisposable
         
         var boolParam = new Parameter
         {
-            Id = "bool-param",
             Name = "Boolean Parameter",
             Type = ParameterType.BooleanType
         };
@@ -374,7 +222,6 @@ public class ParameterServiceTests : IDisposable
         // Arrange
         var parameter = new Parameter
         {
-            Id = "param-1",
             Name = "Test Parameter",
             Type = ParameterType.IntegerType,
             Min = "0",

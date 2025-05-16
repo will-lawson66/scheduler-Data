@@ -26,4 +26,11 @@ public interface ISequenceService
     /// <param name="sequenceId"></param>
     /// <returns></returns>
     Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId);
+
+    /// <summary>
+    /// Get a sequence by Id with its associated parameters.
+    /// </summary>
+    /// <param name="sequenceId"></param>
+    /// <returns></returns>
+    Task<Sequence?> GetSequenceWithParametersAsync(int sequenceId);
 }

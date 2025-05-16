@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Instrument.Data.Migrations
@@ -129,7 +128,7 @@ namespace Instrument.Data.Migrations
             migrationBuilder.AddPrimaryKey(
                 name: "PK_SequenceParameters",
                 table: "SequenceParameters",
-                columns: new[] { "SequenceId", "ParameterId" });
+                columns: ["SequenceId", "ParameterId"]);
                 
             migrationBuilder.AddForeignKey(
                 name: "FK_SequenceParameters_Sequences_SequenceId",

@@ -73,14 +73,14 @@ public class ExceptionTests
     {
         // Arrange
         var entityType = "Sequence";
-        var entityId = "seq-123";
+        var entityId = 2;
         
         // Act
         var exception = new EntityNotFoundException(entityType, entityId);
         
         // Assert
         Assert.Contains(entityType, exception.Message);
-        Assert.Contains(entityId, exception.Message);
+        Assert.Contains(entityId.ToString(), exception.Message);
         Assert.Equal(entityType, exception.EntityType);
         Assert.Equal(entityId, exception.EntityId);
         Assert.Null(exception.InnerException);
@@ -92,7 +92,7 @@ public class ExceptionTests
         // Arrange & Act
         var validationException = new ValidationException(123, "invalid", "Test reason");
         var storageProviderException = new StorageProviderException("GetAll", new Exception());
-        var entityNotFoundException = new EntityNotFoundException("Entity", "id-123");
+        var entityNotFoundException = new EntityNotFoundException("Entity", 3);
         
         // Assert
         Assert.IsAssignableFrom<SchedulerDataException>(validationException);

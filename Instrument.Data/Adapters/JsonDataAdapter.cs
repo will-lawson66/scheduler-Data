@@ -1,9 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
-using Instrument.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Instrument.Data.Adapters;
 
@@ -123,7 +122,7 @@ public class JsonDataAdapter : IJsonDataAdapter
             var json = await File.ReadAllTextAsync(filePath);
             var entities = JsonSerializer.Deserialize<List<T>>(json, _jsonOptions);
             
-            if (entities != null && entities.Any())
+            if (entities != null && entities.Count == 0)
             {
                 await dbSet.AddRangeAsync(entities);
                 _logger.LogInformation("Imported {Count} {EntityType} from {FilePath}", 

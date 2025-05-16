@@ -77,11 +77,7 @@ public class Repository<T> : IRepository<T> where T : class
                 throw new ArgumentException("Entity must have an Id property");
             }
 
-            //if (!Int32.TryParse(idProperty.GetValue(entity) as string, out var id))
-            //{
-            //    throw new EntityNotFoundException(typ)
-            //}
-            var id = (int)idProperty.GetValue(entity);
+            var id = (int)idProperty.GetValue(entity)!;
 
             // Find the entity that's already being tracked
             var existingEntity = await DbSet.FindAsync(id);

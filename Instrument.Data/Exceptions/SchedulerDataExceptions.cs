@@ -47,17 +47,10 @@ public class StorageProviderException : SchedulerDataException
 public class EntityNotFoundException : SchedulerDataException
 {
     public string EntityType { get; }
-    public string EntityId { get; }
+    public int EntityId { get; }
 
     public EntityNotFoundException(string entityType, int entityId)
-        : base($"{entityType} with ID '{entityId}' not found")
-    {
-        EntityType = entityType;
-        EntityId = entityId.ToString();
-    }
-
-    public EntityNotFoundException(string entityType, string entityId)
-        : base($"{entityType} with ID '{entityId}' not found")
+        : base($"{entityType} with ID '{entityId}' not found.")
     {
         EntityType = entityType;
         EntityId = entityId;
