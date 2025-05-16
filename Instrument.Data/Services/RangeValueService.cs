@@ -1,5 +1,8 @@
 using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Instrument.Data.Services;
 
@@ -20,19 +23,27 @@ public class RangeValueService : IRangeValueService
         return await _rangeValueRepository.GetByIdAsync(id);
     }
 
-    public async Task CreateRangeValueAsync(RangeValue rangeValue)
+    public async Task<RangeValue> CreateRangeValueAsync(RangeValue rangeValue)
     {
         if (rangeValue == null)
         {
             throw new ArgumentNullException(nameof(rangeValue));
         }
             
-        _logger.LogInformation("Creating new range value with ID: {Id}, Name: {Name}", rangeValue.Id, rangeValue.Name);
-        
-        await _rangeValueRepository.AddAsync(rangeValue);
-        await _rangeValueRepository.SaveChangesAsync();
-        
-        _logger.LogInformation("Successfully created range value with ID: {Id}", rangeValue.Id);
+        _logger.LogInformation("Creating new range value with Name: {Name}", rangeValue.Name);
+
+        try
+        {
+            await _rangeValueRepository.AddAsync(rangeValue);
+            await _rangeValueRepository.SaveChangesAsync();
+            _logger.LogInformation("Successfully created range with ID: {Id}", rangeValue.Id);
+            return rangeValue;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating RangeValue with Name: {Name}:", rangeValue.Name);
+            throw new StorageProviderException("CreateRangeValue", ex);
+        }
     }
 
     public async Task UpdateRangeValueAsync(RangeValue rangeValue)

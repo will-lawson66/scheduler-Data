@@ -7,12 +7,9 @@ public interface ISequenceGroupCollectionService<TEnum> where TEnum : Enum
     /// <summary>
     /// Creates a new sequence group collection
     /// </summary>
-    /// <param name="category">Enum representing the category of the <see cref="Entities.SequenceGroupCollection{TEnum}"/>></param>
-    /// <param name="id">Id of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
-    /// <param name="name">Name of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
-    /// <param name="description">Description of the <see cref="Entities.SequenceGroupCollection{TEnum}"/></param>
+    /// <param name="sequenceGroupCollection">A <see cref="Entities.SequenceGroupCollection{TEnum}"/>></param>
     /// <returns>The created sequence group collection</returns>
-    Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(TEnum category, string name, string? description);
+    Task<SequenceGroupCollection<TEnum>> CreateSequenceGroupCollectionAsync(SequenceGroupCollection<TEnum> sequenceGroupCollection);
 
     /// <summary>
     /// Updates an existing sequence group collection

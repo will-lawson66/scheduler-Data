@@ -1,6 +1,9 @@
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
 using Microsoft.Extensions.Logging;
+using System.Data.Common;
+using System.Reflection.Metadata;
 
 namespace Instrument.Data.Services;
 
@@ -26,37 +29,35 @@ public class SequenceGroupService : ISequenceGroupService
     /// <summary>
     /// Creates a new sequence group
     /// </summary>
-    /// <param name="name">Name of the sequence group</param>
-    /// <param name="description">Optional description of the sequence group</param>
+    /// <param name="sequenceGroup">A <see cref="SequenceGroup"/></param>
     /// <returns>The created sequence group</returns>
-    public async Task<SequenceGroup> CreateSequenceGroupAsync(string name, string? description = null)
+    public async Task<SequenceGroup> CreateSequenceGroupAsync(SequenceGroup sequenceGroup)
     {
-        _logger.LogInformation("Creating sequence group with Name: {Name}", name);
-
         // Validate inputs
-        if (string.IsNullOrWhiteSpace(name))
+        if (sequenceGroup is null)
         {
-            throw new ArgumentException("Sequence group name cannot be empty", nameof(name));
+            throw new ArgumentNullException(nameof(sequenceGroup));
         }
 
-        // Create and save the sequence group
-        var sequenceGroup = new SequenceGroup
+        // Validate inputs
+        if (string.IsNullOrWhiteSpace(sequenceGroup.Name))
         {
-            Name = name,
-            Description = description
-        };
+            throw new ArgumentException("Sequence group name cannot be empty", nameof(sequenceGroup));
+        }
+
+        _logger.LogInformation("Creating sequence group with name: {Name}", sequenceGroup.Name);
 
         try
         {
             await _sequenceGroupRepository.AddAsync(sequenceGroup);
             await _sequenceGroupRepository.SaveChangesAsync();
 
-            _logger.LogInformation("Sequence group created successfully: {Name}", name);
+            _logger.LogInformation("Sequence group created successfully: {Name}", sequenceGroup.Name);
             return sequenceGroup;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating sequence group with Name: {Name}", name);
+            _logger.LogError(ex, "Error creating sequence group with Name: {Name}", sequenceGroup.Name);
             throw new StorageProviderException("CreateSequenceGroup", ex);
         }
     }

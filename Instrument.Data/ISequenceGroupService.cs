@@ -4,7 +4,7 @@ namespace Instrument.Data;
 
 public interface ISequenceGroupService
 {
-    Task<SequenceGroup> CreateSequenceGroupAsync(string name, string? description = null);
+    Task<SequenceGroup> CreateSequenceGroupAsync(SequenceGroup sequenceGroup);
     Task UpdateSequenceGroupAsync(SequenceGroup sequenceGroup);
     Task<SequenceGroup?> GetSequenceGroupByIdAsync(int sequenceGroupId);
     Task<IEnumerable<SequenceGroup>> GetAllSequenceGroupsAsync();

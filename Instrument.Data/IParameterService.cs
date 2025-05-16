@@ -5,7 +5,7 @@ namespace Instrument.Data;
 public interface IParameterService
 {
     Task<Parameter?> GetParameterByIdAsync(int id);
-    Task CreateParameterAsync(Parameter parameter);
+    Task<Parameter> CreateParameterAsync(Parameter parameter);
     Task UpdateParameterAsync(Parameter parameter);
     Task DeleteParameterAsync(int id);
     Task<IEnumerable<Parameter>> GetAllParametersAsync();

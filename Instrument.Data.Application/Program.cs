@@ -217,10 +217,11 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Step 2: Create a sequence group template
         Console.WriteLine("\nStep 2: Creating a sequence group template...");
 
-        var templateGroup = await sequenceGroupService.CreateSequenceGroupAsync(
-            "Demo Sample Processing Template",
-            "Template for processing samples"
-        );
+        var templateGroup = await sequenceGroupService.CreateSequenceGroupAsync(new SequenceGroup
+        {
+            Name = "Demo Sample Processing Template",
+            Description = "Template for processing samples"
+        });
 
         // Add sequences to the template in order
         await sequenceGroupService.AddSequenceToSequenceGroupAsync(templateGroup.Id, prepSequence.Id, 1);
@@ -256,10 +257,11 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
         // Step 3: Create a "real" sequence group based on the template
         Console.WriteLine("\nStep 3: Creating a 'real' sequence group based on the template...");
 
-        var realGroup = await sequenceGroupService.CreateSequenceGroupAsync(
-            "Sample Batch #12345",
-            "Processing configuration for sample batch #12345"
-        );
+        var realGroup = await sequenceGroupService.CreateSequenceGroupAsync(new SequenceGroup
+        {
+            Name = "Sample Batch #12345",
+            Description = "Processing configuration for sample batch #12345"
+        });
 
         // Copy the sequences from the template to the real group
         foreach (var (order, sequence) in templateOrderedSequences)
@@ -300,9 +302,8 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
            // CategoryName = "ImmunoCap",
             Category = Technology.ImmunoCap
         };
-        await sequenceGroupCollectionService.CreateSequenceGroupCollectionAsync(sequenceGroupCollection.Category,
-            sequenceGroupCollection.Name,
-            sequenceGroupCollection.Description);
+
+        await sequenceGroupCollectionService.CreateSequenceGroupCollectionAsync(sequenceGroupCollection);
 
         // Add the sequence groups to the collection in order
         await sequenceGroupCollectionService.AddSequenceGroupToSequenceGroupCollectionAsync(sequenceGroupCollection.Id,

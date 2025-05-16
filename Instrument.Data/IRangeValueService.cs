@@ -5,7 +5,7 @@ namespace Instrument.Data;
 public interface IRangeValueService
 {
     Task<RangeValue?> GetRangeValueByIdAsync(int id);
-    Task CreateRangeValueAsync(RangeValue rangeValue);
+    Task<RangeValue> CreateRangeValueAsync(RangeValue rangeValue);
     Task UpdateRangeValueAsync(RangeValue rangeValue);
     Task DeleteRangeValueAsync(int id);
     Task<IEnumerable<RangeValue>> GetAllRangeValuesAsync();

@@ -22,7 +22,7 @@ public class SequenceService : ISequenceService
         return await _sequenceRepository.GetByIdAsync(id);
     }
 
-    public async Task CreateSequenceAsync(Sequence sequence)
+    public async Task<Sequence> CreateSequenceAsync(Sequence sequence)
     {
         if (sequence == null)
         {
@@ -31,13 +31,12 @@ public class SequenceService : ISequenceService
 
         _logger.LogInformation("Creating new sequence with ID: {Id}", sequence.Id);
         
-        // No need to check for existing ID as it will be auto-generated
-
         try
         {
             await _sequenceRepository.AddAsync(sequence);
             await _sequenceRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully created sequence with ID: {Id}", sequence.Id);
+            return sequence;
         }
         catch (Exception ex)
         {

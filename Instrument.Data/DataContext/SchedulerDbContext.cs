@@ -42,6 +42,10 @@ public class SchedulerDbContext : DbContext
         modelBuilder.Entity<Parameter>(entity =>
         {
             entity.HasKey(e => e.Id);
+
+            //entity.Property(e => e.Id)
+            //    .ValueGeneratedOnAdd()
+            //    .Metadata.SetBeforeSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
             
             entity.Property(e => e.Name)
                 .IsRequired()

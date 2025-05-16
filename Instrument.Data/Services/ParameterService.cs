@@ -32,28 +32,21 @@ public class ParameterService : IParameterService
         }
     }
 
-    public async Task CreateParameterAsync(Parameter parameter)
+    public async Task<Parameter> CreateParameterAsync(Parameter parameter)
     {
         if (parameter == null)
         {
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        _logger.LogInformation("Creating new parameter with ID: {Id}, Name: {Name}", parameter.Id, parameter.Name);
+        _logger.LogInformation("Creating new parameter with Name: {Name}", parameter.Name);
         
-        // Validate if a parameter with this ID already exists
-        var existingParameter = await _parameterRepository.GetByIdAsync(parameter.Id);
-        if (existingParameter != null)
-        {
-            _logger.LogWarning("Parameter with ID {Id} already exists", parameter.Id);
-            throw new SchedulerDataException($"Parameter with ID {parameter.Id} already exists");
-        }
-
         try
         {
             await _parameterRepository.AddAsync(parameter);
             await _parameterRepository.SaveChangesAsync();
             _logger.LogInformation("Successfully created parameter with ID: {Id}", parameter.Id);
+            return parameter;
         }
         catch (Exception ex)
         {

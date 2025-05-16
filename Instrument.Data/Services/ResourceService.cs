@@ -1,4 +1,5 @@
 using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Instrument.Data.Services;
@@ -20,19 +21,27 @@ public class ResourceService : IResourceService
         return await _resourceRepository.GetByIdAsync(id);
     }
 
-    public async Task CreateResourceAsync(Resource resource)
+    public async Task<Resource> CreateResourceAsync(Resource resource)
     {
         if (resource == null)
         {
             throw new ArgumentNullException(nameof(resource));
         }
             
-        _logger.LogInformation("Creating new resource with ID: {Id}, Name: {Name}", resource.Id, resource.Name);
-        
-        await _resourceRepository.AddAsync(resource);
-        await _resourceRepository.SaveChangesAsync();
-        
-        _logger.LogInformation("Successfully created resource with ID: {Id}", resource.Id);
+        _logger.LogInformation("Creating new resource with Name: {Name}", resource.Name);
+
+        try
+        {
+            await _resourceRepository.AddAsync(resource);
+            await _resourceRepository.SaveChangesAsync();
+            _logger.LogInformation("Successfully created resource with ID: {Id}", resource.Id);
+            return resource;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating resource with Name: {Name}:", resource.Name);
+            throw new StorageProviderException("CreateResource", ex);
+        }
     }
 
     public async Task UpdateResourceAsync(Resource resource)

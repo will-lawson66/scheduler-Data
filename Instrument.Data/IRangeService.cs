@@ -6,7 +6,7 @@ public interface IRangeService
 
     Task<Entities.Range?> GetRangeWithRangeValuesAsync(int id);
 
-    Task CreateRangeAsync(Entities.Range range);
+    Task<Entities.Range> CreateRangeAsync(Entities.Range range);
 
     Task UpdateRangeAsync(Entities.Range range);
 
