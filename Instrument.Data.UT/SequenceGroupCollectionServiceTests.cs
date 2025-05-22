@@ -1,330 +1,244 @@
-//using Instrument.Data.DataContext;
-//using Instrument.Data.Entities;
-//using Instrument.Data.Exceptions;
-//using Instrument.Data.Interfaces;
-//using Instrument.Data.Repository;
-//using Instrument.Data.Services;
-//using Microsoft.EntityFrameworkCore;
-//using Microsoft.Extensions.Logging;
-//using Moq;
+using Instrument.Data.DataContext;
+using Instrument.Data.Entities;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
+using Instrument.Data.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 
-//namespace Instrument.Data.UT;
+namespace Instrument.Data.UT;
 
-//public class SequenceGroupCollectionServiceTests : IDisposable
-//{
-    //private readonly SchedulerDbContext _dbContext;
-    //private readonly ISequenceGroupRepository _sequenceGroupRepository;
-    //private readonly ISequenceRepository _sequenceRepository;
-    //private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
-    //private readonly SequenceGroupService _service;
+public class SequenceGroupCollectionServiceTests : IDisposable
+{
+    private readonly SchedulerDbContext _dbContext;
+    private readonly ISequenceGroupRepository _sequenceGroupRepository;
+    private readonly ISequenceRepository _sequenceRepository;
+    private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
+    private readonly SequenceGroupService _service;
 
-    //public SequenceGroupCollectionServiceTests()
-    //{
-    //    // Set up in-memory database
-    //    var options = new DbContextOptionsBuilder<SchedulerDbContext>()
-    //        .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-    //        .Options;
-    //    _dbContext = new SchedulerDbContext(options);
+    public SequenceGroupCollectionServiceTests()
+    {
+        // Set up in-memory database
+        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
+            .Options;
+        _dbContext = new SchedulerDbContext(options);
 
-    //    // Set up real repositories with in-memory database
-    //    _sequenceGroupRepository = new SequenceGroupRepository(_dbContext);
-    //    _sequenceRepository = new SequenceRepository(_dbContext);
+        // Set up real repositories with in-memory database
+        _sequenceGroupRepository = new SequenceGroupRepository(_dbContext);
+        _sequenceRepository = new SequenceRepository(_dbContext);
+
+        // Set up logger mock
+        _mockLogger = new Mock<ILogger<SequenceGroupService>>();
+
+        // Create the service
+        _service = new SequenceGroupService(
+            _sequenceGroupRepository,
+            _sequenceRepository,
+            _mockLogger.Object
+        );
+    }
+
+    public void Dispose()
+    {
+        // Clean up database after test
+        _dbContext.Database.EnsureDeleted();
+        _dbContext.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateSequenceGroupAsync_WithValidData_CreatesGroup()
+    {
+        // Arrange
+        var name = "Test Group";
+        var description = "Test description";
+        var sequenceGroup = new SequenceGroup
+        {
+            Name = name,
+            Description = description
+        };
         
-    //    // Set up logger mock
-    //    _mockLogger = new Mock<ILogger<SequenceGroupService>>();
 
-    //    // Create the service
-    //    _service = new SequenceGroupService(
-    //        _sequenceGroupRepository,
-    //        _sequenceRepository,
-    //        _mockLogger.Object
-    //    );
-    //}
-    
-    //public void Dispose()
-    //{
-    //    // Clean up database after test
-    //    _dbContext.Database.EnsureDeleted();
-    //    _dbContext.Dispose();
-    //}
+        // Act
+        var result = await _service.CreateSequenceGroupAsync(sequenceGroup);
 
-    //[Fact]
-    //public async Task CreateSequenceGroupAsync_WithValidData_CreatesGroup()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
-    //    var name = "Test Group";
-    //    var description = "Test description";
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(name, result.Name);
+        Assert.Equal(description, result.Description);
 
-    //    // Act
-    //    var result = await _service.CreateSequenceGroupAsync(id, name, description);
+        var savedGroup = await _dbContext.SequenceGroups.FindAsync(sequenceGroup.Id);
+        Assert.NotNull(savedGroup);
+        Assert.Equal(name, savedGroup.Name);
+        Assert.Equal(description, savedGroup.Description);
+    }
 
-    //    // Assert
-    //    Assert.NotNull(result);
-    //    Assert.Equal(id, result.Id);
-    //    Assert.Equal(name, result.Name);
-    //    Assert.Equal(description, result.Description);
+    [Fact]
+    public async Task GetAllSequenceGroupsAsync_ReturnsAllGroups()
+    {
+        // Arrange
+        var groups = new List<SequenceGroup>
+        {
+            new()
+                { Name = "Group 1" },
+            new()
+                { Name = "Group 2" }
+        };
 
-    //    var savedGroup = await _dbContext.SequenceGroups.FindAsync(id);
-    //    Assert.NotNull(savedGroup);
-    //    Assert.Equal(name, savedGroup.Name);
-    //    Assert.Equal(description, savedGroup.Description);
-    //}
+        await _dbContext.SequenceGroups.AddRangeAsync(groups);
+        await _dbContext.SaveChangesAsync();
 
-    //[Fact]
-    //public async Task CreateSequenceGroupAsync_WithExistingId_ThrowsSchedulerDataException()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
-    //    var name = "Test Group";
-    //    var existingGroup = new SequenceGroup { Id = id, Name = "Existing Group" };
+        // Act
+        var result = await _service.GetAllSequenceGroupsAsync();
 
-    //    await _dbContext.SequenceGroups.AddAsync(existingGroup);
-    //    await _dbContext.SaveChangesAsync();
+        // Assert
+        Assert.Equal(2, result.Count());
+        Assert.Contains(result, g => g?.Name == "Group 1");
+        Assert.Contains(result, g => g?.Name == "Group 2");
+    }
 
-    //    // Act & Assert
-    //    var exception = await Assert.ThrowsAsync<SchedulerDataException>(() => 
-    //        _service.CreateSequenceGroupAsync(id, name));
+    [Fact]
+    public async Task DeleteSequenceGroupAsync_WithValidId_DeletesGroup()
+    {
+        // Arrange
+        var existingGroup = new SequenceGroup { Name = "Group To Delete" };
 
-    //    Assert.Contains(id, exception.Message);
-        
-    //    // Verify the group wasn't changed
-    //    var unchangedGroup = await _dbContext.SequenceGroups.FindAsync(id);
-    //    Assert.Equal("Existing Group", unchangedGroup?.Name);
-    //}
+        await _dbContext.SequenceGroups.AddAsync(existingGroup);
+        await _dbContext.SaveChangesAsync();
 
-    //[Fact]
-    //public async Task GetAllSequenceGroupsAsync_ReturnsAllGroups()
-    //{
-    //    // Arrange
-    //    var groups = new List<SequenceGroup>
-    //    {
-    //        new()
-    //            { Id = "group1", Name = "Group 1" },
-    //        new()
-    //            { Id = "group2", Name = "Group 2" }
-    //    };
+        // Act
+        await _service.DeleteSequenceGroupAsync(existingGroup.Id);
 
-    //    await _dbContext.SequenceGroups.AddRangeAsync(groups);
-    //    await _dbContext.SaveChangesAsync();
+        // Assert
+        var deletedGroup = await _dbContext.SequenceGroups.FindAsync(existingGroup.Id);
+        Assert.Null(deletedGroup);
+    }
 
-    //    // Act
-    //    var result = await _service.GetAllSequenceGroupsAsync();
+    [Fact]
+    public async Task DeleteSequenceGroupAsync_WithNonExistingId_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        var id = -5;
 
-    //    // Assert
-    //    Assert.Equal(2, result.Count());
-    //    Assert.Contains(result, g => g?.Id == "group1");
-    //    Assert.Contains(result, g => g?.Id == "group2");
-    //}
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+            _service.DeleteSequenceGroupAsync(id));
 
-    //[Fact]
-    //public async Task DeleteSequenceGroupAsync_WithValidId_DeletesGroup()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
-    //    var existingGroup = new SequenceGroup { Id = id, Name = "Group To Delete" };
+        Assert.Equal(id, exception.EntityId);
+        Assert.Equal("SequenceGroup", exception.EntityType);
+    }
 
-    //    await _dbContext.SequenceGroups.AddAsync(existingGroup);
-    //    await _dbContext.SaveChangesAsync();
+    [Fact]
+    public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroup()
+    {
+        // Arrange
+        var group = new SequenceGroup { Name = "Test Group" };
 
-    //    // Act
-    //    await _service.DeleteSequenceGroupAsync(id);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
 
-    //    // Assert
-    //    var deletedGroup = await _dbContext.SequenceGroups.FindAsync(id);
-    //    Assert.Null(deletedGroup);
-    //}
+        // Act
+        var result = await _service.GetSequenceGroupByIdAsync(group.Id);
 
-    //[Fact]
-    //public async Task DeleteSequenceGroupAsync_WithNonExistingId_ThrowsEntityNotFoundException()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Test Group", result.Name);
+    }
 
-    //    // Act & Assert
-    //    var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-    //        _service.DeleteSequenceGroupAsync(id));
-            
-    //    Assert.Equal(id, exception.EntityId);
-    //    Assert.Equal("SequenceGroup", exception.EntityType);
-    //}
+    [Fact]
+    public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroupWithSequences()
+    {
+        // Arrange
+        var sequence = new Sequence
+        {
+            Name = "Sequence 1",
+            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
+        };
 
-    //[Fact]
-    //public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroup()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
-    //    var group = new SequenceGroup { Id = id, Name = "Test Group" };
+        var group = new SequenceGroup
+        {
+            Name = "Test Group"
+        };
 
-    //    await _dbContext.SequenceGroups.AddAsync(group);
-    //    await _dbContext.SaveChangesAsync();
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
 
-    //    // Act
-    //    var result = await _service.GetSequenceGroupByIdAsync(id);
+        // Create association
+        var sequenceGroupSequence = new SequenceGroupSequence
+        {
+            SequenceId = sequence.Id,
+            SequenceGroupId = group.Id,
+            Order = 1
+        };
 
-    //    // Assert
-    //    Assert.NotNull(result);
-    //    Assert.Equal(id, result.Id);
-    //    Assert.Equal("Test Group", result.Name);
-    //}
+        await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequence);
+        await _dbContext.SaveChangesAsync();
 
-    //[Fact]
-    //public async Task GetSequenceGroupByIdAsync_ReturnsGroup_WithSequences()
-    //{
-    //    // Arrange
-    //    var id = "test-group-1";
-    //    var group = new SequenceGroup { Id = id, Name = "Test Group" };
+        // Act
+        var result = await _service.GetSequenceGroupByIdAsync(group.Id);
 
-    //    await _dbContext.SequenceGroups.AddAsync(group);
-    //    await _dbContext.SaveChangesAsync();
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.SequenceGroupSequences);
+        Assert.Single(result.SequenceGroupSequences);
+    }
 
-    //    // Act
-    //    var result = await _service.GetSequenceGroupByIdAsync(id);
+    [Fact]
+    public async Task AddSequenceToGroupAsync_WithValidData_AddsSequence()
+    {
+        // Arrange
+        var order = 1;
 
-    //    // Assert
-    //    Assert.NotNull(result);
-    //    Assert.Equal(id, result.Id);
-    //    Assert.Equal("Test Group", result.Name);
-    //}
+        var group = new SequenceGroup { Name = "Test Group" };
+        var sequence = new Sequence
+        {
+            Name = "Test Sequence",
+            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
+        };
 
-    //[Fact]
-    //public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroupWithSequences()
-    //{
-    //    // Arrange
-    //    var groupId = "test-group-1";
-    //    var sequenceId = "test-sequence-1";
-    //    var sequence = new Sequence { 
-    //        Id = sequenceId, 
-    //        Name = "Sequence 1", 
-    //        WorstCaseTime = TimeSpan.FromMilliseconds(30000)
-    //    };
-        
-    //    var group = new SequenceGroup { 
-    //        Id = groupId, 
-    //        Name = "Test Group"
-    //    };
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
 
-    //    await _dbContext.Sequences.AddAsync(sequence);
-    //    await _dbContext.SequenceGroups.AddAsync(group);
-    //    await _dbContext.SaveChangesAsync();
+        // Act
+        var result = await _service.AddSequenceToSequenceGroupAsync(group.Id, sequence.Id, order);
 
-    //    // Create association
-    //    var sequenceGroupSequence = new SequenceGroupSequence {
-    //        SequenceId = sequenceId,
-    //        SequenceGroupId = groupId,
-    //        Order = 1
-    //    };
+        // Make sure all changes are committed before any assertions
+        await _dbContext.SaveChangesAsync();
 
-    //    await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequence);
-    //    await _dbContext.SaveChangesAsync();
+        // Detach all entities to ensure fresh retrieval
+        _dbContext.ChangeTracker.Clear();
 
-    //    // Act
-    //    var result = await _service.GetSequenceGroupByIdAsync(groupId);
+        // Assert
+        Assert.True(result);
 
-    //    // Assert
-    //    Assert.NotNull(result);
-    //    Assert.Equal(groupId, result.Id);
-    //    Assert.NotNull(result.SequenceGroupSequences);
-    //    Assert.Single(result.SequenceGroupSequences);
-    //    Assert.Equal(sequenceId, result.SequenceGroupSequences.First().SequenceId);
-    //}
-    
-    //[Fact]
-    //public async Task AddSequenceToGroupAsync_WithValidData_AddsSequence()
-    //{
-    //    // Arrange
-    //    var groupId = "test-group-1";
-    //    var sequenceId = "seq1";
-    //    var order = 1;
-        
-    //    var group = new SequenceGroup { Id = groupId, Name = "Test Group" };
-    //    var sequence = new Sequence { 
-    //        Id = sequenceId, 
-    //        Name = "Test Sequence", 
-    //        WorstCaseTime = TimeSpan.FromMilliseconds(30000)
-    //    };
-        
-    //    await _dbContext.SequenceGroups.AddAsync(group);
-    //    await _dbContext.Sequences.AddAsync(sequence);
-    //    await _dbContext.SaveChangesAsync();
-            
-    //    // Act
-    //    var result = await _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order);
-        
-    //    // Make sure all changes are committed before any assertions
-    //    await _dbContext.SaveChangesAsync();
+        // Verify association was created using AsNoTracking to get fresh data
+        var association = await _dbContext.SequenceGroupSequences
+            .AsNoTracking()
+            .FirstOrDefaultAsync(sgs => sgs.SequenceGroupId == group.Id && sgs.SequenceId == sequence.Id);
+        Assert.NotNull(association);
+        Assert.Equal(order, association.Order);
+    }
 
-    //    // Detach all entities to ensure fresh retrieval
-    //    _dbContext.ChangeTracker.Clear();
-        
-    //    // Assert
-    //    Assert.True(result);
-        
-    //    // Verify association was created using AsNoTracking to get fresh data
-    //    var association = await _dbContext.SequenceGroupSequences
-    //        .AsNoTracking()
-    //        .FirstOrDefaultAsync(sgs => sgs.SequenceGroupId == groupId && sgs.SequenceId == sequenceId);
-    //    Assert.NotNull(association);
-    //    Assert.Equal(order, association.Order);
-    //}
-    
-    //[Fact]
-    //public async Task AddSequenceToGroupAsync_WithInvalidGroupId_ThrowsEntityNotFoundException()
-    //{
-    //    // Arrange
-    //    var groupId = "invalid-group";
-    //    var sequenceId = "seq1";
-    //    var order = 1;
-        
-    //    var sequence = new Sequence { 
-    //        Id = sequenceId, 
-    //        Name = "Test Sequence", 
-    //        WorstCaseTime = TimeSpan.FromMilliseconds(30000)
-    //    };
-        
-    //    await _dbContext.Sequences.AddAsync(sequence);
-    //    await _dbContext.SaveChangesAsync();
-            
-    //    // Act & Assert
-    //    var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-    //        _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order));
-            
-    //    Assert.Equal(groupId, exception.EntityId);
-    //    Assert.Equal("SequenceGroup", exception.EntityType);
-    //}
-    
-    //[Fact]
-    //public async Task AddSequenceToGroupAsync_WithInvalidSequenceId_ThrowsEntityNotFoundException()
-    //{
-    //    // Arrange
-    //    var groupId = "test-group-1";
-    //    var sequenceId = "invalid-seq";
-    //    var order = 1;
-        
-    //    var group = new SequenceGroup { Id = groupId, Name = "Test Group" };
-        
-    //    await _dbContext.SequenceGroups.AddAsync(group);
-    //    await _dbContext.SaveChangesAsync();
-            
-    //    // Act & Assert
-    //    var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-    //        _service.AddSequenceToSequenceGroupAsync(groupId, sequenceId, order));
-            
-    //    Assert.Equal(sequenceId, exception.EntityId);
-    //    Assert.Equal("Sequence", exception.EntityType);
-    //}
-    
-    //[Fact]
-    //public async Task ValidateSequenceGroupAsync_WithNonExistingGroupId_ThrowsEntityNotFoundException()
-    //{
-    //    // Arrange
-    //    var groupId = "invalid-group";
-            
-    //    // Act & Assert
-    //    var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-    //        _service.ValidateSequenceGroupAsync(groupId));
-            
-    //    Assert.Equal(groupId, exception.EntityId);
-    //    Assert.Equal("SequenceGroup", exception.EntityType);
-    //}
-//}
+    [Fact]
+    public async Task AddSequenceToGroupAsync_WithInvalidSequenceId_ThrowsEntityNotFoundException()
+    {
+        // Arrange
+        var sequenceId = -8;
+        var order = 1;
+
+        var group = new SequenceGroup { Name = "Test Group" };
+
+        await _dbContext.SequenceGroups.AddAsync(group);
+        await _dbContext.SaveChangesAsync();
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+            _service.AddSequenceToSequenceGroupAsync(group.Id, sequenceId, order));
+
+        Assert.Equal(sequenceId, exception.EntityId);
+        Assert.Equal("Sequence", exception.EntityType);
+    }
+}
