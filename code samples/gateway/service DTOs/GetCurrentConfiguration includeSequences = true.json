@@ -1,0 +1,2033 @@
+{
+  "Configuration": {
+    "PeriodAcceleration": 2,
+    "PeriodSpan": {
+      "value": "30",
+      "scale": "SECONDS"
+    },
+    "RolloverPeriod": 2880,
+    "Sequences": [
+      {
+        "ExecutionMethod": "Native",
+        "Key": "ImmunoCapPrewashStep",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Simulated",
+        "Key": "ImmunoCapSampleWashStep",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "CustomSampleHandlerSequence",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleHandler",
+            "ScriptingInterface": "ISampleHandlerCompositeProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleShuttleStation",
+            "ScriptingInterface": "IHardwareComponentProxy"
+          },
+          {
+            "HasScriptingInterface": false,
+            "Key": "SampleStorage",
+            "ScriptingInterface": "None"
+          }
+        ],
+        "ScriptKey": "CustomSampleHandlerSequence.py",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "EliaSampleWash",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "EliaSampleWash",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapSampleWash",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapSampleWash",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ViewAllergySampleWash",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "ViewAllergySampleWash",
+        "WorstCaseTime": {
+          "value": "1",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash1",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash1",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash2",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash2",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash3",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash3",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "EliaConjugateWash2",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "EliaConjugateWash2",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapPrewash",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapPrewash",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapPrewashPrime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapPrewashPrime",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapSampleWashPrime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapSamplewashPrime",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash1Prime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash1Prime",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash2Prime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash2Prime",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapConjugateWash3Prime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapConjugateWash3Prime",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapWashRakesPurge",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapWashRakesPurge",
+        "WorstCaseTime": {
+          "value": "90",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "ImmunoCapWashRakesRinse",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "ImmunoCapWashRakesRinse",
+        "WorstCaseTime": {
+          "value": "90",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "CapWellTransferSequence",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "CapWellTransfer",
+            "ScriptingInterface": "SimulatedCapWellTransferComposite"
+          }
+        ],
+        "ScriptKey": "CapWellTransferMoveAbsolute",
+        "WorstCaseTime": {
+          "value": "90",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Scripted",
+        "Key": "WashMixAReplenish",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixA",
+            "ScriptingInterface": "SimulatedWashMixAControllerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixRinse",
+            "ScriptingInterface": "SimulatedWashMixRinseCompositeComponent"
+          }
+        ],
+        "ScriptKey": "WashMixAReplenish",
+        "WorstCaseTime": {
+          "value": "90",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CA_Charge",
+        "Parameters": [
+          {
+            "ParameterName": "Seconds",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "DutyCycle",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "CompressedAir",
+            "ScriptingInterface": "SimulatedCompressedAirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "15",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CP_AspirateConjugate",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeSlotFront",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "CartridgeCellLocation",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "AspirateVolume",
+            "ParameterType": "DecimalType"
+          },
+          {
+            "ParameterName": "PipetteToAspirate",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugatePipette",
+            "ScriptingInterface": "SimulatedConjugatePipetteComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "FrontCartridgeStorage",
+            "ScriptingInterface": "SimulatedFrontCartridgeStorage"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3800",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CP_DispenseConjugate",
+        "Parameters": [
+          {
+            "ParameterName": "DispenseLocation",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "DispenseVolume",
+            "ParameterType": "DecimalType"
+          },
+          {
+            "ParameterName": "PipetteToAspirate",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugatePipette",
+            "ScriptingInterface": "SimulatedConjugatePipetteComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "4300",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CP_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugatePipette",
+            "ScriptingInterface": "SimulatedConjugatePipetteComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CP_Prime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugatePipette",
+            "ScriptingInterface": "SimulatedConjugatePipetteComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CP_Purge",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugatePipette",
+            "ScriptingInterface": "SimulatedConjugatePipetteComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW1_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW1_ImmunoCapAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW1_Purge",
+        "Parameters": [
+          {
+            "ParameterName": "PurgeTime",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "PurgeCycle",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation1",
+            "ScriptingInterface": "SimulatedConjugatewashStation1Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW2_EliaWellAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW2_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW2_ImmunoCapAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW2_Purge",
+        "Parameters": [
+          {
+            "ParameterName": "PurgeTime",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "PurgeCycle",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation2",
+            "ScriptingInterface": "SimulatedConjugatewashStation2Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW3_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW3_ImmunoCapAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "CW3_Purge",
+        "Parameters": [
+          {
+            "ParameterName": "PurgeTime",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "PurgeCycle",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ConjugateWashStation3",
+            "ScriptingInterface": "SimulatedConjugatewashStation3Composite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "DP_Prime",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "DeveloperPipettor",
+            "ScriptingInterface": "SimulatedDeveloperPipettorComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "DP_AspirateDeveloper",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeSlotFront",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "CartridgeCellLocation",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "AspirateVolume",
+            "ParameterType": "DecimalType"
+          },
+          {
+            "ParameterName": "PipettorToAspirate",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "DeveloperPipettor",
+            "ScriptingInterface": "SimulatedDeveloperPipettorComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "FrontCartridgeStorage",
+            "ScriptingInterface": "SimulatedFrontCartridgeStorage"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3800",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "DP_DispenseDeveloper",
+        "Parameters": [
+          {
+            "ParameterName": "DispenseType",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "PipetteIndex",
+            "ParameterType": "EnumType"
+          },
+          {
+            "ParameterName": "ERWLane",
+            "ParameterType": "EnumType"
+          },
+          {
+            "ParameterName": "DispenseVolume",
+            "ParameterType": "DecimalType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "DeveloperPipettor",
+            "ScriptingInterface": "SimulatedDeveloperPipettorComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "Erw",
+            "ScriptingInterface": "IProcessChamberEnzymeReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "7800",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "DP_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "DeveloperPipettor",
+            "ScriptingInterface": "SimulatedDeveloperPipettorComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "DP_Purge",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "DeveloperPipettor",
+            "ScriptingInterface": "SimulatedDeveloperPipettorComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "ERW_Home",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Erw",
+            "ScriptingInterface": "IProcessChamberEnzymeReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "ERW_Increment",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Erw",
+            "ScriptingInterface": "IProcessChamberEnzymeReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "IRW_Home",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "IRW_Increment",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_ReservoirPurge",
+        "Parameters": [
+          {
+            "ParameterName": "Reservoir",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "DrainTime",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "PumpTime",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashAReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashAReservoirComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashBReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashBReservoirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "500",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_ReplenishReservoir",
+        "Parameters": [
+          {
+            "ParameterName": "Reservoir",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "Milliseconds",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashAReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashAReservoirComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashBReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashBReservoirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_RinseAirguides",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_RinseReservoir",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashAReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashAReservoirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_RinseTransferLine",
+        "Parameters": [
+          {
+            "ParameterName": "RinseTime",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashAReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashAReservoirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "500",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WRPW_SetPressure",
+        "Parameters": [
+          {
+            "ParameterName": "Reservoir",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "Pressure",
+            "ParameterType": "DecimalType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashAReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashAReservoirComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "PressurizedWashBReservoir",
+            "ScriptingInterface": "SimulatedPressurizedWashBReservoirComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "PW_RefreshWashRakes",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "15",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "PW_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "PW_ImmunoCapPrewashStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "ArrayType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "PrewashStation",
+            "ScriptingInterface": "SimulatedPrewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "15",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_DispenseCapWell",
+        "Parameters": [
+          {
+            "ParameterName": "Position",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PickCartridgeFromBackStorage",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "BackCartridgeShuttle",
+            "ScriptingInterface": "SimulatedBackCartridgeStorageComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PickCarrierFromInternalStorage",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "CarrierStorage",
+            "ScriptingInterface": "ICarrierStorageCompositeProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PickCartridgeFromDrawer",
+        "Parameters": [
+          {
+            "ParameterName": "ReagentDrawerCartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PickCartridgeFromFrontStorage",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "FrontCartridgeStorage",
+            "ScriptingInterface": "SimulatedFrontCartridgeStorage"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "4500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PlaceCarrierIntoInternalStorage",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "CarrierStorage",
+            "ScriptingInterface": "ICarrierStorageCompositeProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PlaceCarrierIntoReagentDrawer",
+        "Parameters": [
+          {
+            "ParameterName": "CarrierLocation",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "HasHat",
+            "ParameterType": "BooleanType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": false,
+            "Key": "ReagentDrawer",
+            "ScriptingInterface": "None"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PlaceCartridgeIntoBackStorage",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "BackCartridgeShuttle",
+            "ScriptingInterface": "SimulatedBackCartridgeStorageComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PlaceCartridgeIntoFrontStorage",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "FrontCartridgeStorage",
+            "ScriptingInterface": "SimulatedFrontCartridgeStorage"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "RH_PlaceCartridgeIntoReagentDrawer",
+        "Parameters": [
+          {
+            "ParameterName": "ReagentDrawerCartridgeLocation",
+            "ParameterType": "StringType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "ReagentHandler",
+            "ScriptingInterface": "SimulatedReagentHandlerComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3500",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SP_AspirateRearCartridge",
+        "Parameters": [
+          {
+            "ParameterName": "CartridgeLocationRear",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "CartridgeCellPosition",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "PipettorsAspirate",
+            "ParameterType": "ArrayType"
+          },
+          {
+            "ParameterName": "AspirateVolume",
+            "ParameterType": "DecimalType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SamplePipettor",
+            "ScriptingInterface": "ISamplePipettorCompositeProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "BackCartridgeShuttle",
+            "ScriptingInterface": "SimulatedBackCartridgeStorageComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5670",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SP_AspirateSample",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SamplePipettor",
+            "ScriptingInterface": "ISamplePipettorCompositeProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "3520",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SP_DispenseDilutedSample",
+        "Parameters": [
+          {
+            "ParameterName": "Location",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "SamplePipettorsDispense",
+            "ParameterType": "ArrayType"
+          },
+          {
+            "ParameterName": "DispenseVolume",
+            "ParameterType": "ArrayType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SamplePipettor",
+            "ScriptingInterface": "ISamplePipettorCompositeProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "Irw",
+            "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "2540",
+          "scale": "MILLISECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SP_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SamplePipettor",
+            "ScriptingInterface": "ISamplePipettorCompositeProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SP_MixDiluentAndSample",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SamplePipettor",
+            "ScriptingInterface": "ISamplePipettorCompositeProxy"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "BackCartridgeShuttle",
+            "ScriptingInterface": "SimulatedBackCartridgeStorageComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SW_EliaWellAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SW_ImmunoCapAssayStep",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "VacuumMotorPosition",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SW_BlindHome",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "SampleWashStation",
+            "ScriptingInterface": "SimulatedSamplewashStationComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_CalibFluoroC",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "Erw",
+            "ScriptingInterface": "IProcessChamberEnzymeReactionWheelSubcomponentProxy"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Aspirate",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "SourceType",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_DailyRinse",
+        "Parameters": [
+          {
+            "ParameterName": "RinseVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "MainCycles",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "ValveCycles",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "700",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Dispense",
+        "Parameters": [
+          {
+            "ParameterName": "Volume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "SourceType",
+            "ParameterType": "EnumType"
+          },
+          {
+            "ParameterName": "SourceLocation",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Home",
+        "Parameters": [],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Prime",
+        "Parameters": [
+          {
+            "ParameterName": "SourceBottle",
+            "ParameterType": "EnumType"
+          },
+          {
+            "ParameterName": "ReservoirFillTime",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "PrimeVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "ReversePlugVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "MainCycles",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "ValveCycles",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "700",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Purge",
+        "Parameters": [
+          {
+            "ParameterName": "PurgeVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "MainCycles",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "StationCycles",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "LowerLimit",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "BottleLinePurgeTime",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "700",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_ReagentBlank",
+        "Parameters": [
+          {
+            "ParameterName": "TargetVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "ReversePlugVolume",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_Replenish",
+        "Parameters": [
+          {
+            "ParameterName": "Milliseconds",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "SS_SwitchBottle",
+        "Parameters": [
+          {
+            "ParameterName": "SourceBottle",
+            "ParameterType": "EnumType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "StopSolution",
+            "ScriptingInterface": "SimulatedStopSolutionComposite"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WMA_NormalPurge",
+        "Parameters": [
+          {
+            "ParameterName": "PurgeTime",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixA",
+            "ScriptingInterface": "SimulatedWashMixAControllerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixRinse",
+            "ScriptingInterface": "SimulatedWashMixRinseCompositeComponent"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "5",
+          "scale": "MINUTES"
+        }
+      },
+      {
+        "ExecutionMethod": "Native",
+        "Key": "WMA_Priming",
+        "Parameters": [
+          {
+            "ParameterName": "AdditiveBottle",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "AdditiveVolume",
+            "ParameterType": "IntegerType"
+          },
+          {
+            "ParameterName": "ConcentrateBottle",
+            "ParameterType": "StringType"
+          },
+          {
+            "ParameterName": "ConcentrateVolume",
+            "ParameterType": "IntegerType"
+          }
+        ],
+        "Resources": [
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixA",
+            "ScriptingInterface": "SimulatedWashMixAControllerComposite"
+          },
+          {
+            "HasScriptingInterface": true,
+            "Key": "WashMixRinse",
+            "ScriptingInterface": "SimulatedWashMixRinseCompositeComponent"
+          }
+        ],
+        "ScriptKey": "",
+        "WorstCaseTime": {
+          "value": "30",
+          "scale": "SECONDS"
+        }
+      }
+    ],
+    "StartingPeriod": 1
+  },
+  "Errors": [],
+  "RequestId": {
+    "lo": "4819663588000448275",
+    "hi": "12167729253169795493"
+  }
+}

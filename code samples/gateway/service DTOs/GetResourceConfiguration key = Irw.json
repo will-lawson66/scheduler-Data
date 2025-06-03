@@ -1,0 +1,12 @@
+{
+  "Errors": [],
+  "RequestId": {
+    "lo": "5388118826783381949",
+    "hi": "14014026244172851645"
+  },
+  "Resource": {
+    "HasScriptingInterface": true,
+    "Key": "Irw",
+    "ScriptingInterface": "IProcessChamberImmunoReactionWheelSubcomponentProxy"
+  }
+}

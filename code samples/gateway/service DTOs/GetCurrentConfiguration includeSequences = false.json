@@ -1,0 +1,17 @@
+{
+  "Configuration": {
+    "PeriodAcceleration": 2,
+    "PeriodSpan": {
+      "value": "30",
+      "scale": "SECONDS"
+    },
+    "RolloverPeriod": 2880,
+    "Sequences": [],
+    "StartingPeriod": 1
+  },
+  "Errors": [],
+  "RequestId": {
+    "lo": "5698573626076764242",
+    "hi": "5245335599522363790"
+  }
+}
