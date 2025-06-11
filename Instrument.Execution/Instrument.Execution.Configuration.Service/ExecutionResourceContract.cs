@@ -1,7 +1,4 @@
 ﻿namespace Instrument.Execution.Grpc;
-
-using ProtoBuf;
-
 /// <summary>
 /// A gRPC contract specifying the data for the
 /// execution engine.
