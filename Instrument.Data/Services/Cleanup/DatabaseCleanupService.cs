@@ -1,57 +1,55 @@
 using Instrument.Data.DataContext;
-using Instrument.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Instrument.Data.Services
+namespace Instrument.Data.Services.Cleanup;
+
+public class DatabaseCleanupService
 {
-    public class DatabaseCleanupService
+    private readonly SchedulerDbContext _context;
+    private readonly ILogger<DatabaseCleanupService> _logger;
+
+    public DatabaseCleanupService(
+        SchedulerDbContext context,
+        ILogger<DatabaseCleanupService> logger)
     {
-        private readonly SchedulerDbContext _context;
-        private readonly ILogger<DatabaseCleanupService> _logger;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        public DatabaseCleanupService(
-            SchedulerDbContext context,
-            ILogger<DatabaseCleanupService> logger)
+    /// <summary>
+    /// Removes all data from all tables in the database
+    /// </summary>
+    public async Task ClearAllDataAsync()
+    {
+        try
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger.LogInformation("Beginning database cleanup operation");
+
+            // Clear data in the correct order to avoid foreign key constraints
+            // Start with tables that reference others (child tables)
+            await _context.SequenceParameters.ExecuteDeleteAsync();
+            await _context.SequenceGroupSequences.ExecuteDeleteAsync();
+            await _context.SequenceGroupCollectionSequenceGroups.ExecuteDeleteAsync();
+            await _context.RangeValues.ExecuteDeleteAsync();
+
+            // Then clear parent tables
+            await _context.Parameters.ExecuteDeleteAsync();
+            await _context.Sequences.ExecuteDeleteAsync();
+            await _context.SequenceGroups.ExecuteDeleteAsync();
+            await _context.Ranges.ExecuteDeleteAsync();
+            await _context.Resources.ExecuteDeleteAsync();
+            await _context.SequenceGroupCollections.ExecuteDeleteAsync();
+
+            // shouldn't be needed but getting unexpected exception that data still exists in Db after cleaning 
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Database cleanup completed successfully");
         }
-
-        /// <summary>
-        /// Removes all data from all tables in the database
-        /// </summary>
-        public async Task ClearAllDataAsync()
+        catch (Exception ex)
         {
-            try
-            {
-                _logger.LogInformation("Beginning database cleanup operation");
-
-                // Clear data in the correct order to avoid foreign key constraints
-                // Start with tables that reference others (child tables)
-                await _context.SequenceParameters.ExecuteDeleteAsync();
-                await _context.SequenceGroupSequences.ExecuteDeleteAsync();
-                await _context.SequenceGroupCollectionSequenceGroups.ExecuteDeleteAsync();
-                await _context.RangeValues.ExecuteDeleteAsync();
-
-                // Then clear parent tables
-                await _context.Parameters.ExecuteDeleteAsync();
-                await _context.Sequences.ExecuteDeleteAsync();
-                await _context.SequenceGroups.ExecuteDeleteAsync();
-                await _context.Ranges.ExecuteDeleteAsync();
-                await _context.Resources.ExecuteDeleteAsync();
-                await _context.SequenceGroupCollections.ExecuteDeleteAsync();
-
-                // shouldn't be needed but getting unexpected exception that data still exists in Db after cleaning 
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Database cleanup completed successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error during database cleanup");
-                throw;
-            }
+            _logger.LogError(ex, "Error during database cleanup");
+            throw;
         }
     }
 }
