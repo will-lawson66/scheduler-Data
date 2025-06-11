@@ -1207,25 +1207,6 @@ namespace Instrument.Data.Extensions
 
             return services;
         }
-
-        /// <summary>
-        /// Register your ExecutionConfigurationService gRPC client directly
-        /// This replaces the service registry pattern with direct injection
-        /// </summary>
-        public static IServiceCollection AddExecutionServiceClient(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            // Example of direct gRPC client registration
-            // Replace this with your actual gRPC client registration
-            services.AddCodeFirstGrpcClient<IExecutionConfigurationService>(options =>
-            {
-                options.Address = new Uri(configuration["ExecutionService:BaseAddress"]);
-                // Add any other client configuration
-            });
-
-            return services;
-        }
     }
 }
 
