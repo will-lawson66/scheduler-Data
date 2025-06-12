@@ -1,0 +1,94 @@
+flowchart TD
+    Start([Import Configuration Request]) --> PM[ConfigurationImportManager]
+    PM --> CreateContext[Create OrchestrationContext]
+    CreateContext --> StoreRequest[Store ImportRequest in Context]
+    StoreRequest --> InitStats[Initialize ImportStatistics]
+    
+    InitStats --> Step1[ValidateRequestStep]
+    Step1 --> V1{Valid Request?}
+    V1 -->|No| ErrorV1[Return: Invalid request]
+    V1 -->|Yes| Step2[TruncateDataStep]
+    
+    Step2 --> V2{Clear Existing Data?}
+    V2 -->|No| Step3[InitializeDatabaseStep]
+    V2 -->|Yes| Truncate[Execute: Clear existing sequences, resources, parameters]
+    Truncate --> TruncateComplete[Update Statistics: Records cleared]
+    TruncateComplete --> Step3
+    
+    Step3 --> DBInit[Execute: EnsureCreated, Apply Migrations]
+    DBInit --> DBComplete[Update Context: Database ready]
+    DBComplete --> Step4[GetConfigurationStep]
+    
+    Step4 --> GW1[GrpcGateway.ExecuteAsync]
+    GW1 --> CreateOp[ExecutionConfigurationOperations.CreateGetCurrentConfigurationOperation]
+    CreateOp --> GrpcReq[new FetchExecutionConfigurationRequest]
+    GrpcReq --> ExecuteGrpc[Execute gRPC call with retry]
+    
+    ExecuteGrpc --> GrpcResult{Success?}
+    GrpcResult -->|No| ErrorGrpc[Return: gRPC call failed]
+    GrpcResult -->|Yes| StoreConfig[Store Configuration in Context]
+    StoreConfig --> StoreReqId[Store RequestId in Context]
+    
+    StoreReqId --> Step5[ImportSequencesStep]
+    Step5 --> ProcessSeq[Process each sequence from configuration]
+    ProcessSeq --> SeqLoop{More sequences?}
+    SeqLoop -->|Yes| CreateSeq[Create Sequence entity]
+    CreateSeq --> ProcessParams[Process sequence parameters]
+    ProcessParams --> SaveSeq[Save to database]
+    SaveSeq --> UpdateSeqStats[Update Statistics: Sequences imported]
+    UpdateSeqStats --> SeqLoop
+    
+    SeqLoop -->|No| Step6[ImportResourcesStep]
+    Step6 --> ProcessRes[Process each resource from configuration]
+    ProcessRes --> ResLoop{More resources?}
+    ResLoop -->|Yes| CreateRes[Create Resource entity]
+    CreateRes --> SaveRes[Save to database]
+    SaveRes --> UpdateResStats[Update Statistics: Resources imported]
+    UpdateResStats --> ResLoop
+    
+    ResLoop -->|No| FinalCheck[Check for accumulated errors]
+    FinalCheck --> HasErrors{Any errors?}
+    HasErrors -->|Yes| PartialSuccess[Set IsSuccess = false with partial completion]
+    HasErrors -->|No| FullSuccess[Set IsSuccess = true]
+    
+    PartialSuccess --> ExtractResults[Extract results from context]
+    FullSuccess --> ExtractResults
+    
+    ExtractResults --> BuildResult[Build ConfigurationImportResult]
+    BuildResult --> SetDuration[Set total duration]
+    SetDuration --> SetSteps[Set completed steps list]
+    SetSteps --> SetStats[Set final statistics]
+    SetStats --> Return([Return ConfigurationImportResult])
+    
+    %% Error paths
+    ErrorV1 --> Return
+    ErrorGrpc --> Return
+    
+    %% Context Data Flow
+    subgraph "Context Data"
+        direction TB
+        CTX1[ImportRequest]
+        CTX2[Statistics]
+        CTX3[FetchedConfiguration]
+        CTX4[RequestId]
+        CTX5[CompletedSteps]
+        CTX6[Errors]
+    end
+    
+    %% Styling
+    classDef stepClass fill:#e3f2fd,stroke:#1976d2
+    classDef gatewayClass fill:#fff3e0,stroke:#f57c00
+    classDef errorClass fill:#ffebee,stroke:#d32f2f
+    classDef successClass fill:#e8f5e8,stroke:#388e3c
+    classDef contextClass fill:#f3e5f5,stroke:#7b1fa2
+    
+    class Step1,Step2,Step3,Step4,Step5,Step6 stepClass
+    class GW1,CreateOp,GrpcReq,ExecuteGrpc gatewayClass
+    class ErrorV1,ErrorGrpc errorClass
+    class FullSuccess,PartialSuccess successClass
+    class CTX1,CTX2,CTX3,CTX4,CTX5,CTX6 contextClass
+    
+    %% Notes
+    note1[Note: Each step can fail independently<br/>and choose whether to continue]
+    note2[Note: Statistics track:<br/>- Sequences imported<br/>- Resources imported<br/>- Parameters processed<br/>- Errors encountered]
+    note3[Note: GrpcGateway provides:<br/>- Automatic retries<br/>- Timeout handling<br/>- Concurrency control<br/>- Statistics tracking]

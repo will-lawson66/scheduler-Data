@@ -1,0 +1,106 @@
+erDiagram
+    Sequence {
+        string Id PK
+        string Name
+        string Description
+        TimeSpan WorstCaseTime
+        bool CanBeParallel
+    }
+    
+    Parameter {
+        string Id PK
+        string Name
+        ParameterType Type
+        string Min
+        string Max
+        string DefaultValue
+        string Format
+        string RangeId FK
+        string ResourceId FK
+    }
+    
+    SequenceParameter {
+        string SequenceId PK,FK
+        string ParameterId PK,FK
+        int OrderNumber
+    }
+    
+    SequenceGroup {
+        string Id PK
+        string Name
+        string Description
+    }
+    
+    SequenceGroupSequences {
+        string SequenceGroupId PK,FK
+        string SequenceId PK,FK
+        int OrderNumber
+    }
+    
+    SequenceGroupCollection {
+        string Id PK
+        string Name
+        string Description
+        Technology Category
+    }
+    
+    SequenceGroupCollectionGroups {
+        string SequenceGroupCollectionId PK,FK
+        string SequenceGroupId PK,FK
+        int OrderNumber
+    }
+    
+    Resource {
+        string Id PK
+        string Name
+        string Code
+    }
+    
+    Range {
+        string Id PK
+        string Name
+        string Description
+    }
+    
+    RangeValue {
+        string Id PK
+        string Name
+        string Value
+        string RangeId FK
+    }
+    
+    %% Relationships
+    Sequence ||--o{ SequenceParameter : "has parameters"
+    Parameter ||--o{ SequenceParameter : "used by sequences"
+    Parameter }o--|| Range : "belongs to"
+    Parameter }o--|| Resource : "belongs to"
+    Range ||--o{ RangeValue : "contains values"
+    
+    SequenceGroup ||--o{ SequenceGroupSequences : "contains sequences"
+    Sequence ||--o{ SequenceGroupSequences : "belongs to groups"
+    
+    SequenceGroupCollection ||--o{ SequenceGroupCollectionGroups : "contains groups"
+    SequenceGroup ||--o{ SequenceGroupCollectionGroups : "belongs to collections"
+    
+    %% Orchestration Context (not persisted)
+    OrchestrationContext {
+        Dictionary Data
+        List CompletedSteps
+        List Errors
+    }
+    
+    %% gRPC Contracts (external)
+    ExecutionConfigurationContract {
+        List Sequences
+        List Resources
+        string RequestId
+    }
+    
+    FetchExecutionConfigurationRequest {
+        bool IncludeSequences
+    }
+    
+    FetchExecutionConfigurationResponse {
+        ExecutionConfigurationContract Configuration
+        string RequestId
+    }

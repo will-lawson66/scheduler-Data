@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant Client as Client Code
+    participant Gateway as GrpcGateway
+    participant Semaphore as SemaphoreSlim
+    participant Retry as RetryPolicy
+    participant Operation as GrpcOperation
+    participant ExecSvc as ExecutionConfigurationService
+    participant Stats as GatewayStatistics
+
+    Client->>Gateway: ExecuteAsync(operation, request)
+    Gateway->>Gateway: ThrowIfDisposed()
+    Gateway->>Semaphore: WaitAsync(cancellationToken)
+    Semaphore-->>Gateway: Acquired
+    
+    alt Happy Path
+        Gateway->>Retry: ExecuteAsync(operationFunc, cancellationToken)
+        Retry->>Gateway: Create timeout CancellationTokenSource
+        Gateway->>Operation: ExecuteAsync(request)
+        Operation->>ExecSvc: gRPC Call
+        ExecSvc-->>Operation: Response
+        Operation-->>Gateway: Result
+        Gateway-->>Retry: Success
+        Retry-->>Gateway: Final Result
+        
+        Gateway->>Stats: IncrementOperation(operationKey)
+        Gateway->>Gateway: Log Success
+        Gateway-->>Client: GatewayResult.Success(data, duration)
+    else Retry Scenario
+        Gateway->>Retry: ExecuteAsync(operationFunc, cancellationToken)
+        loop For each retry attempt
+            Retry->>Gateway: Create timeout CancellationTokenSource
+            Gateway->>Operation: ExecuteAsync(request)
+            Operation->>ExecSvc: gRPC Call
+            ExecSvc-->>Operation: Exception
+            Operation-->>Gateway: Exception
+            Gateway-->>Retry: Exception
+            Retry->>Retry: Calculate backoff delay
+            Retry->>Retry: Task.Delay(backoffDelay)
+        end
+        Retry-->>Gateway: Final Exception
+        
+        Gateway->>Stats: IncrementError(operationKey)
+        Gateway->>Gateway: Log Error
+        Gateway-->>Client: GatewayResult.Failure(error, duration)
+    end
+    
+    Gateway->>Semaphore: Release()
+    
+    Note over Gateway,Stats: Statistics track:<br/>- Operation counts<br/>- Error rates<br/>- Response times<br/>- Concurrent requests
