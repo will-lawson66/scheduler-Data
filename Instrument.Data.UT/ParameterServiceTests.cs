@@ -1,14 +1,17 @@
-using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
-using Instrument.Data.Entities.Enums;
-using Instrument.Data.Exceptions;
-using Instrument.Data.Repository;
-using Instrument.Data.Services;
+namespace Instrument.Scheduling.Data.UT;
+
+using System;
+using System.Threading.Tasks;
+using Instrument.Scheduling.Data;
+using Instrument.Scheduling.Data.DataContext;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Execution.Parameter;
+using Instrument.Scheduling.Data.Exceptions;
+using Instrument.Scheduling.Data.Repository;
+using Instrument.Scheduling.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-
-namespace Instrument.Data.UT;
 
 public class ParameterServiceTests : IDisposable
 {

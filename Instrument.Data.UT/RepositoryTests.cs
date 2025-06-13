@@ -1,14 +1,17 @@
-using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
-using Instrument.Data.Entities.Enums;
-using Instrument.Data.Exceptions;
-using Instrument.Data.Repository;
+namespace Instrument.Scheduling.Data.UT;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Instrument.Scheduling.Data.DataContext;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Execution.Parameter;
+using Instrument.Scheduling.Data.Exceptions;
+using Instrument.Scheduling.Data.Repository;
 using Microsoft.EntityFrameworkCore;
 
-namespace Instrument.Data.UT;
-
 /// <summary>
-/// Tests for the generic <see cref="IRepository{T}"/> functionality. 
+/// Tests for the generic <see cref="Scheduling.Data.IRepository{T}"/> functionality. 
 /// We test this once with Parameter as a representative entity type to avoid
 /// repeating these tests for each repository.
 /// </summary>
