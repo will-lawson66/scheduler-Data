@@ -48,7 +48,6 @@ stateDiagram-v2
             
             state "Error Handling" as ErrorHandling {
                 state if_continue <<choice>>
-                ErrorHandling --> if_continue : Check ShouldContinue
                 if_continue --> LogError : [ShouldContinue = true]
                 if_continue --> FailFast : [ShouldContinue = false]
                 
