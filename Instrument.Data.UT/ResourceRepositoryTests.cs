@@ -1,10 +1,14 @@
-using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
-using Instrument.Data.Entities.Enums;
-using Instrument.Data.Repository;
-using Microsoft.EntityFrameworkCore;
+namespace Instrument.Scheduling.Data.UT;
 
-namespace Instrument.Data.UT;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Instrument.Scheduling.Data.DataContext;
+using Instrument.Scheduling.Data.Entities;
+using Instrument.Execution.Parameter;
+using Instrument.Scheduling.Data.Repository;
+using Microsoft.EntityFrameworkCore;
 
 public class ResourceRepositoryTests : IDisposable
 {

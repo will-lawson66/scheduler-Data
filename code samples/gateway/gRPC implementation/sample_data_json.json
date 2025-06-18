@@ -1,0 +1,206 @@
+{
+  "startingPeriod": 1,
+  "rolloverPeriod": 1000,
+  "periodSpan": "00:00:30",
+  "periodAcceleration": 1.0,
+  "sequences": [
+    {
+      "key": "SEQUENCE_001",
+      "worstCaseTime": "00:02:00",
+      "executionMethod": "Native",
+      "scriptKey": "",
+      "resources": [
+        {
+          "key": "RESOURCE_001",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IInstrumentResource"
+        },
+        {
+          "key": "POWER_SUPPLY_001",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IPowerSupply"
+        }
+      ],
+      "parameters": [
+        {
+          "parameterName": "TargetValue",
+          "parameterType": "DecimalType"
+        },
+        {
+          "parameterName": "Timeout",
+          "parameterType": "IntegerType"
+        },
+        {
+          "parameterName": "EnableLogging",
+          "parameterType": "BooleanType"
+        }
+      ]
+    },
+    {
+      "key": "SEQUENCE_002",
+      "worstCaseTime": "00:03:30",
+      "executionMethod": "Scripted",
+      "scriptKey": "advanced_sequence.py",
+      "resources": [
+        {
+          "key": "RESOURCE_002",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IAdvancedInstrument"
+        },
+        {
+          "key": "DATA_LOGGER_001",
+          "hasScriptingInterface": false,
+          "scriptingInterface": ""
+        }
+      ],
+      "parameters": [
+        {
+          "parameterName": "ConfigurationFile",
+          "parameterType": "StringType"
+        },
+        {
+          "parameterName": "SampleRate",
+          "parameterType": "IntegerType"
+        },
+        {
+          "parameterName": "AutoCalibrate",
+          "parameterType": "BooleanType"
+        },
+        {
+          "parameterName": "SensorMode",
+          "parameterType": "EnumType"
+        }
+      ]
+    },
+    {
+      "key": "COMPLEX_001",
+      "worstCaseTime": "00:05:00",
+      "executionMethod": "Scripted",
+      "scriptKey": "complex_multi_resource.py",
+      "resources": [
+        {
+          "key": "PRIMARY_INSTRUMENT",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IPrimaryInstrument"
+        },
+        {
+          "key": "SECONDARY_SENSOR",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "ISecondarySensor"
+        },
+        {
+          "key": "DATA_LOGGER",
+          "hasScriptingInterface": false,
+          "scriptingInterface": ""
+        },
+        {
+          "key": "POWER_CONTROLLER",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IPowerController"
+        }
+      ],
+      "parameters": [
+        {
+          "parameterName": "PrimaryTarget",
+          "parameterType": "DecimalType"
+        },
+        {
+          "parameterName": "SecondaryTarget",
+          "parameterType": "DecimalType"
+        },
+        {
+          "parameterName": "SensorMode",
+          "parameterType": "EnumType"
+        },
+        {
+          "parameterName": "PowerLevel",
+          "parameterType": "IntegerType"
+        },
+        {
+          "parameterName": "DataPoints",
+          "parameterType": "ArrayType"
+        },
+        {
+          "parameterName": "ConfigurationFile",
+          "parameterType": "StringType"
+        },
+        {
+          "parameterName": "AutoCalibrate",
+          "parameterType": "BooleanType"
+        }
+      ]
+    },
+    {
+      "key": "SIMULATION_001",
+      "worstCaseTime": "00:01:30",
+      "executionMethod": "Simulated",
+      "scriptKey": "",
+      "resources": [
+        {
+          "key": "VIRTUAL_INSTRUMENT",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IVirtualInstrument"
+        }
+      ],
+      "parameters": [
+        {
+          "parameterName": "SimulationMode",
+          "parameterType": "EnumType"
+        },
+        {
+          "parameterName": "Duration",
+          "parameterType": "IntegerType"
+        },
+        {
+          "parameterName": "NoiseLevel",
+          "parameterType": "DecimalType"
+        }
+      ]
+    },
+    {
+      "key": "CALIBRATION_001",
+      "worstCaseTime": "00:10:00",
+      "executionMethod": "Native",
+      "scriptKey": "",
+      "resources": [
+        {
+          "key": "CALIBRATION_SOURCE",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "ICalibrationSource"
+        },
+        {
+          "key": "REFERENCE_METER",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "IReferenceMeter"
+        },
+        {
+          "key": "TEMPERATURE_SENSOR",
+          "hasScriptingInterface": true,
+          "scriptingInterface": "ITemperatureSensor"
+        }
+      ],
+      "parameters": [
+        {
+          "parameterName": "CalibrationPoints",
+          "parameterType": "ArrayType"
+        },
+        {
+          "parameterName": "Tolerance",
+          "parameterType": "DecimalType"
+        },
+        {
+          "parameterName": "MaxIterations",
+          "parameterType": "IntegerType"
+        },
+        {
+          "parameterName": "SaveResults",
+          "parameterType": "BooleanType"
+        },
+        {
+          "parameterName": "ResultsPath",
+          "parameterType": "StringType"
+        }
+      ]
+    }
+  ]
+}

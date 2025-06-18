@@ -1,34 +1,43 @@
-using Instrument.Data.Adapters;
-using Instrument.Data.Commands;
+namespace Instrument.Data;
+using Instrument.Data;
 using Instrument.Data.Configuration;
 using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
 using Instrument.Data.Initialization;
-using Instrument.Data;
 using Instrument.Data.Repository;
 using Instrument.Data.Services;
+using Instrument.Data.Services.Cleanup;
+using Instrument.Data.Grpc;
+using Instrument.Data.Orchestration;
+using Instrument.Data.Orchestration.ConfigurationImport;
+using Instrument.Data.Orchestration.ConfigurationImport.Steps;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 
-namespace Instrument.Data;
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddSchedulerDataLayer(this IServiceCollection services, 
-        StorageConfiguration config)
+
+
+    public static IServiceCollection AddSchedulingDataLayer(
+        this IServiceCollection services,
+        IConfiguration config)
     {
+        var storageConfiguration = config.GetSection("StorageConfiguration").Get<StorageConfiguration>() ?? new StorageConfiguration();
+
         // Ensure logging services are available
         services.AddLogging(builder => builder
             .SetMinimumLevel(LogLevel.Information)
             .AddConsole());
 
-        switch (config.Provider)
+        switch (storageConfiguration.Provider)
         {
 
             case StorageProviderType.SQLite:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options
-                        .UseSqlite(config.ConnectionString)
+                        .UseSqlite(storageConfiguration.ConnectionString)
                         .LogTo(Console.WriteLine, LogLevel.Warning));
                 services.AddScoped<DatabaseCleanupService>();
 
@@ -37,15 +46,12 @@ public static class ServiceCollectionExtensions
             case StorageProviderType.SqlServer:
                 services.AddDbContext<SchedulerDbContext>(options =>
                     options
-                        .UseSqlServer(config.ConnectionString)
+                        .UseSqlServer(storageConfiguration.ConnectionString)
                         .LogTo(Console.WriteLine, LogLevel.Warning));
                 services.AddScoped<DatabaseCleanupService>();
                 break;
         }
 
-        // Register the JSON adapter
-        services.AddScoped<IJsonDataAdapter, Adapters.JsonDataAdapter>();
-        
         // Register repositories
         services.AddScoped<ISequenceRepository, SequenceRepository>();
         services.AddScoped<IParameterRepository, ParameterRepository>();
@@ -70,12 +76,12 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds data initialization and storage services to the service collection
     /// </summary>
-    public static IServiceCollection AddSchedulerDataWithInitialization(
+    public static IServiceCollection AddSchedulingDataLayerWithInitialization(
         this IServiceCollection services,
-        StorageConfiguration config)
+        IConfiguration config)
     {
         // Add data services
-        services.AddSchedulerDataLayer(config);
+        services.AddSchedulingDataLayer(config);
 
         // Add initialization services
         services.AddDataInitialization();
@@ -104,19 +110,47 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     /// <summary>
-    /// Adds JSON import/export commands to the service collection
+    /// Add gRPC gateway configuration to container.
     /// </summary>
-    public static IServiceCollection AddJsonCommands(this IServiceCollection services)
+    /// <param name="serviceCollection"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
+    public static IServiceCollection ConfigureGrpcGateway(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        services.AddScoped<ICommand, ExportDataCommand>((sp) => new ExportDataCommand(
-            sp.GetRequiredService<IJsonDataAdapter>(),
-            sp.GetRequiredService<ILogger<ExportDataCommand>>()));
-            
-        services.AddScoped<ICommand, ImportDataCommand>((sp) => new ImportDataCommand(
-            sp.GetRequiredService<IJsonDataAdapter>(),
-            sp.GetRequiredService<ILogger<ImportDataCommand>>()));
+        return serviceCollection.Configure<GrpcGatewayOptions>(configuration.GetSection($"{nameof(GrpcGatewayOptions)}"));
+    }
+
+    /// <summary>
+    /// Register gRPC gateway for scheduling application.
+    /// </summary>
+    public static IServiceCollection AddSchedulingGrpcGateway(this IServiceCollection services)
+    {
+        // Gateway services
+        services.AddSingleton<IRetryPolicy, ExponentialBackoffRetryPolicy>();
+        services.AddScoped<IGrpcGateway, GrpcGateway>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Add process management orchestration.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
+    public static IServiceCollection AddSchedulingProcessManager(this IServiceCollection services)
+    {
+        // Orchestration services
+        services.AddScoped<IProcessManager<ConfigurationImportRequest, ConfigurationImportResult>, ConfigurationImportManager>();
+
+        // Orchestration steps
+        services.AddScoped<IOrchestrationStep, GetConfigurationStep>();
+        services.AddScoped<IOrchestrationStep, ImportResourcesStep>();
+        services.AddScoped<IOrchestrationStep, ImportSequencesStep>();
+        services.AddScoped<IOrchestrationStep, InitializeDatabaseStep>();
+        services.AddScoped<IOrchestrationStep, TruncateDataStep>();
+        services.AddScoped<IOrchestrationStep, ValidateRequestStep>();
 
         return services;
     }

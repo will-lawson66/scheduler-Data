@@ -4,6 +4,7 @@ using Instrument.Data.DataContext;
 using Instrument.Data.Entities;
 using Instrument.Data.Entities.Enums;
 using Instrument.Data.Initialization;
+using Instrument.Data.Services.Cleanup;
 using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -33,7 +34,7 @@ var storageConfig = new StorageConfiguration();
 configuration.GetSection("DataStorage").Bind(storageConfig);
 
 // Add data services with initialization
-services.AddSchedulerDataWithInitialization(storageConfig);
+services.AddSchedulingDataLayerWithInitialization(configuration);
 services.AddCleanupServices();
 
 // Build service provider
@@ -249,7 +250,7 @@ async Task DemoFullWorkflowAsync(ServiceProvider provider)
                 Console.WriteLine("    Parameters:");
                 foreach (var sp in sequenceWithParams.SequenceParameters.OrderBy(sp => sp.OrderNumber))
                 {
-                    Console.WriteLine($"      - {sp.Parameter.Name}: {sp.Parameter.DefaultValue} {sp.Parameter.Format}");
+                    Console.WriteLine($"      - {sp.Parameter?.Name}: {sp.Parameter?.DefaultValue} {sp.Parameter?.Format}");
                 }
             }
         }

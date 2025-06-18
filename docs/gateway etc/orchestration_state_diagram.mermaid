@@ -1,0 +1,94 @@
+stateDiagram-v2
+    [*] --> Initializing : Process Manager Started
+    
+    state "Process Manager Lifecycle" as PMLifecycle {
+        Initializing --> ContextCreated : Create OrchestrationContext
+        ContextCreated --> StepsOrdered : Order steps by priority
+        StepsOrdered --> StepExecution : Begin step execution
+        
+        state "Step Execution Loop" as StepLoop {
+            StepExecution --> ExecutingStep : For each step
+            ExecutingStep --> StepValidation : Validate step
+            StepValidation --> StepRunning : Execute step logic
+            
+            state "Step Internal States" as StepStates {
+                StepRunning --> GrpcCall : [Gateway interaction needed]
+                StepRunning --> DataAccess : [Data operation needed]
+                StepRunning --> Validation : [Validation logic]
+                
+                GrpcCall --> GatewayProcessing : Call GrpcGateway
+                state "Gateway Processing" as GatewayProcessing {
+                    GatewayAcquired --> TimeoutSetup : Acquire semaphore
+                    TimeoutSetup --> RetryLoop : Setup timeout
+                    RetryLoop --> ServiceCall : Execute with retry
+                    ServiceCall --> ServiceResponse : [Success]
+                    ServiceCall --> RetryDelay : [Retriable error]
+                    RetryDelay --> ServiceCall : Wait backoff
+                    ServiceResponse --> GatewayRelease : Release semaphore
+                    RetryLoop --> GatewayError : [Max retries exceeded]
+                    GatewayError --> GatewayRelease
+                }
+                
+                DataAccess --> DataComplete : Database operations
+                Validation --> ValidationComplete : Business rules
+                
+                GatewayProcessing --> StepComplete : [Success]
+                DataComplete --> StepComplete
+                ValidationComplete --> StepComplete
+            }
+            
+            StepComplete --> StepSuccess : [StepResult.IsSuccess = true]
+            StepComplete --> StepFailure : [StepResult.IsSuccess = false]
+            
+            StepSuccess --> ContextUpdate : Update context with results
+            ContextUpdate --> NextStep : [More steps available]
+            ContextUpdate --> AllStepsComplete : [No more steps]
+            
+            StepFailure --> ErrorHandling : Handle step failure
+            
+            state "Error Handling" as ErrorHandling {
+                state if_continue <<choice>>
+                ErrorHandling --> if_continue : Check ShouldContinue
+                if_continue --> LogError : [ShouldContinue = true]
+                if_continue --> FailFast : [ShouldContinue = false]
+                
+                LogError --> NextStep : Continue with remaining steps
+                FailFast --> ProcessFailed : Stop execution
+            }
+            
+            NextStep --> ExecutingStep : Execute next step
+        }
+        
+        AllStepsComplete --> FinalValidation : Check for accumulated errors
+        ProcessFailed --> ResultGeneration : Generate failure result
+        
+        FinalValidation --> ProcessSuccess : [No errors accumulated]
+        FinalValidation --> ProcessFailureWithPartialSuccess : [Some errors but completed]
+        
+        ProcessSuccess --> ResultGeneration
+        ProcessFailureWithPartialSuccess --> ResultGeneration
+        
+        ResultGeneration --> [*] : Return ConfigurationImportResult
+    }
+    
+    note right of GrpcCall
+        Gateway provides:
+        - Thread safety
+        - Retry policies  
+        - Timeout handling
+        - Statistics tracking
+    end note
+    
+    note right of ErrorHandling
+        Step-level error handling:
+        - Log all errors
+        - Decide continuation strategy
+        - Maintain error context
+    end note
+    
+    note right of ContextUpdate
+        Context flows through steps:
+        - Shared data storage
+        - Step completion tracking
+        - Error accumulation
+    end note

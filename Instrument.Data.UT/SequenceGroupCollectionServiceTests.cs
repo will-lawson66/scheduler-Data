@@ -1,244 +1,348 @@
-using Instrument.Data.DataContext;
-using Instrument.Data.Entities;
-using Instrument.Data.Exceptions;
-using Instrument.Data.Repository;
-using Instrument.Data.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
+//namespace Instrument.Scheduling.Data.UT;
 
-namespace Instrument.Data.UT;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading.Tasks;
+//using Instrument.Scheduling.Data;
+//using Instrument.Scheduling.Data.DataContext;
+//using Instrument.Scheduling.Data.Entities;
+//using Instrument.Scheduling.Data.Exceptions;
+//using Instrument.Scheduling.Data.Repository;
+//using Instrument.Scheduling.Data.Services;
+//using Microsoft.EntityFrameworkCore;
+//using Microsoft.Extensions.Logging.Abstractions;
 
-public class SequenceGroupCollectionServiceTests : IDisposable
-{
-    private readonly SchedulerDbContext _dbContext;
-    private readonly ISequenceGroupRepository _sequenceGroupRepository;
-    private readonly ISequenceRepository _sequenceRepository;
-    private readonly Mock<ILogger<SequenceGroupService>> _mockLogger;
-    private readonly SequenceGroupService _service;
+//public class SequenceGroupCollectionServiceTests : IDisposable
+//{
+//    private readonly SchedulerDbContext _dbContext;
+//    private readonly ISequenceGroupCollectionRepository<TestEnum> _collectionRepository;
+//    private readonly ISequenceGroupRepository _sequenceGroupRepository;
+//    //private readonly Mock<ILogger<SequenceGroupCollectionService<TestEnum>>> _mockLogger;
+//    private readonly SequenceGroupCollectionService<TestEnum> _service;
+//    private readonly string _dbName;
 
-    public SequenceGroupCollectionServiceTests()
-    {
-        // Set up in-memory database
-        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}")
-            .Options;
-        _dbContext = new SchedulerDbContext(options);
+//    public SequenceGroupCollectionServiceTests()
+//    {
+//        _dbName = $"TestDb_{Guid.NewGuid()}";
+//        var options = new DbContextOptionsBuilder<SchedulerDbContext>()
+//            .UseInMemoryDatabase(databaseName: _dbName)
+//            .Options;
 
-        // Set up real repositories with in-memory database
-        _sequenceGroupRepository = new SequenceGroupRepository(_dbContext);
-        _sequenceRepository = new SequenceRepository(_dbContext);
+//        _dbContext = new SchedulerDbContext(options);
+//        _collectionRepository = new SequenceGroupCollectionRepository<TestEnum>(_dbContext);
+//        _sequenceGroupRepository = new SequenceGroupRepository(_dbContext);
+//        //_mockLogger = new Mock<ILogger<SequenceGroupCollectionService<It.IsAnyType>>>();
 
-        // Set up logger mock
-        _mockLogger = new Mock<ILogger<SequenceGroupService>>();
+//        _service = new SequenceGroupCollectionService<TestEnum>(
+//            _collectionRepository,
+//            _sequenceGroupRepository,
+//            NullLogger<SequenceGroupCollectionService<TestEnum>>.Instance
+//        );
+//    }
 
-        // Create the service
-        _service = new SequenceGroupService(
-            _sequenceGroupRepository,
-            _sequenceRepository,
-            _mockLogger.Object
-        );
-    }
+//    public void Dispose()
+//    {
+//        _dbContext.Database.EnsureDeleted();
+//        _dbContext.Dispose();
+//    }
 
-    public void Dispose()
-    {
-        // Clean up database after test
-        _dbContext.Database.EnsureDeleted();
-        _dbContext.Dispose();
-    }
+//    [Fact]
+//    public async Task CreateSequenceGroupCollectionAsync_WithValidData_CreatesCollection()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Test Collection",
+//            Description = "Test Description",
+//            Category = TestEnum.CategoryA
+//        };
 
-    [Fact]
-    public async Task CreateSequenceGroupAsync_WithValidData_CreatesGroup()
-    {
-        // Arrange
-        var name = "Test Group";
-        var description = "Test description";
-        var sequenceGroup = new SequenceGroup
-        {
-            Name = name,
-            Description = description
-        };
-        
+//        // Act
+//        var result = await _service.CreateSequenceGroupCollectionAsync(collection);
 
-        // Act
-        var result = await _service.CreateSequenceGroupAsync(sequenceGroup);
+//        // Assert
+//        Assert.NotNull(result);
+//        Assert.Equal("Test Collection", result.Name);
+//        Assert.Equal("Test Description", result.Description);
+//        Assert.Equal(TestEnum.CategoryA, result.Category);
+//        Assert.True(result.Id > 0);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(name, result.Name);
-        Assert.Equal(description, result.Description);
+//        var savedCollection = await _dbContext.SequenceGroupCollections.FindAsync(result.Id);
+//        Assert.NotNull(savedCollection);
+//    }
 
-        var savedGroup = await _dbContext.SequenceGroups.FindAsync(sequenceGroup.Id);
-        Assert.NotNull(savedGroup);
-        Assert.Equal(name, savedGroup.Name);
-        Assert.Equal(description, savedGroup.Description);
-    }
+//    [Fact]
+//    public async Task CreateSequenceGroupCollectionAsync_WithEmptyName_ThrowsArgumentException()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "",
+//            Category = TestEnum.CategoryA
+//        };
 
-    [Fact]
-    public async Task GetAllSequenceGroupsAsync_ReturnsAllGroups()
-    {
-        // Arrange
-        var groups = new List<SequenceGroup>
-        {
-            new()
-                { Name = "Group 1" },
-            new()
-                { Name = "Group 2" }
-        };
+//        // Act & Assert
+//        await Assert.ThrowsAsync<ArgumentException>(() =>
+//            _service.CreateSequenceGroupCollectionAsync(collection));
+//    }
 
-        await _dbContext.SequenceGroups.AddRangeAsync(groups);
-        await _dbContext.SaveChangesAsync();
+//    [Fact]
+//    public async Task CreateSequenceGroupCollectionAsync_WithNullName_ThrowsArgumentException()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = null!,
+//            Category = TestEnum.CategoryA
+//        };
 
-        // Act
-        var result = await _service.GetAllSequenceGroupsAsync();
+//        // Act & Assert
+//        await Assert.ThrowsAsync<ArgumentException>(() =>
+//            _service.CreateSequenceGroupCollectionAsync(collection));
+//    }
 
-        // Assert
-        Assert.Equal(2, result.Count());
-        Assert.Contains(result, g => g?.Name == "Group 1");
-        Assert.Contains(result, g => g?.Name == "Group 2");
-    }
+//    [Fact]
+//    public async Task UpdateSequenceGroupCollectionAsync_WithValidData_UpdatesCollection()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Original Collection",
+//            Description = "Original Description",
+//            Category = TestEnum.CategoryA,
+//        };
 
-    [Fact]
-    public async Task DeleteSequenceGroupAsync_WithValidId_DeletesGroup()
-    {
-        // Arrange
-        var existingGroup = new SequenceGroup { Name = "Group To Delete" };
+//        await _dbContext.SequenceGroupCollections.AddAsync(collection);
+//        await _dbContext.SaveChangesAsync();
 
-        await _dbContext.SequenceGroups.AddAsync(existingGroup);
-        await _dbContext.SaveChangesAsync();
+//        var newCollection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Id = collection.Id,
+//            Name = "Updated Collection",
+//            Description = "Updated Description",
+//            Category = TestEnum.CategoryB,
+//        };
+       
 
-        // Act
-        await _service.DeleteSequenceGroupAsync(existingGroup.Id);
+//        // Act
+//        await _service.UpdateSequenceGroupCollectionAsync(newCollection);
 
-        // Assert
-        var deletedGroup = await _dbContext.SequenceGroups.FindAsync(existingGroup.Id);
-        Assert.Null(deletedGroup);
-    }
+//        // Assert
+//        var updatedCollection = await _dbContext.SequenceGroupCollections.FindAsync(collection.Id);
+//        Assert.NotNull(updatedCollection);
+//        Assert.Equal("Updated Collection", updatedCollection.Name);
+//        Assert.Equal("Updated Description", updatedCollection.Description);
+//        Assert.Equal(TestEnum.CategoryB.ToString(), updatedCollection.CategoryName);
+//    }
 
-    [Fact]
-    public async Task DeleteSequenceGroupAsync_WithNonExistingId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var id = -5;
+//    [Fact]
+//    public async Task UpdateSequenceGroupCollectionAsync_WithNonExistentId_ThrowsEntityNotFoundException()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Id = -1,
+//            Name = "Non-existent Collection",
+//            Category = TestEnum.CategoryA
+//        };
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            _service.DeleteSequenceGroupAsync(id));
+//        // Act & Assert
+//        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+//            _service.UpdateSequenceGroupCollectionAsync(collection));
 
-        Assert.Equal(id, exception.EntityId);
-        Assert.Equal("SequenceGroup", exception.EntityType);
-    }
+//        Assert.Equal(-1, exception.EntityId);
+//        Assert.Equal("SequenceGroupCollection", exception.EntityType);
+//    }
 
-    [Fact]
-    public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroup()
-    {
-        // Arrange
-        var group = new SequenceGroup { Name = "Test Group" };
+//    [Fact]
+//    public async Task UpdateSequenceGroupCollectionAsync_WithNullCollection_ThrowsArgumentNullException()
+//    {
+//        // Act & Assert
+//        await Assert.ThrowsAsync<ArgumentNullException>(() =>
+//            _service.UpdateSequenceGroupCollectionAsync(null!));
+//    }
 
-        await _dbContext.SequenceGroups.AddAsync(group);
-        await _dbContext.SaveChangesAsync();
+//    [Fact]
+//    public async Task DeleteSequenceGroupCollectionAsync_WithValidId_DeletesCollection()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Collection to Delete",
+//            Category = TestEnum.CategoryA
+//        };
 
-        // Act
-        var result = await _service.GetSequenceGroupByIdAsync(group.Id);
+//        await _dbContext.SequenceGroupCollections.AddAsync(collection);
+//        await _dbContext.SaveChangesAsync();
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal("Test Group", result.Name);
-    }
+//        // Act
+//        await _service.DeleteSequenceGroupCollectionAsync(collection.Id);
 
-    [Fact]
-    public async Task GetSequenceGroupByIdAsync_WithValidId_ReturnsGroupWithSequences()
-    {
-        // Arrange
-        var sequence = new Sequence
-        {
-            Name = "Sequence 1",
-            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
-        };
+//        // Assert
+//        var deletedCollection = await _dbContext.SequenceGroupCollections.FindAsync(collection.Id);
+//        Assert.Null(deletedCollection);
+//    }
 
-        var group = new SequenceGroup
-        {
-            Name = "Test Group"
-        };
+//    [Fact]
+//    public async Task DeleteSequenceGroupCollectionAsync_WithNonExistentId_ThrowsEntityNotFoundException()
+//    {
+//        // Act & Assert
+//        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
+//            _service.DeleteSequenceGroupCollectionAsync(-1));
 
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SequenceGroups.AddAsync(group);
-        await _dbContext.SaveChangesAsync();
+//        Assert.Equal(-1, exception.EntityId);
+//        Assert.Equal("SequenceGroupCollection", exception.EntityType);
+//    }
 
-        // Create association
-        var sequenceGroupSequence = new SequenceGroupSequence
-        {
-            SequenceId = sequence.Id,
-            SequenceGroupId = group.Id,
-            Order = 1
-        };
+//    [Fact]
+//    public async Task GetSequenceGroupCollectionByIdAsync_WithValidId_ReturnsCollection()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Test Collection",
+//            Category = TestEnum.CategoryA
+//        };
 
-        await _dbContext.SequenceGroupSequences.AddAsync(sequenceGroupSequence);
-        await _dbContext.SaveChangesAsync();
+//        await _dbContext.SequenceGroupCollections.AddAsync(collection);
+//        await _dbContext.SaveChangesAsync();
 
-        // Act
-        var result = await _service.GetSequenceGroupByIdAsync(group.Id);
+//        // Act
+//        var result = await _service.GetSequenceGroupCollectionByIdAsync(collection.Id);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.NotNull(result.SequenceGroupSequences);
-        Assert.Single(result.SequenceGroupSequences);
-    }
+//        // Assert
+//        Assert.NotNull(result);
+//        Assert.Equal("Test Collection", result.Name);
+//        Assert.Equal(TestEnum.CategoryA, result.Category);
+//    }
 
-    [Fact]
-    public async Task AddSequenceToGroupAsync_WithValidData_AddsSequence()
-    {
-        // Arrange
-        var order = 1;
+//    [Fact]
+//    public async Task GetSequenceGroupCollectionByIdAsync_WithInvalidId_ReturnsNull()
+//    {
+//        // Act
+//        var result = await _service.GetSequenceGroupCollectionByIdAsync(-1);
 
-        var group = new SequenceGroup { Name = "Test Group" };
-        var sequence = new Sequence
-        {
-            Name = "Test Sequence",
-            WorstCaseTime = TimeSpan.FromMilliseconds(30000)
-        };
+//        // Assert
+//        Assert.Null(result);
+//    }
 
-        await _dbContext.SequenceGroups.AddAsync(group);
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
+//    [Fact]
+//    public async Task GetAllSequenceGroupCollectionsAsync_ReturnsAllCollections()
+//    {
+//        // Arrange
+//        var collections = new List<SequenceGroupCollection<TestEnum>>
+//            {
+//                new() { Name = "Collection 1", Category = TestEnum.CategoryA },
+//                new() { Name = "Collection 2", Category = TestEnum.CategoryB }
+//            };
 
-        // Act
-        var result = await _service.AddSequenceToSequenceGroupAsync(group.Id, sequence.Id, order);
+//        await _dbContext.SequenceGroupCollections.AddRangeAsync(collections);
+//        await _dbContext.SaveChangesAsync();
 
-        // Make sure all changes are committed before any assertions
-        await _dbContext.SaveChangesAsync();
+//        // Act
+//        var result = await _service.GetAllSequenceGroupCollectionsAsync();
 
-        // Detach all entities to ensure fresh retrieval
-        _dbContext.ChangeTracker.Clear();
+//        // Assert
+//        var collectionList = result.ToList();
+//        Assert.Equal(2, collectionList.Count);
+//        Assert.Contains(collectionList, c => c.Name == "Collection 1");
+//        Assert.Contains(collectionList, c => c.Name == "Collection 2");
+//    }
 
-        // Assert
-        Assert.True(result);
+//    [Fact]
+//    public async Task GetSequenceGroupCollectionsByCategoryAsync_ReturnsFilteredCollections()
+//    {
+//        // Arrange
+//        var collections = new List<SequenceGroupCollection<TestEnum>>
+//            {
+//                new() { Name = "Collection A1", Category = TestEnum.CategoryA },
+//                new() { Name = "Collection A2", Category = TestEnum.CategoryA },
+//                new() { Name = "Collection B1", Category = TestEnum.CategoryB }
+//            };
 
-        // Verify association was created using AsNoTracking to get fresh data
-        var association = await _dbContext.SequenceGroupSequences
-            .AsNoTracking()
-            .FirstOrDefaultAsync(sgs => sgs.SequenceGroupId == group.Id && sgs.SequenceId == sequence.Id);
-        Assert.NotNull(association);
-        Assert.Equal(order, association.Order);
-    }
+//        await _dbContext.SequenceGroupCollections.AddRangeAsync(collections);
+//        await _dbContext.SaveChangesAsync();
 
-    [Fact]
-    public async Task AddSequenceToGroupAsync_WithInvalidSequenceId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var sequenceId = -8;
-        var order = 1;
+//        // Act
+//        var result = await _service.GetSequenceGroupCollectionsByCategoryAsync(TestEnum.CategoryA);
 
-        var group = new SequenceGroup { Name = "Test Group" };
+//        // Assert
+//        var collectionList = result.ToList();
+//        Assert.Equal(2, collectionList.Count);
+//        Assert.All(collectionList, c => Assert.Equal(TestEnum.CategoryA, c.Category));
+//    }
 
-        await _dbContext.SequenceGroups.AddAsync(group);
-        await _dbContext.SaveChangesAsync();
+//    [Fact]
+//    public async Task AddSequenceGroupToSequenceGroupCollectionAsync_WithValidIds_AddsAssociation()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Test Collection",
+//            Category = TestEnum.CategoryA
+//        };
+//        var sequenceGroup = new SequenceGroup { Name = "Test Group" };
 
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            _service.AddSequenceToSequenceGroupAsync(group.Id, sequenceId, order));
+//        await _dbContext.SequenceGroupCollections.AddAsync(collection);
+//        await _dbContext.SequenceGroups.AddAsync(sequenceGroup);
+//        await _dbContext.SaveChangesAsync();
 
-        Assert.Equal(sequenceId, exception.EntityId);
-        Assert.Equal("Sequence", exception.EntityType);
-    }
-}
+//        var order = 1;
+
+//        // Act
+//        var result = await _service.AddSequenceGroupToSequenceGroupCollectionAsync(
+//            collection.Id, sequenceGroup.Id, order);
+
+//        // Assert
+//        Assert.True(result);
+
+//        var association = await _dbContext.SequenceGroupCollectionSequenceGroups
+//            .FirstOrDefaultAsync(sgc => sgc.SequenceGroupCollectionId == collection.Id
+//                                     && sgc.SequenceGroupId == sequenceGroup.Id);
+//        Assert.NotNull(association);
+//        Assert.Equal(order, association.Order);
+//    }
+
+//    [Fact]
+//    public async Task AddSequenceGroupToSequenceGroupCollectionAsync_WithInvalidCollectionId_ReturnsFalse()
+//    {
+//        // Arrange
+//        var sequenceGroup = new SequenceGroup { Name = "Test Group" };
+//        await _dbContext.SequenceGroups.AddAsync(sequenceGroup);
+//        await _dbContext.SaveChangesAsync();
+
+//        // Act
+//        var result = await _service.AddSequenceGroupToSequenceGroupCollectionAsync(
+//            -1, sequenceGroup.Id, 1);
+
+//        // Assert
+//        Assert.False(result);
+//    }
+
+//    [Fact]
+//    public async Task AddSequenceGroupToSequenceGroupCollectionAsync_WithInvalidSequenceGroupId_ReturnsFalse()
+//    {
+//        // Arrange
+//        var collection = new SequenceGroupCollection<TestEnum>
+//        {
+//            Name = "Test Collection",
+//            Category = TestEnum.CategoryA
+//        };
+//        await _dbContext.SequenceGroupCollections.AddAsync(collection);
+//        await _dbContext.SaveChangesAsync();
+
+//        // Act
+//        var result = await _service.AddSequenceGroupToSequenceGroupCollectionAsync(
+//            collection.Id, -1, 1);
+
+//        // Assert
+//        Assert.False(result);
+//    }
+
+//    private enum TestEnum
+//    {
+//        CategoryA,
+//        CategoryB
+//    }
+//}

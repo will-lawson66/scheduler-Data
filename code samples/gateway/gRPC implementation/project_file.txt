@@ -1,0 +1,99 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Instrument.Execution.Grpc.FakeService</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>Scheduler Team</Authors>
+    <Description>Fake gRPC service implementation for IExecutionConfigurationService testing</Description>
+    <PackageTags>grpc;testing;fake;mock;execution;configuration</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core dependencies -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    
+    <!-- gRPC dependencies -->
+    <PackageReference Include="protobuf-net.Grpc" Version="1.1.1" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.60.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reference to existing projects -->
+    <ProjectReference Include="..\Instrument.Execution\Instrument.Execution.Configuration.Service\Instrument.Execution.Configuration.Service.csproj" />
+    <ProjectReference Include="..\Instrument.Execution\Instrument.Execution.Grpc.Configuration\Instrument.Execution.Grpc.Configuration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test dependencies (for unit tests) -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="xunit" Version="2.6.4" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.5" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include sample data files -->
+    <Content Include="Data\SampleData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\MinimalData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\ComplexData.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Documentation files -->
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="CHANGELOG.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
+
+<!-- Directory Structure:
+
+Instrument.Execution.Grpc.FakeService/
+├── FakeExecutionConfigurationService.cs
+├── Data/
+│   ├── FakeDataProvider.cs
+│   ├── ConfigurationBuilder.cs
+│   ├── SampleData.json
+│   ├── MinimalData.json
+│   └── ComplexData.json
+├── Configuration/
+│   ├── FakeServiceOptions.cs
+│   └── ServiceCollectionExtensions.cs
+├── Utilities/
+│   ├── DelaySimulator.cs
+│   └── ResponseBuilder.cs
+├── Contracts/
+│   └── MissingContracts.cs (if needed)
+├── Tests/
+│   ├── FakeExecutionConfigurationServiceTests.cs
+│   ├── FakeDataProviderTests.cs
+│   ├── ConfigurationBuilderTests.cs
+│   └── IntegrationTests.cs
+├── Instrument.Execution.Grpc.FakeService.csproj
+├── README.md
+└── CHANGELOG.md
+
+-->
+
+<!-- Usage in consuming projects:
+
+<PackageReference Include="Instrument.Execution.Grpc.FakeService" Version="1.0.0" />
+
+Or as project reference:
+
+<ProjectReference Include="..\Instrument.Execution.Grpc.FakeService\Instrument.Execution.Grpc.FakeService.csproj" />
+
+-->
