@@ -1,3 +1,4 @@
+using Instrument.Data.DTOs;
 using Instrument.Data.Entities;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
@@ -198,5 +199,71 @@ public class SequenceService : ISequenceService
             _logger.LogError(ex, "Error retrieving sequence with Id: {Id}", sequenceId);
             throw new StorageProviderException("GetSequenceWithParameters", ex);
         }
+    }
+
+    /// <summary>
+    /// Gets a single sequence by name, returns DTO without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, returns first sequence</param>
+    /// <returns>SequenceDTO if found, null otherwise</returns>
+    public async Task<SequenceDTO?> GetSequenceAsync(string? name = null)
+    {
+        try
+        {
+            var sequences = await _sequenceRepository.GetSequencesWithParametersAsync(name);
+            var sequence = sequences.FirstOrDefault();
+            
+            return sequence != null ? await ConvertToDTOAsync(sequence) : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting sequence with name: {Name}", name);
+            throw new StorageProviderException("GetSequence", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets sequences by name, returns DTOs without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, all sequences are returned</param>
+    /// <returns>Collection of SequenceDTOs</returns>
+    public async Task<IEnumerable<SequenceDTO>> GetSequencesAsync(string? name = null)
+    {
+        try
+        {
+            var sequences = await _sequenceRepository.GetSequencesWithParametersAsync(name);
+            var sequenceDtos = new List<SequenceDTO>();
+            
+            foreach (var sequence in sequences)
+            {
+                var dto = await ConvertToDTOAsync(sequence);
+                sequenceDtos.Add(dto);
+            }
+            
+            return sequenceDtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting sequences with name: {Name}", name);
+            throw new StorageProviderException("GetSequences", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts a Sequence entity to SequenceDTO with parameters projected and ordered
+    /// </summary>
+    /// <param name="sequence">The Sequence entity</param>
+    /// <returns>SequenceDTO with parameters projected from SequenceParameters</returns>
+    private async Task<SequenceDTO> ConvertToDTOAsync(Sequence sequence)
+    {
+        // Get ordered parameters for this sequence
+        var orderedParameters = await _sequenceRepository.GetOrderedParametersAsync(sequence.Id);
+
+        return new SequenceDTO
+        {
+            Name = sequence.Name,
+            Order = null, // Order is contextual (set by parent SequenceGroup)
+            Parameters = orderedParameters
+        };
     }
 }

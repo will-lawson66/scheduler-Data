@@ -81,6 +81,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IResourceService, ResourceService>();
         services.AddScoped<ISequenceGroupService, SequenceGroupService>();
         services.AddScoped<ISequenceGroupConfigurationService, SequenceGroupConfigurationService>();
+        services.AddScoped<ISequenceGroupImportExportService, SequenceGroupImportExportService>();
+        services.AddScoped<ISequenceImportExportService, SequenceImportExportService>();
         services.AddScoped(typeof(ISequenceGroupCollectionService<>), typeof(SequenceGroupCollectionService<>));
         services.AddScoped<ISequenceService, SequenceService>();
 

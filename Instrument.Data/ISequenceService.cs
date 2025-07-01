@@ -1,4 +1,5 @@
-﻿using Instrument.Data.Entities;
+﻿using Instrument.Data.DTOs;
+using Instrument.Data.Entities;
 
 namespace Instrument.Data;
 
@@ -33,4 +34,19 @@ public interface ISequenceService
     /// <param name="sequenceId"></param>
     /// <returns></returns>
     Task<Sequence?> GetSequenceWithParametersAsync(int sequenceId);
+    
+    // DTO-based methods
+    /// <summary>
+    /// Gets a single sequence as DTO without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, returns first sequence</param>
+    /// <returns>SequenceDTO if found, null otherwise</returns>
+    Task<SequenceDTO?> GetSequenceAsync(string? name = null);
+    
+    /// <summary>
+    /// Gets sequences as DTOs without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, all sequences are returned</param>
+    /// <returns>Collection of SequenceDTOs</returns>
+    Task<IEnumerable<SequenceDTO>> GetSequencesAsync(string? name = null);
 }

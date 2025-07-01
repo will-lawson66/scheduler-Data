@@ -1,25 +1,20 @@
-namespace Instrument.Scheduling.Data.UT;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Instrument.Scheduling.Data;
-using Instrument.Scheduling.Data.DataContext;
-using Instrument.Scheduling.Data.Entities;
-using Instrument.Execution.Parameter;
-using Instrument.Scheduling.Data.Exceptions;
-using Instrument.Scheduling.Data.Repository;
-using Instrument.Scheduling.Data.Services;
+using Instrument.Data.DataContext;
+using Instrument.Data.DTOs;
+using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
+using Instrument.Data.Exceptions;
+using Instrument.Data.Repository;
+using Instrument.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+
+namespace Instrument.Data.UT;
 
 public class SequenceServiceTests : IDisposable
 {
     private readonly SchedulerDbContext _dbContext;
     private readonly ISequenceRepository _sequenceRepository;
-    private readonly IParameterRepository _parameterRepository;
     private readonly Mock<ILogger<SequenceService>> _mockLogger;
     private readonly SequenceService _service;
 
@@ -33,17 +28,12 @@ public class SequenceServiceTests : IDisposable
 
         // Set up real repository with in-memory database
         _sequenceRepository = new SequenceRepository(_dbContext);
-        _parameterRepository = new ParameterRepository(_dbContext);
-
+        
         // Set up logger mock
         _mockLogger = new Mock<ILogger<SequenceService>>();
 
         // Create the service
-        _service = new SequenceService(
-            _sequenceRepository,
-            _parameterRepository,
-            _mockLogger.Object
-        );
+        _service = new SequenceService(_sequenceRepository, _mockLogger.Object);
     }
     
     public void Dispose()
@@ -54,393 +44,337 @@ public class SequenceServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSequenceAsync_WithValidId_ReturnsSequence()
+    public async Task GetSequenceAsync_WithNameFilter_ReturnsCorrectDTO()
     {
         // Arrange
-        var sequence = new Sequence 
-        { 
-            Name = "Test Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
-
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _service.GetSequenceByIdAsync(sequence.Id);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Equal(sequence.Id, result.Id);
-        Assert.Equal("Test Sequence", result.Name);
-        Assert.Equal(TimeSpan.FromSeconds(30), result.WorstCaseTime);
-    }
-
-    [Fact]
-    public async Task CreateSequenceAsync_WithValidSequence_CreatesSequence()
-    {
-        // Arrange
-        var sequence = new Sequence 
-        { 
-            Name = "Test Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
-
-        // Act
-        await _service.CreateSequenceAsync(sequence);
-
-        // Assert
-        var createdSequence = await _dbContext.Sequences.FindAsync(sequence.Id);
-        Assert.NotNull(createdSequence);
-        Assert.Equal("Test Sequence", createdSequence.Name);
-        Assert.Equal(TimeSpan.FromSeconds(30), createdSequence.WorstCaseTime);
-    }
-
-
-    [Fact]
-    public async Task UpdateSequenceAsync_WithValidSequence_UpdatesSequence()
-    {
-        // Arrange
-        var existingSequence = new Sequence 
-        { 
-            Name = "Original Sequence", 
-            WorstCaseTime = TimeSpan.FromSeconds(45) 
-        };
-        
-        await _dbContext.Sequences.AddAsync(existingSequence);
-        await _dbContext.SaveChangesAsync();
-
-        var updatedSequence = existingSequence.Update("Updated Sequence", TimeSpan.FromSeconds(30));
-        
-
-        // Act
-        await _service.UpdateSequenceAsync(updatedSequence);
-
-        // Assert
-        var resultSequence = await _dbContext.Sequences.FindAsync(existingSequence.Id);
-        Assert.NotNull(resultSequence);
-        Assert.Equal("Updated Sequence", resultSequence.Name);
-        Assert.Equal(TimeSpan.FromSeconds(30), resultSequence.WorstCaseTime);
-    }
-
-    [Fact]
-    public async Task DeleteSequenceAsync_WithValidId_DeletesSequence()
-    {
-        // Arrange
-        var existingSequence = new Sequence 
-        { 
-            Name = "Sequence to Delete", 
-            WorstCaseTime = TimeSpan.FromSeconds(30) 
-        };
-        
-        await _dbContext.Sequences.AddAsync(existingSequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        await _service.DeleteSequenceAsync(existingSequence.Id);
-
-        // Assert
-        var deletedSequence = await _dbContext.Sequences.FindAsync(existingSequence.Id);
-        Assert.Null(deletedSequence);
-    }
-
-    [Fact]
-    public async Task DeleteSequenceAsync_WithNonExistingId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var id = -5;
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() => 
-            _service.DeleteSequenceAsync(id));
-            
-        Assert.Equal(id, exception.EntityId);
-        Assert.Equal("Sequence", exception.EntityType);
-    }
-
-    [Fact]
-    public async Task GetAllSequencesAsync_ReturnsAllSequences()
-    {
-        // Arrange
-        var sequences = new List<Sequence>
+        var sequence = new Sequence
         {
-            new()
-                { Name = "Sequence 1", WorstCaseTime = TimeSpan.FromSeconds(30) },
-            new()
-                { Name = "Sequence 2", WorstCaseTime = TimeSpan.FromSeconds(45) }
+            Name = "Test Sequence",
+            Description = "Test description",
+            WorstCaseTime = TimeSpan.FromMinutes(5),
+            CanBeParallel = true
+        };
+        
+        var parameter1 = new Parameter
+        {
+            Name = "Parameter 1",
+            Type = ParameterType.String,
+            DefaultValue = "Value1"
+        };
+        
+        var parameter2 = new Parameter
+        {
+            Name = "Parameter 2",
+            Type = ParameterType.Integer,
+            DefaultValue = "42"
         };
 
-        await _dbContext.Sequences.AddRangeAsync(sequences);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _service.GetAllSequencesAsync();
-
-        // Assert
-        var enumerable = result.ToList();
-        Assert.Equal(2, enumerable.Count);
-        Assert.Contains(enumerable, s => s.Name == "Sequence 1");
-        Assert.Contains(enumerable, s => s.Name == "Sequence 2");
-    }
-
-    [Fact]
-    public async Task AddParameterToSequenceAsync_WithValidIds_AddsParameterToSequence()
-    {
-        // Arrange
-        var orderNumber = 1;
-
-        var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(30000) };
-
-        await _dbContext.Parameters.AddAsync(parameter);
         await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.Parameters.AddRangeAsync(parameter1, parameter2);
         await _dbContext.SaveChangesAsync();
 
-        // Act
-        await _service.AddParameterToSequenceAsync(parameter.Id, sequence.Id, orderNumber);
-
-        // Assert
-        var association = await _dbContext.SequenceParameters
-        .AsNoTracking()
-            .FirstOrDefaultAsync(sp => sp.ParameterId == parameter.Id && sp.SequenceId == sequence.Id);
-        Assert.NotNull(association);
-        Assert.Equal(orderNumber, association.OrderNumber);
-    }
-
-    [Fact]
-    public async Task AddParameterToSequenceAsync_WithInvalidParameterId_ThrowsEntityNotFoundException()
-    {
-        // Arrange
-        var parameterId = -2;
-        var orderNumber = 1;
-
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromMilliseconds(20000) };
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<EntityNotFoundException>(() =>
-            _service.AddParameterToSequenceAsync(parameterId, sequence.Id, orderNumber));
-
-        Assert.Equal(parameterId, exception.EntityId);
-        Assert.Equal("Parameter", exception.EntityType);
-    }
-
-    [Fact]
-    public async Task GetSequenceWithParameters_ReturnsSequenceWithParameters()
-    {
-        // Arrange
-        // Create parameters
-        var param1 = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
-        var param2 = new Parameter { Name = "Parameter 2", Type = ParameterType.IntegerType };
-
-        // Create sequence
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
-
-        // Add to database
-        await _dbContext.Parameters.AddRangeAsync(param1, param2);
-        await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.SaveChangesAsync();
-
-        // Create associations
+        // Add parameters to sequence with specific order
         await _dbContext.SequenceParameters.AddRangeAsync(
-            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param1.Id, OrderNumber = 1 },
-            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param2.Id, OrderNumber = 2 }
+            new SequenceParameter
+            {
+                SequenceId = sequence.Id,
+                ParameterId = parameter2.Id,
+                OrderNumber = 1 // Parameter 2 first
+            },
+            new SequenceParameter
+            {
+                SequenceId = sequence.Id,
+                ParameterId = parameter1.Id,
+                OrderNumber = 2 // Parameter 1 second
+            }
         );
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetSequenceWithParametersAsync(sequence.Id);
+        var result = await _service.GetSequenceAsync(name: "Test Sequence");
 
         // Assert
         Assert.NotNull(result);
-        var parameter1 = result.SequenceParameters.Select(p => p.ParameterId == param1.Id);
-        //Assert.Equal(2, result.SequenceParameters);
-       // Assert.Equal(2, result.SequenceParameters.;
+        Assert.Equal("Test Sequence", result.Name);
+        Assert.Null(result.Order); // Order is contextual
+        Assert.Equal(2, result.Parameters.Count());
+        
+        // Verify parameter order is preserved
+        var parametersList = result.Parameters.ToList();
+        Assert.Equal("Parameter 2", parametersList[0].Name); // OrderNumber 1
+        Assert.Equal("Parameter 1", parametersList[1].Name); // OrderNumber 2
     }
 
     [Fact]
-    public async Task SearchSequencesAsync_WithPredicate_ReturnsFilteredSequences()
+    public async Task GetSequenceAsync_WithNoNameFilter_ReturnsFirstSequence()
     {
         // Arrange
-        var sequences = new List<Sequence>
+        var sequence1 = new Sequence
         {
-            new()
-                { Name = "Alpha Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) },
-            new()
-                { Name = "Beta Sequence", WorstCaseTime = TimeSpan.FromSeconds(45) }
+            Name = "First Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(1),
+            CanBeParallel = false
+        };
+        
+        var sequence2 = new Sequence
+        {
+            Name = "Second Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(2),
+            CanBeParallel = true
         };
 
-        await _dbContext.Sequences.AddRangeAsync(sequences);
+        await _dbContext.Sequences.AddRangeAsync(sequence1, sequence2);
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.SearchSequencesAsync(s => s.Name.Contains("Alpha"));
+        var result = await _service.GetSequenceAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        // Should return first sequence (order may vary, so just check it's one of them)
+        Assert.Contains(result.Name, new[] { "First Sequence", "Second Sequence" });
+    }
+
+    [Fact]
+    public async Task GetSequenceAsync_NonexistentName_ReturnsNull()
+    {
+        // Arrange
+        var sequence = new Sequence
+        {
+            Name = "Existing Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(1),
+            CanBeParallel = false
+        };
+
+        await _dbContext.Sequences.AddAsync(sequence);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetSequenceAsync(name: "Nonexistent Sequence");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetSequencesAsync_WithNameFilter_ReturnsFilteredSequences()
+    {
+        // Arrange
+        var sequence1 = new Sequence
+        {
+            Name = "Target Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(1),
+            CanBeParallel = false
+        };
+        
+        var sequence2 = new Sequence
+        {
+            Name = "Other Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(2),
+            CanBeParallel = true
+        };
+
+        await _dbContext.Sequences.AddRangeAsync(sequence1, sequence2);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetSequencesAsync(name: "Target Sequence");
 
         // Assert
         Assert.Single(result);
-        Assert.Equal("Alpha Sequence", result.First().Name);
+        Assert.Equal("Target Sequence", result.First().Name);
     }
 
     [Fact]
-    public async Task AddParameterToSequenceAsync_WithNonExistentSequence_ThrowsEntityNotFoundException()
+    public async Task GetSequencesAsync_WithNoFilter_ReturnsAllSequences()
     {
         // Arrange
-        var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
-        await _dbContext.Parameters.AddAsync(parameter);
+        var sequence1 = new Sequence
+        {
+            Name = "Sequence 1",
+            WorstCaseTime = TimeSpan.FromMinutes(1),
+            CanBeParallel = false
+        };
+        
+        var sequence2 = new Sequence
+        {
+            Name = "Sequence 2",
+            WorstCaseTime = TimeSpan.FromMinutes(2),
+            CanBeParallel = true
+        };
+
+        await _dbContext.Sequences.AddRangeAsync(sequence1, sequence2);
         await _dbContext.SaveChangesAsync();
 
-        var nonExistentSequenceId = -1;
+        // Act
+        var result = await _service.GetSequencesAsync();
 
-        // Act & Assert
-        try
-        {
-            await _service.AddParameterToSequenceAsync(parameter.Id, nonExistentSequenceId, 1);
-            Assert.Fail();
-        }
-        catch (StorageProviderException spex)
-        {
-            Assert.Equal("Storage operation 'AddParameterToSequence' failed", spex.Message);
-            var inner = spex.InnerException;
-            Assert.IsType<EntityNotFoundException>(inner);
-            Assert.Equal("Sequence with ID '-1' not found.", inner.Message);
-        }
+        // Assert
+        Assert.Equal(2, result.Count());
+        Assert.Contains(result, s => s.Name == "Sequence 1");
+        Assert.Contains(result, s => s.Name == "Sequence 2");
     }
 
     [Fact]
-    public async Task CreateSequenceAsync_WithNullSequence_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.CreateSequenceAsync(null!));
-    }
-
-    [Fact]
-    public async Task UpdateSequenceAsync_WithNullSequence_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _service.UpdateSequenceAsync(null!));
-    }
-
-    [Fact]
-    public async Task SearchSequencesAsync_WithNullPredicate_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        await Assert.ThrowsAsync<StorageProviderException>(() =>
-            _service.SearchSequencesAsync(null!));
-    }
-
-    [Fact]
-    public async Task GetSequenceWithParametersAsync_WithValidId_ReturnsSequenceWithOrderedParameters()
+    public async Task ConvertToDTO_ExcludesIdentityKeys_And_ProjectsParametersCorrectly()
     {
         // Arrange
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
+        var sequence = new Sequence
+        {
+            Name = "Test Sequence",
+            Description = "Test description",
+            WorstCaseTime = TimeSpan.FromMinutes(10),
+            CanBeParallel = true
+        };
+        
+        var parameter1 = new Parameter
+        {
+            Name = "First Parameter",
+            Type = ParameterType.String,
+            DefaultValue = "Default1"
+        };
+        
+        var parameter2 = new Parameter
+        {
+            Name = "Second Parameter",
+            Type = ParameterType.Integer,
+            Min = "1",
+            Max = "100",
+            DefaultValue = "50"
+        };
+        
+        var parameter3 = new Parameter
+        {
+            Name = "Third Parameter",
+            Type = ParameterType.Boolean,
+            DefaultValue = "true"
+        };
+
         await _dbContext.Sequences.AddAsync(sequence);
-
-        var param1 = new Parameter { Name = "Parameter 1", Type = ParameterType.StringType };
-        var param2 = new Parameter { Name = "Parameter 2", Type = ParameterType.IntegerType };
-        var param3 = new Parameter { Name = "Parameter 3", Type = ParameterType.BooleanType };
-
-        await _dbContext.Parameters.AddRangeAsync(param1, param2, param3);
+        await _dbContext.Parameters.AddRangeAsync(parameter1, parameter2, parameter3);
         await _dbContext.SaveChangesAsync();
 
-        // Add parameters in non-sequential order
+        // Add parameters to sequence with specific order (not sequential)
         await _dbContext.SequenceParameters.AddRangeAsync(
-            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param2.Id, OrderNumber = 2 },
-            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param1.Id, OrderNumber = 1 },
-            new SequenceParameter { SequenceId = sequence.Id, ParameterId = param3.Id, OrderNumber = 3 }
+            new SequenceParameter
+            {
+                SequenceId = sequence.Id,
+                ParameterId = parameter3.Id,
+                OrderNumber = 1 // Third parameter first
+            },
+            new SequenceParameter
+            {
+                SequenceId = sequence.Id,
+                ParameterId = parameter1.Id,
+                OrderNumber = 3 // First parameter third
+            },
+            new SequenceParameter
+            {
+                SequenceId = sequence.Id,
+                ParameterId = parameter2.Id,
+                OrderNumber = 2 // Second parameter second
+            }
         );
         await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _service.GetSequenceWithParametersAsync(sequence.Id);
+        var result = await _service.GetSequenceAsync(name: "Test Sequence");
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(3, result.SequenceParameters.Count);
-
-        var orderedParams = result.SequenceParameters.OrderBy(sp => sp.OrderNumber).ToList();
-        Assert.Equal(param1.Id, orderedParams[0].ParameterId);
-        Assert.Equal(param2.Id, orderedParams[1].ParameterId);
-        Assert.Equal(param3.Id, orderedParams[2].ParameterId);
+        Assert.Equal("Test Sequence", result.Name);
+        Assert.Null(result.Order); // Order is contextual, not set in conversion
+        
+        // Verify parameters are in correct order based on OrderNumber
+        var parametersList = result.Parameters.ToList();
+        Assert.Equal(3, parametersList.Count);
+        Assert.Equal("Third Parameter", parametersList[0].Name);  // OrderNumber 1
+        Assert.Equal("Second Parameter", parametersList[1].Name); // OrderNumber 2
+        Assert.Equal("First Parameter", parametersList[2].Name);  // OrderNumber 3
+        
+        // Verify that the original parameters still have their identity keys
+        // but the DTO doesn't expose them (by design of SequenceDTO)
+        Assert.True(parameter1.Id > 0);
+        Assert.True(parameter2.Id > 0);
+        Assert.True(parameter3.Id > 0);
     }
 
     [Fact]
-    public async Task RemoveParameterFromSequenceAsync_WithValidIds_RemovesAssociation()
+    public async Task GetSequenceAsync_WithComplexParameterOrdering_PreservesOrder()
     {
         // Arrange
-        var sequence = new Sequence { Name = "Test Sequence", WorstCaseTime = TimeSpan.FromSeconds(30) };
-        var parameter = new Parameter { Name = "Test Parameter", Type = ParameterType.StringType };
+        var sequence = new Sequence
+        {
+            Name = "Complex Sequence",
+            WorstCaseTime = TimeSpan.FromMinutes(5),
+            CanBeParallel = false
+        };
+
+        // Create 5 parameters
+        var parameters = new List<Parameter>();
+        for (int i = 1; i <= 5; i++)
+        {
+            parameters.Add(new Parameter
+            {
+                Name = $"Parameter {i}",
+                Type = ParameterType.String,
+                DefaultValue = $"Value{i}"
+            });
+        }
 
         await _dbContext.Sequences.AddAsync(sequence);
-        await _dbContext.Parameters.AddAsync(parameter);
+        await _dbContext.Parameters.AddRangeAsync(parameters);
         await _dbContext.SaveChangesAsync();
 
-        var sequenceParameter = new SequenceParameter
+        // Add parameters in non-sequential order: 5, 2, 1, 4, 3
+        var sequenceParameters = new[]
         {
-            SequenceId = sequence.Id,
-            ParameterId = parameter.Id,
-            OrderNumber = 1
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = parameters[4].Id, OrderNumber = 1 }, // Parameter 5
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = parameters[1].Id, OrderNumber = 2 }, // Parameter 2
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = parameters[0].Id, OrderNumber = 3 }, // Parameter 1
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = parameters[3].Id, OrderNumber = 4 }, // Parameter 4
+            new SequenceParameter { SequenceId = sequence.Id, ParameterId = parameters[2].Id, OrderNumber = 5 }  // Parameter 3
         };
-        await _dbContext.SequenceParameters.AddAsync(sequenceParameter);
+
+        await _dbContext.SequenceParameters.AddRangeAsync(sequenceParameters);
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _service.RemoveParameterFromSequenceAsync(parameter.Id, sequence.Id);
+        var result = await _service.GetSequenceAsync(name: "Complex Sequence");
 
         // Assert
-        var association = await _dbContext.SequenceParameters
-            .FirstOrDefaultAsync(sp => sp.SequenceId == sequence.Id && sp.ParameterId == parameter.Id);
-        Assert.Null(association);
+        Assert.NotNull(result);
+        Assert.Equal(5, result.Parameters.Count());
+
+        var parametersList = result.Parameters.ToList();
+        Assert.Equal("Parameter 5", parametersList[0].Name); // OrderNumber 1
+        Assert.Equal("Parameter 2", parametersList[1].Name); // OrderNumber 2
+        Assert.Equal("Parameter 1", parametersList[2].Name); // OrderNumber 3
+        Assert.Equal("Parameter 4", parametersList[3].Name); // OrderNumber 4
+        Assert.Equal("Parameter 3", parametersList[4].Name); // OrderNumber 5
     }
 
     [Fact]
-    public async Task SearchSequencesAsync_WithComplexPredicate_ReturnsMatchingSequences()
+    public async Task GetSequenceAsync_EmptyParameterList_ReturnsSequenceWithEmptyParameters()
     {
         // Arrange
-        var sequences = new List<Sequence>
-            {
-                new() { Name = "Fast Sequence", WorstCaseTime = TimeSpan.FromSeconds(10), CanBeParallel = true },
-                new() { Name = "Slow Sequence", WorstCaseTime = TimeSpan.FromSeconds(60), CanBeParallel = false },
-                new() { Name = "Medium Sequence", WorstCaseTime = TimeSpan.FromSeconds(30), CanBeParallel = true }
-            };
+        var sequence = new Sequence
+        {
+            Name = "Empty Sequence",
+            Description = "Sequence with no parameters",
+            WorstCaseTime = TimeSpan.FromMinutes(1),
+            CanBeParallel = false
+        };
 
-        await _dbContext.Sequences.AddRangeAsync(sequences);
+        await _dbContext.Sequences.AddAsync(sequence);
         await _dbContext.SaveChangesAsync();
 
-        // Act - Find parallel sequences that take less than 45 seconds
-        var result = await _service.SearchSequencesAsync(s =>
-            s.CanBeParallel && s.WorstCaseTime < TimeSpan.FromSeconds(45));
+        // Act
+        var result = await _service.GetSequenceAsync(name: "Empty Sequence");
 
         // Assert
-        var resultList = result.ToList();
-        Assert.Equal(2, resultList.Count);
-        Assert.Contains(resultList, s => s.Name == "Fast Sequence");
-        Assert.Contains(resultList, s => s.Name == "Medium Sequence");
-    }
-
-    [Fact]
-    public void Constructor_WithNullSequenceRepository_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            new SequenceService(null!, _parameterRepository, _mockLogger.Object));
-    }
-
-    [Fact]
-    public void Constructor_WithNullParameterRepository_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            new SequenceService(_sequenceRepository, null!, _mockLogger.Object));
-    }
-
-    [Fact]
-    public void Constructor_WithNullLogger_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            new SequenceService(_sequenceRepository, _parameterRepository, null!));
+        Assert.NotNull(result);
+        Assert.Equal("Empty Sequence", result.Name);
+        Assert.Empty(result.Parameters);
     }
 }

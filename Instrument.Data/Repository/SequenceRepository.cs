@@ -89,4 +89,34 @@ public class SequenceRepository : Repository<Sequence>, ISequenceRepository
             await DbContext.SaveChangesAsync();
         }
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Sequence>> GetSequencesWithParametersAsync(string? name = null)
+    {
+        var query = DbContext.Sequences
+            .Include(s => s.SequenceParameters)
+                .ThenInclude(sp => sp.Parameter)
+            .AsQueryable();
+
+        // Apply name filter if provided
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            query = query.Where(s => s.Name == name);
+        }
+
+        return await query.ToListAsync();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<Parameter>> GetOrderedParametersAsync(int sequenceId)
+    {
+        var parameters = await DbContext.SequenceParameters
+            .Where(sp => sp.SequenceId == sequenceId)
+            .Include(sp => sp.Parameter)
+            .OrderBy(sp => sp.OrderNumber)
+            .Select(sp => sp.Parameter!)
+            .ToListAsync();
+
+        return parameters;
+    }
 }

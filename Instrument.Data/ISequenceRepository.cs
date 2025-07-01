@@ -33,4 +33,18 @@ public interface ISequenceRepository : IRepository<Sequence>
     /// <param name="parameterId">Parameter ID</param>
     /// <param name="sequenceId">Sequence ID</param>
     Task RemoveParameterFromSequenceAsync(int parameterId, int sequenceId);
+    
+    /// <summary>
+    /// Gets sequences with their parameters filtered by name
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, all sequences are returned</param>
+    /// <returns>Collection of Sequences with parameters loaded</returns>
+    Task<IEnumerable<Sequence>> GetSequencesWithParametersAsync(string? name = null);
+    
+    /// <summary>
+    /// Gets the ordered parameters for a specific sequence
+    /// </summary>
+    /// <param name="sequenceId">Sequence ID</param>
+    /// <returns>Ordered list of parameters</returns>
+    Task<IEnumerable<Parameter>> GetOrderedParametersAsync(int sequenceId);
 }
