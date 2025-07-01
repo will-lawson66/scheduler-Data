@@ -1,4 +1,6 @@
-﻿using Instrument.Data.Entities;
+﻿using Instrument.Data.DTOs;
+using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 
 namespace Instrument.Data;
 
@@ -8,6 +10,10 @@ public interface ISequenceGroupService
     Task UpdateSequenceGroupAsync(SequenceGroup sequenceGroup);
     Task<SequenceGroup?> GetSequenceGroupByIdAsync(int sequenceGroupId);
     Task<IEnumerable<SequenceGroup>> GetAllSequenceGroupsAsync();
+    
+    // DTO-based methods
+    Task<SequenceGroupDTO?> GetSequenceGroupAsync(string? name = null, Technology? technology = null);
+    Task<IEnumerable<SequenceGroupDTO>> GetSequenceGroupsAsync(string? name = null, Technology? technology = null);
     Task DeleteSequenceGroupAsync(int sequenceGroupId);
 
     /// <summary>

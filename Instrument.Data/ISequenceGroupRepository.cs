@@ -1,4 +1,5 @@
 using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 
 namespace Instrument.Data;
 /// <summary>
@@ -21,4 +22,12 @@ public interface ISequenceGroupRepository : IRepository<SequenceGroup>
     /// <param name="sequenceGroupId"></param>
     /// <returns><see cref="SortedList{TKey,TValue}"/></returns>
     Task<SortedList<int, Sequence>> GetOrderedSequencesAsync(int sequenceGroupId);
+    
+    /// <summary>
+    /// Gets SequenceGroups with their sequences filtered by name and/or technology
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, all SequenceGroups are returned</param>
+    /// <param name="technology">Optional technology filter</param>
+    /// <returns>Collection of SequenceGroups with sequences loaded</returns>
+    Task<IEnumerable<SequenceGroup>> GetSequenceGroupsWithSequencesAsync(string? name = null, Technology? technology = null);
 }

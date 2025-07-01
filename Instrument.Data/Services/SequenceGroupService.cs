@@ -1,4 +1,6 @@
+using Instrument.Data.DTOs;
 using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 using Instrument.Data.Exceptions;
 using Instrument.Data.Repository;
 using Microsoft.Extensions.Logging;
@@ -364,5 +366,68 @@ public class SequenceGroupService : ISequenceGroupService
             _logger.LogError(ex, "Error validating sequence group {Id}", sequenceGroupId);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Gets a single sequence group by name or technology, returns DTO without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, returns first matching technology or first overall</param>
+    /// <param name="technology">Optional technology filter</param>
+    /// <returns>SequenceGroupDTO if found, null otherwise</returns>
+    public async Task<SequenceGroupDTO?> GetSequenceGroupAsync(string? name = null, Technology? technology = null)
+    {
+        try
+        {
+            var sequenceGroups = await _sequenceGroupRepository.GetSequenceGroupsWithSequencesAsync(name, technology);
+            var sequenceGroup = sequenceGroups.FirstOrDefault();
+            
+            return sequenceGroup != null ? ConvertToDTO(sequenceGroup) : null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting sequence group with name: {Name}, technology: {Technology}", name, technology);
+            throw new StorageProviderException("GetSequenceGroup", ex);
+        }
+    }
+
+    /// <summary>
+    /// Gets sequence groups by name or technology, returns DTOs without identity keys
+    /// </summary>
+    /// <param name="name">Optional name filter - if null, all sequence groups are returned</param>
+    /// <param name="technology">Optional technology filter</param>
+    /// <returns>Collection of SequenceGroupDTOs</returns>
+    public async Task<IEnumerable<SequenceGroupDTO>> GetSequenceGroupsAsync(string? name = null, Technology? technology = null)
+    {
+        try
+        {
+            var sequenceGroups = await _sequenceGroupRepository.GetSequenceGroupsWithSequencesAsync(name, technology);
+            return sequenceGroups.Select(ConvertToDTO);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting sequence groups with name: {Name}, technology: {Technology}", name, technology);
+            throw new StorageProviderException("GetSequenceGroups", ex);
+        }
+    }
+
+    /// <summary>
+    /// Converts a SequenceGroup entity to SequenceGroupDTO
+    /// </summary>
+    /// <param name="sequenceGroup">The SequenceGroup entity</param>
+    /// <returns>SequenceGroupDTO with sequences projected from SequenceGroupSequences</returns>
+    private static SequenceGroupDTO ConvertToDTO(SequenceGroup sequenceGroup)
+    {
+        var sequences = sequenceGroup.SequenceGroupSequences
+            .Where(sgs => sgs.Sequence != null)
+            .OrderBy(sgs => sgs.Order)
+            .Select(sgs => sgs.Sequence!)
+            .ToList();
+
+        return new SequenceGroupDTO
+        {
+            Name = sequenceGroup.Name,
+            Technology = sequenceGroup.Technology,
+            Sequences = sequences
+        };
     }
 }

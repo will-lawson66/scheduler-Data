@@ -10,6 +10,7 @@ using Instrument.Data.Grpc;
 using Instrument.Data.Orchestration;
 using Instrument.Data.Orchestration.ConfigurationImport;
 using Instrument.Data.Orchestration.ConfigurationImport.Steps;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,18 @@ public static class ServiceCollectionExtensions
         IConfiguration config)
     {
         var storageConfiguration = config.GetSection("StorageConfiguration").Get<StorageConfiguration>() ?? new StorageConfiguration();
+
+        // Configure sequence group options
+        services.Configure<SequenceGroupOptions>(config.GetSection(SequenceGroupOptions.SectionName));
+        
+        // Configure JSON options for proper serialization
+        services.ConfigureAll<JsonOptions>(options =>
+        {
+            options.SerializerOptions.Converters.Add(new TechnologyJsonConverter());
+            options.SerializerOptions.Converters.Add(new TimeSpanJsonConverter());
+            options.SerializerOptions.PropertyNameCaseInsensitive = true;
+            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        });
 
         // Ensure logging services are available
         services.AddLogging(builder => builder
@@ -67,6 +80,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRangeValueService, RangeValueService>();
         services.AddScoped<IResourceService, ResourceService>();
         services.AddScoped<ISequenceGroupService, SequenceGroupService>();
+        services.AddScoped<ISequenceGroupConfigurationService, SequenceGroupConfigurationService>();
         services.AddScoped(typeof(ISequenceGroupCollectionService<>), typeof(SequenceGroupCollectionService<>));
         services.AddScoped<ISequenceService, SequenceService>();
 

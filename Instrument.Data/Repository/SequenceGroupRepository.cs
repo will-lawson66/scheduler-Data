@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Instrument.Data.Entities;
+using Instrument.Data.Entities.Enums;
 using Instrument.Data.DataContext;
 using Instrument.Data.Exceptions;
 
@@ -103,5 +104,28 @@ public class SequenceGroupRepository : Repository<SequenceGroup>, ISequenceGroup
         }
 
         return sortedSequences;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<SequenceGroup>> GetSequenceGroupsWithSequencesAsync(string? name = null, Technology? technology = null)
+    {
+        var query = DbContext.SequenceGroups
+            .Include(sg => sg.SequenceGroupSequences)
+                .ThenInclude(sgs => sgs.Sequence)
+            .AsQueryable();
+
+        // Apply name filter if provided
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            query = query.Where(sg => sg.Name == name);
+        }
+
+        // Apply technology filter if provided
+        if (technology.HasValue)
+        {
+            query = query.Where(sg => sg.Technology == technology);
+        }
+
+        return await query.ToListAsync();
     }
 }
