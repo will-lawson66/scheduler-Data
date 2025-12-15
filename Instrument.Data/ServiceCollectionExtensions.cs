@@ -1,16 +1,16 @@
+using System.Text.Json;
+
 namespace Instrument.Data;
-using Instrument.Data;
-using Instrument.Data.Configuration;
-using Instrument.Data.DataContext;
-using Instrument.Data.Initialization;
-using Instrument.Data.Repository;
-using Instrument.Data.Services;
-using Instrument.Data.Services.Cleanup;
-using Instrument.Data.Grpc;
-using Instrument.Data.Orchestration;
-using Instrument.Data.Orchestration.ConfigurationImport;
-using Instrument.Data.Orchestration.ConfigurationImport.Steps;
-using Microsoft.AspNetCore.Http.Json;
+using Configuration;
+using DataContext;
+using Grpc;
+using Initialization;
+using Orchestration;
+using Orchestration.ConfigurationImport;
+using Orchestration.ConfigurationImport.Steps;
+using Repository;
+using Services;
+using Services.Cleanup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,13 +31,13 @@ public static class ServiceCollectionExtensions
         services.Configure<SequenceGroupOptions>(config.GetSection(SequenceGroupOptions.SectionName));
         
         // Configure JSON options for proper serialization
-        services.ConfigureAll<JsonOptions>(options =>
-        {
-            options.SerializerOptions.Converters.Add(new TechnologyJsonConverter());
-            options.SerializerOptions.Converters.Add(new TimeSpanJsonConverter());
-            options.SerializerOptions.PropertyNameCaseInsensitive = true;
-            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        });
+        //services.ConfigureAll<JsonOptions>(options =>
+        //{
+        //    options.SerializerOptions.Converters.Add(new TechnologyJsonConverter());
+        //    options.SerializerOptions.Converters.Add(new TimeSpanJsonConverter());
+        //    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+        //    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        //});
 
         // Ensure logging services are available
         services.AddLogging(builder => builder
